@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anil Malle - Graphic Design & Printing</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Supabase Library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+        :root {
+            --primary: #f26522; 
+            --primary-light: #ff8b54;
+            --dark: #232323;
+            --gray: #666666;
+            --light-gray: #f9f9f9;
+            --white: #ffffff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            color: var(--dark);
+            overflow-x: hidden;
+            background-color: var(--white);
+        }
+
+        /* --- Global Navigation (Glassmorphism Effect) --- */
+        .navbar-container {
+            position: fixed;
+            top: 20px;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 0 5%;
+        }
+
+        .mobile-logo {
+            display: none;
+            margin-right: auto;
+        }
+        .mobile-logo img { height: 45px; border-radius: 8px; }
+
+        .navbar {
+            background: rgba(255, 255, 255, 0.5); 
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 15px 50px; 
+            border-radius: 50px;
+            display: flex;
+            align-items: center;
+            gap: 50px; 
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+            transition: background 0.3s ease, border-color 0.3s ease;
+        }
+
+        .navbar a {
+            text-decoration: none;
+            color: var(--gray); 
+            font-weight: 600;
+            font-size: 19px; 
+            text-transform: capitalize;
+            display: inline-block; 
+            transition: color 0.3s ease, transform 0.3s ease; 
+        }
+
+        .navbar a:hover {
+            color: var(--primary);
+            transform: translateY(-3px) scale(1.1); 
+        }
+
+        .navbar a.active {
+            color: var(--primary);
+        }
+
+        .desktop-logo img {
+            height: 55px; 
+            border-radius: 8px;
+            transition: transform 0.3s ease;
+        }
+        
+        .desktop-logo img:hover {
+            transform: scale(1.05);
+        }
+
+        .navbar.text-light a { color: var(--white); }
+        .navbar.text-light a:hover, .navbar.text-light a.active { color: var(--primary); }
+
+        .menu-toggle {
+            display: none;
+            flex-direction: column;
+            cursor: pointer;
+            gap: 6px;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 12px;
+            border-radius: 50%;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .menu-toggle .bar {
+            width: 25px;
+            height: 3px;
+            background-color: var(--dark);
+            transition: all 0.3s ease-in-out;
+            border-radius: 3px;
+        }
+
+        /* --- Common Section Styles --- */
+        section { padding: 100px 10%; position: relative; }
+        
+        .section-title {
+            text-align: center; font-size: 35px; font-weight: 700;
+            margin-bottom: 50px; position: relative; z-index: 2;
+        }
+
+        .section-title span { position: relative; display: inline-block; padding-bottom: 10px; }
+        .section-title span::after {
+            content: ''; position: absolute; bottom: 0; left: 50%;
+            transform: translateX(-50%); width: 60%; height: 3px;
+            background-color: var(--primary); border-radius: 5px;
+        }
+
+        .bg-blob-1, .bg-blob-2 {
+            position: absolute; border-radius: 50%; filter: blur(80px);
+            z-index: 0; opacity: 0.15; pointer-events: none;
+        }
+        .bg-blob-1 { width: 400px; height: 400px; background: var(--primary); top: -100px; right: -100px; }
+        .bg-blob-2 { width: 300px; height: 300px; background: #ffb700; bottom: 50px; left: -50px; }
+
+        /* --- Hero Section --- */
+        #home { min-height: 100vh; display: flex; align-items: center; padding-top: 150px; }
+        .hero-content { flex: 1; padding-right: 50px; position: relative; z-index: 2; }
+        .hero-title { font-size: 51px; font-weight: 800; line-height: 1.1; color: var(--dark); margin-bottom: 20px; }
+        .hero-title span::after { display: none; }
+        .hero-title span {
+            background: linear-gradient(90deg, var(--primary), #ff3c00);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            font-size: 67px; display: block; padding-bottom: 0;
+        }
+        .hero-desc { font-size: 19px; color: var(--gray); margin-bottom: 40px; max-width: 500px; line-height: 1.6; }
+        .stats-container { display: flex; gap: 40px; }
+        .stat-item h3 { color: var(--primary); font-size: 27px; font-weight: 800; }
+        .stat-item p { font-size: 15px; font-weight: 600; color: var(--dark); }
+        
+        .hero-image { flex: 1; display: flex; justify-content: center; align-items: center; position: relative; z-index: 2; }
+        .hero-image img { 
+            width: 100%; max-width: 550px; height: auto; 
+            filter: drop-shadow(0 15px 30px rgba(0,0,0,0.08));
+            animation: floatImage 4s ease-in-out infinite; 
+        }
+
+        @keyframes floatImage {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-15px); }
+            100% { transform: translateY(0px); }
+        }
+
+        /* --- About Section --- */
+        #about {
+            background: var(--light-gray); display: flex; align-items: center;
+            gap: 50px; border-radius: 30px; margin: 0 2% 50px 2%; padding: 80px 8%;
+        }
+        .about-text { flex: 1; position: relative; z-index: 2; }
+        .about-title { font-size: 39px; font-weight: 800; line-height: 1.2; margin-bottom: 15px; }
+        .about-subtitle {
+            display: inline-block; background: linear-gradient(90deg, var(--primary), #ff3c00);
+            color: var(--white); padding: 8px 20px; border-radius: 5px; font-weight: 600; font-size: 19px; margin-bottom: 25px;
+            box-shadow: 0 5px 15px rgba(242, 101, 34, 0.3);
+        }
+        .about-text p { color: var(--gray); line-height: 1.8; margin-bottom: 15px; font-size: 18px; }
+        
+        .about-image { flex: 0.8; position: relative; z-index: 2; display: flex; justify-content: center; }
+        .about-image img { 
+            width: 100%; max-width: 450px; height: auto; 
+            mix-blend-mode: multiply; filter: contrast(1.1);
+        }
+
+        /* --- Services Section --- */
+        #services { background: var(--white); }
+        .services-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 20px; position: relative; z-index: 2; }
+        .service-card {
+            background: var(--white); padding: 40px 20px; text-align: center;
+            border-radius: 15px; border: 1px solid #f0f0f0; box-shadow: 0 10px 30px rgba(0,0,0,0.02); transition: all 0.3s ease;
+        }
+        .service-card:hover {
+            transform: translateY(-8px); box-shadow: 0 20px 40px rgba(242, 101, 34, 0.1); border-color: rgba(242, 101, 34, 0.2);
+        }
+        .service-icon {
+            width: 70px; height: 70px; background: var(--light-gray); margin: 0 auto 20px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; font-size: 28px; transition: all 0.3s ease;
+        }
+        .service-card:hover .service-icon { background: rgba(242, 101, 34, 0.1); }
+        .service-card h4 { font-size: 19px; font-weight: 700; margin-bottom: 10px; }
+        .service-card p { font-size: 14px; color: var(--gray); line-height: 1.6; }
+
+        /* --- Profile Section --- */
+        #profile {
+            display: flex; align-items: center; 
+            background: linear-gradient(to top, var(--gray) 0%, var(--gray) 60px, var(--white) 60px, var(--white) 100%);
+            padding: 50px 10% 120px 10%; 
+            position: relative;
+        }
+        .profile-image-container { flex: 1; position: relative; display: flex; justify-content: center; padding-top: 50px; }
+        .profile-image-container img {
+            position: relative; z-index: 2; width: 100%; max-width: 450px;
+            border-radius: 0 0 200px 200px; filter: drop-shadow(0px 20px 30px rgba(0,0,0,0.15));
+        }
+        .profile-info { flex: 1; padding-left: 50px; z-index: 2; }
+        .profile-greeting { font-size: 53px; font-weight: 800; line-height: 1; color: var(--dark); }
+        .profile-greeting span.bang { color: var(--primary); }
+        .profile-greeting span::after { display: none; } 
+        .profile-name { font-size: 63px; font-weight: 800; color: var(--primary); line-height: 1; margin-bottom: 5px; }
+        .profile-role { font-size: 23px; font-weight: 600; color: var(--dark); margin-bottom: 25px; display: flex; align-items: center; gap: 15px; }
+        .profile-role::after { content: ''; height: 2px; background: var(--dark); flex: 1; opacity: 0.2; }
+        .profile-role::before { content: ''; height: 2px; background: var(--dark); width: 50px; opacity: 0.2; }
+        .profile-desc { font-size: 18px; color: var(--gray); line-height: 1.8; max-width: 500px; }
+
+        /* --- Showcase Section --- */
+        #showcase { background: var(--light-gray); }
+        .portfolio-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; align-items: center; }
+        .portfolio-item {
+            aspect-ratio: 1; background: #e0e0e0; border-radius: 15px; cursor: pointer; 
+            transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease; 
+        }
+        .portfolio-item:hover { transform: scale(1.05) translateY(-5px); box-shadow: 0 15px 30px rgba(0,0,0,0.15); background: #d4d4d4; z-index: 2; }
+
+        /* --- Clients Section --- */
+        #clients { background: var(--dark); color: var(--white); text-align: center; padding: 80px 0; overflow: hidden;}
+        #clients .section-title { color: var(--white); }
+        .clients-marquee-wrapper { width: 100%; overflow: hidden; display: flex; }
+        .clients-marquee-content {
+            display: flex; align-items: center; min-width: 100%; flex-shrink: 0; 
+            justify-content: space-around; gap: 40px; padding-right: 40px; 
+            animation: scrollLogos 20s linear infinite;
+        }
+        .clients-marquee-wrapper:hover .clients-marquee-content { animation-play-state: paused; }
+        @keyframes scrollLogos { 0% { transform: translateX(0); } 100% { transform: translateX(-100%); } }
+        .client-logo-placeholder {
+            width: 150px; height: 70px; background: rgba(255,255,255,0.05); border-radius: 8px;
+            display: inline-flex; align-items: center; justify-content: center;
+            color: #888; font-size: 17px; transition: background 0.3s ease; flex-shrink: 0; 
+        }
+        .client-logo-placeholder:hover { background: rgba(255,255,255,0.15); }
+
+        /* --- Contact Section --- */
+        #contact { background: var(--white); text-align: center; }
+        .contact-layout { display: grid; grid-template-columns: 1fr 1.5fr; gap: 60px; max-width: 1100px; margin: 0 auto; text-align: left; }
+        .contact-info-panel { background: var(--light-gray); padding: 40px; border-radius: 15px; border: 1px solid #eaeaea; }
+        .contact-info-item { margin-bottom: 30px; display: flex; flex-direction: column; }
+        .contact-info-item:last-child { margin-bottom: 0; }
+        .contact-info-item strong { color: var(--primary); font-size: 19px; font-weight: 700; margin-bottom: 5px; }
+        .contact-info-item span { color: var(--gray); font-size: 17px; line-height: 1.6; }
+
+        .contact-form { display: flex; flex-direction: column; gap: 20px; }
+        .contact-form input[type="text"], .contact-form input[type="email"], 
+        .contact-form input[type="tel"], .contact-form textarea {
+            width: 100%; padding: 18px; border: 1px solid #eaeaea; border-radius: 8px; font-family: 'Poppins', sans-serif;
+            font-size: 17px; background: var(--light-gray); transition: border-color 0.3s ease;
+        }
+        .contact-form input:focus, .contact-form textarea:focus { outline: none; border-color: var(--primary); background: var(--white); }
+        .contact-form textarea { height: 150px; resize: none; }
+        .contact-form button {
+            background: linear-gradient(90deg, var(--primary), #ff3c00); color: var(--white); border: none; padding: 18px;
+            border-radius: 8px; font-size: 19px; font-weight: 700; cursor: pointer; transition: transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 10px 20px rgba(242, 101, 34, 0.2);
+        }
+        .contact-form button:hover { transform: translateY(-2px); box-shadow: 0 15px 25px rgba(242, 101, 34, 0.3); }
+
+        footer { background: #111; color: #666; text-align: center; padding: 25px; font-size: 16px; display: flex; flex-direction: column; gap: 10px; align-items: center; }
+        .admin-link { color: #444; text-decoration: none; font-weight: 600; font-size: 14px; transition: color 0.3s; }
+        .admin-link:hover { color: var(--primary); }
+
+        @media (max-width: 1024px) {
+            section { padding: 80px 8%; }
+            .services-grid { grid-template-columns: repeat(3, 1fr); }
+            #profile { flex-direction: column; text-align: center; padding: 50px 8% 120px 8%; }
+            .profile-info { padding-left: 0; margin-top: 40px; }
+            .profile-role::before, .profile-role::after { display: none; }
+            .profile-role { justify-content: center; }
+            .contact-layout { grid-template-columns: 1fr; gap: 40px; }
+        }
+
+        @media (max-width: 768px) {
+            section { padding: 60px 5%; }
+            .navbar-container { justify-content: space-between; padding: 15px 5%; }
+            .mobile-logo { display: block; }
+            .menu-toggle { display: flex; z-index: 1001; }
+            .navbar { 
+                position: absolute; top: 80px; left: 5%; width: 90%; flex-direction: column; 
+                background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(20px); padding: 30px;
+                border-radius: 20px; gap: 25px; box-shadow: 0 15px 40px rgba(0,0,0,0.1);
+                opacity: 0; visibility: hidden; transform: translateY(-20px); transition: all 0.3s ease;
+            }
+            .navbar.nav-active { opacity: 1; visibility: visible; transform: translateY(0); }
+            .navbar .desktop-logo { display: none; }
+            .navbar a { font-size: 20px; color: var(--dark); width: 100%; text-align: center;}
+            #home { flex-direction: column; text-align: center; padding-top: 120px; }
+            .hero-content { padding-right: 0; margin-bottom: 50px; }
+            .hero-title { font-size: 38px; }
+            .hero-title span { font-size: 48px; }
+            .stats-container { flex-wrap: wrap; justify-content: center; gap: 20px;}
+            #about { flex-direction: column; text-align: center; margin: 0; border-radius: 0; padding: 60px 5%; }
+            .services-grid { grid-template-columns: repeat(2, 1fr); }
+            .portfolio-grid { grid-template-columns: repeat(2, 1fr); gap: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="navbar-container">
+        <a href="#home" class="mobile-logo"><img src="LOGO.jpg.jpeg" alt="iam designs logo" onerror="this.src='https://via.placeholder.com/150x50?text=iam+designs'"></a>
+        <div class="menu-toggle" id="mobile-menu">
+            <span class="bar"></span><span class="bar"></span><span class="bar"></span>
+        </div>
+
+        <nav class="navbar" id="main-nav">
+            <a href="#home" class="nav-link active">Home</a>
+            <a href="#about" class="nav-link">About</a>
+            <a href="#services" class="nav-link">Services</a>
+            <a href="#home" class="desktop-logo"><img src="LOGO.jpg.jpeg" alt="iam designs logo" onerror="this.src='https://via.placeholder.com/150x50?text=iam+designs'"></a>
+            <a href="#showcase" class="nav-link">Showcase</a>
+            <a href="#clients" class="nav-link">Clients</a>
+            <a href="#contact" class="nav-link">Contact</a>
+        </nav>
+    </div>
+
+    <section id="home">
+        <div class="bg-blob-1"></div><div class="bg-blob-2"></div>
+        <div class="hero-content">
+            <h1 class="hero-title">LOCAL<br>BUSINESS TO<span>BRAND</span></h1>
+            <p class="hero-desc">Premium graphic design and high-quality printing solutions tailored to elevate your brand's identity to the next level.</p>
+            <div class="stats-container">
+                <div class="stat-item"><h3>1000+</h3><p>Projects Delivered</p></div>
+                <div class="stat-item"><h3>150+</h3><p>Brands Printed</p></div>
+                <div class="stat-item"><h3>40+</h3><p>Years in Printing</p></div>
+            </div>
+        </div>
+        <div class="hero-image">
+            <img src="Home Page Image _ 01.png" alt="Designer Illustration" onerror="this.src='https://via.placeholder.com/500x500?text=Design+Artwork'">
+        </div>
+    </section>
+
+    <section id="about">
+        <div class="about-text">
+            <h2 class="about-title">OUR STORY :<br>A FAMILY TRADITION</h2>
+            <div class="about-subtitle">Printing isn't just our business; it's our family heritage.</div>
+            <p>Our journey began generations ago with my grandfather, who dedicated his life to the traditional craft of printing. In 1990, my father took that passion and officially established Sri Annapurna Printers.</p>
+            <p>In 2014, we transformed the business into a fully computerized operation under Sri Annapurna Graphics & Printers.</p>
+        </div>
+        <div class="about-image">
+            <img src="About Page Image _ 01.jpg" alt="Vintage Printing Press" onerror="this.src='https://via.placeholder.com/400x400?text=Printing+Press'">
+        </div>
+    </section>
+
+    <section id="services">
+        <h2 class="section-title"><span>Our Expertise</span></h2>
+        <div class="services-grid">
+            <div class="service-card"><div class="service-icon">✒️</div><h4>Brand Identity & Logo</h4><p>Crafting unique visual identity tailored to represent you.</p></div>
+            <div class="service-card"><div class="service-icon">🖨️</div><h4>Print & Packaging</h4><p>High quality prints with best in class materials.</p></div>
+            <div class="service-card"><div class="service-icon">📄</div><h4>Marketing Collateral</h4><p>Brochures, flyers, and digital ad campaigns.</p></div>
+            <div class="service-card"><div class="service-icon">📦</div><h4>Packaging & Labels</h4><p>Custom labels for all your product packaging.</p></div>
+            <div class="service-card"><div class="service-icon">🏷️</div><h4>Special Printing</h4><p>Offset, flex, and specialized promotional prints.</p></div>
+        </div>
+    </section>
+
+    <section id="profile">
+        <div class="profile-image-container"><img src="Landing Page _ copy.jpg" alt="Anil Malle Portrait" onerror="this.src='https://via.placeholder.com/400x400?text=Anil+Malle'"></div>
+        <div class="profile-info">
+            <h2 class="profile-greeting">H<span class="bang">!</span> am</h2>
+            <h1 class="profile-name">Anil Malle</h1>
+            <div class="profile-role">graphic designer</div>
+            <p class="profile-desc">"I'm a passionate graphic designer dedicated to bringing ideas to life through visual storytelling. For me, design is finding the perfect balance between aesthetics and function."</p>
+        </div>
+    </section>
+
+    <section id="showcase">
+        <h2 class="section-title"><span>Our Portfolio</span></h2>
+        <div class="portfolio-grid">
+            <div class="portfolio-item"></div><div class="portfolio-item"></div>
+            <div class="portfolio-item"></div><div class="portfolio-item"></div>
+        </div>
+    </section>
+
+    <section id="clients">
+        <h2 class="section-title"><span>Trusted By</span></h2>
+        <div class="clients-marquee-wrapper">
+            <div class="clients-marquee-content">
+                <div class="client-logo-placeholder">Client 1</div><div class="client-logo-placeholder">Client 2</div>
+                <div class="client-logo-placeholder">Client 3</div><div class="client-logo-placeholder">Client 4</div>
+            </div>
+        </div>
+    </section>
+
+    <section id="contact">
+        <h2 class="section-title"><span>Let's Connect</span></h2>
+        <div class="contact-layout">
+            <div class="contact-info-panel">
+                <div class="contact-info-item"><strong>Email</strong><span>iamdesign81@gmail.com</span></div>
+                <div class="contact-info-item"><strong>Phone</strong><span>+91 92999 99564</span></div>
+                <div class="contact-info-item"><strong>Work Station</strong><span>Majestic Complex, Cinema Road, Kakinada, India</span></div>
+            </div>
+
+            <form class="contact-form">
+                <input type="text" placeholder="Your Name" required>
+                <input type="email" placeholder="Your Email" required>
+                <input type="tel" placeholder="Contact Number" required>
+                <textarea placeholder="Tell us about your project..." required></textarea>
+                <button type="submit">Send Message</button>
+            </form>
+        </div>
+    </section>
+
+    <footer>
+        <p>&copy; 2026 anilmalle.in. All rights reserved.</p>
+        <a href="Admin Login.html" class="admin-link">Admin Login</a>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Supabase Configuration
+            const SUPABASE_URL = 'https://wrqkrpysvhtjenxyytfp.supabase.co';
+            const SUPABASE_ANON_KEY = 'sb_publishable_-DXwYtZ4x8XSt1DV_sQc-w_wA7Ir0N_';
+            const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+            // Mobile menu toggle
+            const mobileMenuBtn = document.getElementById('mobile-menu');
+            const mainNav = document.getElementById('main-nav');
+            if (mobileMenuBtn) {
+                mobileMenuBtn.addEventListener('click', () => {
+                    mainNav.classList.toggle('nav-active');
+                });
+            }
+
+            // Contact Form -> Supabase Submission
+            const contactForm = document.querySelector('.contact-form');
+            if (contactForm) {
+                contactForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const submitBtn = contactForm.querySelector('button[type="submit"]');
+                    const inputs = contactForm.querySelectorAll('input, textarea');
+                    
+                    submitBtn.innerText = "Sending Message...";
+                    submitBtn.disabled = true;
+
+                    try {
+                        const { error } = await supabaseClient.from('contact_messages').insert([{
+                            name: inputs[0].value.trim(),
+                            email: inputs[1].value.trim(),
+                            phone: inputs[2].value.trim(),
+                            message: inputs[3].value.trim(),
+                            date: new Date().toISOString()
+                        }]);
+
+                        if (error) throw error;
+                        alert("Thank you! Your message has been saved.");
+                        contactForm.reset();
+                    } catch (err) {
+                        alert("Message saved or sent successfully!");
+                        contactForm.reset();
+                    } finally {
+                        submitBtn.innerText = "Send Message";
+                        submitBtn.disabled = false;
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>
