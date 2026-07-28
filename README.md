@@ -1,1 +1,1 @@
-# IAM-_-JS-CODE
+# IAM-JS-CODE
