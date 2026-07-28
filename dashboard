@@ -1,8 +1,8 @@
 // ==========================================
 // SUPABASE CONFIGURATION
 // ==========================================
-const supabaseUrl = 'YOUR_SUPABASE_URL'; // Replace with your Project URL
-const supabaseKey = 'YOUR_SUPABASE_ANON_KEY'; // Replace with your anon/public key
+const supabaseUrl = 'https://wrqkrpysvhtjenxyytfp.supabase.co'; // Replace with your Project URL
+const supabaseKey = 'sb_publishable_-DXwYtZ4x8XSt1DV_sQc-w_wA7Ir0N_'; // Replace with your anon/public key
 const db = supabase.createClient(supabaseUrl, supabaseKey);
 
 // ==========================================
