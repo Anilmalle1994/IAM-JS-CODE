@@ -847,7 +847,6 @@
 
             appData.orders[orderId] = newOrderObj;
 
-            // CLEANUP: If from design request, delete old design entry
             if (pendingDesignToClose) {
                 await supabaseClient.from('orders').delete().eq('orderId', pendingDesignToClose);
                 delete appData.orders[pendingDesignToClose];
@@ -873,10 +872,17 @@
             const order = findOrder(query);
             if(!order) return alert("Order not found!");
             
+            document.getElementById('va-orderid').value = order.orderId;
+
             const container = document.getElementById('va-rows-container');
             container.innerHTML = ''; 
+            
+            if(appData.vendors.length === 0) {
+                alert("Please add vendors in 'Settings -> Vendors Master' first.");
+                return;
+            }
 
-            const workItems = order.work ? order.work.split(', ') : ['General Work'];
+            const workItems = order.work ? order.work.split(', ') : ["General Work"];
             
             workItems.forEach((workItem) => {
                 const row = document.createElement('div');
@@ -887,25 +893,76 @@
                 
                 row.innerHTML = `
                     <div class="form-group" style="grid-column: 1 / -1;">
-                        <label style="color: var(--primary);">Work Item: ${workItem}</label>
+                        <label style="color: var(--primary);">Work: ${workItem}</label>
                         <input type="hidden" class="va-work-item" value="${workItem}">
                     </div>
                     <div class="form-group">
-                        <label>Vendor</label>
-                        <select class="va-vendor"><option value="">Select Vendor...</option></select>
+                        <label>Vendor Name</label>
+                        <select class="va-vendor" onchange="populateMaterials(this)">
+                            <option value="">Select Vendor...</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Material</label>
+                        <select class="va-material" onchange="fetchRateAndCalculate(this)" disabled>
+                            <option value="">Select Vendor First</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Quantity</label>
+                        <input type="number" class="va-qty" value="1" min="1" oninput="fetchRateAndCalculate(this)">
                     </div>
                     <div class="form-group">
                         <label>Amount (₹)</label>
-                        <input type="number" class="va-amount" min="0">
+                        <input type="number" class="va-amount" readonly>
                     </div>
                 `;
                 container.appendChild(row);
-
-                const vSelect = row.querySelector('.va-vendor');
+            });
+            
+            const vSelects = document.querySelectorAll('.va-vendor');
+            vSelects.forEach(vSelect => {
                 appData.vendors.forEach((v, index) => {
-                    let opt = document.createElement('option'); opt.value = index; opt.innerText = v.name; vSelect.appendChild(opt);
+                    let opt = document.createElement('option');
+                    opt.value = index; 
+                    opt.innerText = v.name; 
+                    vSelect.appendChild(opt);
                 });
             });
+        }
+        
+        function populateMaterials(selectElement) {
+            const row = selectElement.closest('.va-row');
+            const vIndex = selectElement.value;
+            const mSelect = row.querySelector('.va-material');
+            
+            if(vIndex === "") { 
+                mSelect.disabled = true; 
+                mSelect.innerHTML = '<option value="">Select Vendor First</option>';
+                fetchRateAndCalculate(mSelect);
+                return; 
+            }
+            
+            mSelect.disabled = false;
+            mSelect.innerHTML = '<option value="">Select Material...</option>';
+            
+            const vendor = appData.vendors[vIndex];
+            if(vendor && vendor.materials) {
+                vendor.materials.forEach((m) => { 
+                    let opt = document.createElement('option'); 
+                    opt.value = m.rate; 
+                    opt.innerText = `${m.name} (₹${m.rate})`; 
+                    mSelect.appendChild(opt); 
+                });
+            }
+            fetchRateAndCalculate(mSelect);
+        }
+        
+        function fetchRateAndCalculate(element) {
+            const row = element.closest('.va-row');
+            const rate = parseFloat(row.querySelector('.va-material').value) || 0;
+            const qty = parseFloat(row.querySelector('.va-qty').value) || 0;
+            row.querySelector('.va-amount').value = rate * qty;
         }
 
         async function saveVendorAllotment() {
@@ -1144,6 +1201,7 @@
             appData.vendors.push(data[0]);
             showToast("Vendor Saved to Cloud!");
             
+            // Reset Form completely
             document.getElementById('vm-name').value = '';
             document.getElementById('vm-materials-container').innerHTML = `<div class="form-grid vm-material-row"><div class="form-group"><label>Material Name</label><input type="text" class="vm-mat-name"></div><div class="form-group"><label>Rate (₹)</label><input type="number" class="vm-mat-rate"></div></div>`;
         }
