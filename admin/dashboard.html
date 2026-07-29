@@ -5,13 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - iam des!gns</title>
     
-    <!-- Path updated to point to the main folder logo -->
     <link rel="icon" href="../LOGO.jpg.jpeg" type="image/jpeg">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     
     <!-- External Libraries -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
     <style>
         /* Variables & Base Setup */
@@ -87,6 +89,7 @@
         .btn-primary:hover { background: #d9561a; }
         .btn-secondary { background: #ddd; color: var(--dark); border: none; padding: 12px 25px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.3s; }
         .btn-whatsapp { background: #25D366; color: var(--white); border: none; padding: 12px 25px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.3s; display: flex; align-items: center; justify-content: center; gap: 8px;}
+        .btn-excel { background: #1D6F42; color: white; border: none; padding: 12px 25px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.3s; }
         .add-row-btn { background: none; border: none; color: var(--primary); font-weight: 600; cursor: pointer; margin-top: 5px; text-align: left;}
         
         .toast-notification { position: fixed; bottom: 30px; right: 30px; background: var(--dark); color: var(--white); padding: 15px 25px; border-radius: 8px; font-weight: 600; font-size: 14px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); transform: translateY(100px); opacity: 0; transition: all 0.4s; z-index: 9999; display: flex; align-items: center; gap: 10px; border-left: 5px solid var(--primary); }
@@ -299,7 +302,8 @@
                         <div class="form-group" style="grid-column: 1 / -1;">
                             <label>Search Order ID</label>
                             <div style="display: flex; gap: 10px;">
-                                <input type="text" id="va-orderid" style="flex: 1;" placeholder="Enter Order ID...">
+                                <input type="text" id="va-orderid" style="flex: 1;" placeholder="Enter Order ID or scan QR...">
+                                <button type="button" class="btn-secondary" onclick="openQRScanner('va-orderid', fetchOrderForAllotment)">📷 Scan</button>
                                 <button type="button" class="btn-secondary" onclick="fetchOrderForAllotment()">Fetch</button>
                             </div>
                         </div>
@@ -317,7 +321,8 @@
                         <div class="form-group" style="grid-column: 1 / -1;">
                             <label>Search Order ID</label>
                             <div style="display: flex; gap: 10px;">
-                                <input type="text" id="pickup-search-input" style="flex: 1;" placeholder="Enter Order ID...">
+                                <input type="text" id="pickup-search-input" style="flex: 1;" placeholder="Enter Order ID or scan QR...">
+                                <button type="button" class="btn-secondary" onclick="openQRScanner('pickup-search-input', searchPickup)">📷 Scan</button>
                                 <button type="button" class="btn-secondary" onclick="searchPickup()">Search</button>
                             </div>
                         </div>
@@ -342,6 +347,7 @@
                             <label>Order ID or Phone Number</label>
                             <div style="display: flex; gap: 10px;">
                                 <input type="text" id="pay-search-input" style="flex: 1;" placeholder="Enter Order ID or Contact...">
+                                <button type="button" class="btn-secondary" onclick="openQRScanner('pay-search-input', searchPayment)">📷 Scan</button>
                                 <button type="button" class="btn-secondary" onclick="searchPayment()">Search</button>
                             </div>
                         </div>
@@ -367,15 +373,19 @@
                             <label>Search Order ID</label>
                             <div style="display: flex; gap: 10px;">
                                 <input type="text" id="del-search-input" style="flex: 1;" placeholder="Enter Order ID...">
+                                <button type="button" class="btn-secondary" onclick="openQRScanner('del-search-input', searchDelivery)">📷 Scan</button>
                                 <button type="button" class="btn-secondary" onclick="searchDelivery()">Search</button>
                             </div>
                         </div>
                     </div>
                 </div>
                 <div class="admin-card" id="del-result-card" style="display: none;">
+                    <h3>Order Details</h3>
                     <p><strong>Order ID:</strong> <span id="res-oid"></span></p>
+                    <p><strong>Client Name:</strong> <span id="del-client"></span></p>
+                    <p><strong>Contact:</strong> <span id="res-phone"></span></p>
+                    <p><strong>Work Details:</strong> <span id="del-work"></span></p>
                     <p><strong>Balance Due:</strong> ₹<span id="res-bal" style="color:red; font-weight:bold;"></span></p>
-                    <p style="display:none;" id="res-phone"></p>
                     <div class="action-row"><button type="button" class="btn-whatsapp" onclick="sendDeliveryWhatsApp()">📱 Send WhatsApp & Deliver</button></div>
                 </div>
             </div>
@@ -391,7 +401,8 @@
                             <div class="form-group"><label>Rate (₹)</label><input type="number" class="vm-mat-rate"></div>
                         </div>
                     </div>
-                    <div class="action-row"><button type="button" class="btn-primary" onclick="saveVendor()">Save Vendor</button></div>
+                    <button type="button" class="add-row-btn" onclick="addMaterialRow()">+ Add Another Material</button>
+                    <div class="action-row"><button type="button" class="btn-primary" onclick="saveVendor()">Save Vendor Configuration</button></div>
                 </div>
             </div>
 
@@ -410,7 +421,7 @@
                 </div>
             </div>
 
-            <!-- Settings: Web Content (Fully Functional) -->
+            <!-- Settings: Web Content -->
             <div id="web-content" class="view-section">
                 <div class="form-grid">
                     <div class="admin-card">
@@ -438,6 +449,10 @@
             <div id="pending-reports" class="view-section">
                 <div class="admin-card">
                     <h3>Pending Client Dues</h3>
+                    <div class="action-row" style="margin-top: 0; padding-top: 0; border: none; justify-content: flex-start; margin-bottom: 10px;">
+                        <button type="button" class="btn-primary" onclick="downloadPRClientPDF()">📄 Download PDF</button>
+                        <button type="button" class="btn-excel" onclick="downloadPRClientExcel()">📊 Download Excel</button>
+                    </div>
                     <div class="table-responsive-wrapper">
                         <table class="data-table" id="pr-client-table">
                             <thead>
@@ -460,6 +475,10 @@
                 </div>
                 <div class="admin-card">
                     <h3>Pending Vendor Allotments</h3>
+                    <div class="action-row" style="margin-top: 0; padding-top: 0; border: none; justify-content: flex-start; margin-bottom: 10px;">
+                        <button type="button" class="btn-primary" onclick="downloadPRVendorPDF()">📄 Download PDF</button>
+                        <button type="button" class="btn-excel" onclick="downloadPRVendorExcel()">📊 Download Excel</button>
+                    </div>
                     <div class="table-responsive-wrapper">
                         <table class="data-table" id="pr-vendor-table">
                             <thead>
@@ -488,6 +507,10 @@
             <div id="vendor-reports" class="view-section">
                 <div class="admin-card">
                     <h3>Total Vendor Allotment Reports</h3>
+                    <div class="action-row" style="margin-top: 0; padding-top: 0; border: none; justify-content: flex-start; margin-bottom: 10px;">
+                        <button type="button" class="btn-primary" onclick="downloadVendorReportsPDF()">📄 Download PDF</button>
+                        <button type="button" class="btn-excel" onclick="downloadVendorReportsExcel()">📊 Download Excel</button>
+                    </div>
                     <div class="table-responsive-wrapper">
                         <table class="data-table" id="vr-table">
                             <thead>
@@ -546,6 +569,15 @@
         </div>
     </div>
     
+    <!-- QR Scanner Modal -->
+    <div id="qrModal" class="modal">
+        <div class="modal-content" style="max-width: 500px; text-align: center;">
+            <span class="close-modal" onclick="closeQRModal()">&times;</span>
+            <h3 style="margin-bottom: 15px; color: var(--dark);">Scan QR Code</h3>
+            <div id="qr-reader" style="width: 100%;"></div>
+        </div>
+    </div>
+
     <!-- Toast Notification -->
     <div id="app-toast" class="toast-notification"><span>🔔</span> <span id="toast-message"></span></div>
 
@@ -658,6 +690,26 @@
         }
 
         // ==========================================
+        // QR SCANNER LOGIC
+        // ==========================================
+        let html5QrcodeScanner = null;
+
+        function openQRScanner(targetInputId, callback) {
+            document.getElementById('qrModal').style.display = 'flex';
+            html5QrcodeScanner = new Html5QrcodeScanner("qr-reader", { fps: 10, qrbox: { width: 250, height: 250 } }, false);
+            html5QrcodeScanner.render((decodedText) => {
+                document.getElementById(targetInputId).value = decodedText;
+                closeQRModal();
+                if(callback) callback();
+            }, (err) => { /* ignore minor scan errors */ });
+        }
+
+        function closeQRModal() {
+            document.getElementById('qrModal').style.display = 'none';
+            if(html5QrcodeScanner) { html5QrcodeScanner.clear(); html5QrcodeScanner = null; }
+        }
+
+        // ==========================================
         // DESIGNING SECTION
         // ==========================================
         function addDesignWorkRow() {
@@ -682,7 +734,20 @@
             updateDashboardStats();
         }
 
-        // Action Triggered from Dashboard "Create Print Order" button
+        async function markDesignDone(orderId) {
+            if(!confirm("Are you sure you want to mark this design as Done?")) return;
+            const order = appData.orders[orderId];
+            if(!order) return;
+            
+            const { error } = await supabaseClient.from('orders').update({ status: 'delivered' }).eq('orderId', orderId);
+            if(error) return alert("Failed: " + error.message);
+            
+            order.status = 'delivered';
+            showToast("Design marked as Done.");
+            updateDashboardStats();
+            renderDashboardTable(currentDashFilter);
+        }
+
         function markDesignReady(orderId) {
             const order = appData.orders[orderId];
             if(!order) return;
@@ -782,7 +847,6 @@
 
             appData.orders[orderId] = newOrderObj;
 
-            // CLEANUP: If from design request, delete old design entry
             if (pendingDesignToClose) {
                 await supabaseClient.from('orders').delete().eq('orderId', pendingDesignToClose);
                 delete appData.orders[pendingDesignToClose];
@@ -791,7 +855,7 @@
 
             showToast("Order Saved to Cloud!");
 
-            let msg = `Hello ${client},\nYour order ${orderId} has been placed.\nWork: ${newOrderObj.work}\nTotal: ₹${newOrderObj.amount}\nBalance Due: ₹${newOrderObj.balance}`;
+            let msg = `Hello ${client},\nYour order ${orderId} has been successfully placed with iam des!gns.\n\nWork : ${newOrderObj.work}\nTotal Amount: ₹${newOrderObj.amount}\nPaid: ₹${newOrderObj.advance}\nBalance Due: ₹${newOrderObj.balance}\n\nWe will notify you when it is ready!`;
             window.open(`https://wa.me/91${phone}?text=${encodeURIComponent(msg)}`, '_blank');
 
             document.getElementById('new-order-form').reset();
@@ -937,8 +1001,10 @@
             const order = findOrder(document.getElementById('del-search-input').value);
             if(order) {
                 document.getElementById('res-oid').innerText = order.orderId;
-                document.getElementById('res-bal').innerText = order.balance;
+                document.getElementById('del-client').innerText = order.client;
                 document.getElementById('res-phone').innerText = order.phone;
+                document.getElementById('del-work').innerText = order.work || 'N/A';
+                document.getElementById('res-bal').innerText = order.balance;
                 document.getElementById('del-result-card').style.display = 'block';
             }
         }
@@ -950,14 +1016,26 @@
             if(order) {
                 await supabaseClient.from('orders').update({ status: 'delivered' }).eq('orderId', order.orderId);
                 order.status = 'delivered';
-                window.open(`https://wa.me/91${phone}?text=Your order ${order.orderId} is delivered!`, '_blank');
+                const msg = `Dear Customer, your order ${order.orderId} is ready for delivery!`;
+                window.open(`https://wa.me/91${phone}?text=${encodeURIComponent(msg)}`, '_blank');
                 updateDashboardStats();
+                document.getElementById('del-result-card').style.display = 'none';
+                document.getElementById('del-search-input').value = '';
             }
         }
 
         // ==========================================
         // VENDORS, STAFF & VCF DOWNLOAD
         // ==========================================
+        function addMaterialRow() {
+            const container = document.getElementById('vm-materials-container');
+            const row = document.createElement('div');
+            row.className = 'form-grid vm-material-row';
+            row.style.marginTop = '15px';
+            row.innerHTML = `<div class="form-group"><label>Material Name</label><input type="text" class="vm-mat-name"></div><div class="form-group"><label>Rate (₹)</label><input type="number" class="vm-mat-rate"></div>`;
+            container.appendChild(row);
+        }
+
         async function saveVendor() {
             const vName = document.getElementById('vm-name').value.trim();
             if(!vName) return alert("Vendor Name required!");
@@ -974,7 +1052,10 @@
 
             appData.vendors.push(data[0]);
             showToast("Vendor Saved to Cloud!");
+            
+            // Reset Form completely
             document.getElementById('vm-name').value = '';
+            document.getElementById('vm-materials-container').innerHTML = `<div class="form-grid vm-material-row"><div class="form-group"><label>Material Name</label><input type="text" class="vm-mat-name"></div><div class="form-group"><label>Rate (₹)</label><input type="number" class="vm-mat-rate"></div></div>`;
         }
 
         async function saveStaff() {
@@ -1120,7 +1201,6 @@
             document.getElementById('dashboard-welcome').style.display = 'none';
             document.getElementById('dashboard-list-container').style.display = 'block';
             
-            // Set dynamic title based on the card clicked
             const titleMap = { 'active': 'Active Orders', 'designing': 'Designs Pending', 'payments': 'Payments Pending', 'staff_pickup': 'Staff Pickups', 'delivery': 'Ready for Delivery' };
             document.getElementById('dashboard-list-title').innerText = titleMap[filterType] || 'Order List';
 
@@ -1129,14 +1209,12 @@
             
             let filtered = Object.values(appData.orders);
             
-            // Apply Status Filter (Tabs)
             if (filterType === 'active') filtered = filtered.filter(o => o.status !== 'delivered');
             if (filterType === 'designing') filtered = filtered.filter(o => o.status === 'designing');
             if (filterType === 'payments') filtered = filtered.filter(o => parseFloat(o.balance) > 0);
             if (filterType === 'staff_pickup') filtered = filtered.filter(o => o.status === 'vendor_allotted');
             if (filterType === 'delivery') filtered = filtered.filter(o => o.status === 'ready_for_delivery');
 
-            // Apply Input Filters
             const fId = (document.getElementById('dash-filt-id').value || '').toLowerCase();
             const fClient = (document.getElementById('dash-filt-client').value || '').toLowerCase();
             const fPhone = (document.getElementById('dash-filt-phone').value || '').toLowerCase();
@@ -1154,7 +1232,6 @@
                 return true;
             });
 
-            // Apply Sort
             if(dashSort.col) {
                 filtered.sort((a, b) => {
                     let valA = a[dashSort.col] || ''; let valB = b[dashSort.col] || '';
@@ -1175,7 +1252,7 @@
                 
                 let actionBtn = '<span style="color:var(--gray); font-size:12px;">-</span>';
                 if (o.status === 'designing') {
-                    actionBtn = `<button class="btn-primary" style="padding: 6px 12px; font-size: 11px;" onclick="markDesignReady('${o.orderId}')">Create Print Order</button>`;
+                    actionBtn = `<div style="display:flex; gap:5px;"><button class="btn-primary" style="padding: 4px 8px; font-size: 11px;" onclick="markDesignDone('${o.orderId}')">Done</button><button class="btn-secondary" style="padding: 4px 8px; font-size: 11px;" onclick="markDesignReady('${o.orderId}')">Print</button></div>`;
                 }
                 
                 tr.innerHTML = `
@@ -1197,17 +1274,8 @@
         }
 
         // PENDING REPORTS - CLIENT DUES
-        function sortPRClient(col) {
-            if(prClientSort.col === col) prClientSort.asc = !prClientSort.asc;
-            else { prClientSort.col = col; prClientSort.asc = true; }
-            renderPRClient();
-        }
-
-        function renderPRClient() {
-            const tbody = document.querySelector('#pr-client-table tbody'); tbody.innerHTML = '';
-            
+        function getFilteredPRClient() {
             let filtered = Object.values(appData.orders).filter(o => parseFloat(o.balance) > 0);
-
             const fId = (document.getElementById('prc-filt-id').value || '').toLowerCase();
             const fClient = (document.getElementById('prc-filt-client').value || '').toLowerCase();
             const fPhone = (document.getElementById('prc-filt-phone').value || '').toLowerCase();
@@ -1230,6 +1298,18 @@
                     return 0;
                 });
             }
+            return filtered;
+        }
+
+        function sortPRClient(col) {
+            if(prClientSort.col === col) prClientSort.asc = !prClientSort.asc;
+            else { prClientSort.col = col; prClientSort.asc = true; }
+            renderPRClient();
+        }
+
+        function renderPRClient() {
+            const tbody = document.querySelector('#pr-client-table tbody'); tbody.innerHTML = '';
+            let filtered = getFilteredPRClient();
 
             if (filtered.length === 0) return tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding: 20px;">No matching pending dues.</td></tr>`;
             
@@ -1240,23 +1320,29 @@
             });
         }
 
-        // PENDING REPORTS - VENDOR ALLOTMENTS
-        function sortPRVendor(col) {
-            if(prVendorSort.col === col) prVendorSort.asc = !prVendorSort.asc;
-            else { prVendorSort.col = col; prVendorSort.asc = true; }
-            renderPRVendor();
+        function downloadPRClientPDF() {
+            let data = getFilteredPRClient();
+            let html = `<div style="padding:20px; font-family:sans-serif;"><h2>Pending Client Dues</h2><table style="width:100%; border-collapse:collapse; text-align:left;"><thead><tr style="background:#f4f4f4;"><th style="padding:10px; border:1px solid #ddd;">Order ID</th><th style="padding:10px; border:1px solid #ddd;">Client</th><th style="padding:10px; border:1px solid #ddd;">Phone</th><th style="padding:10px; border:1px solid #ddd;">Balance</th></tr></thead><tbody>`;
+            data.forEach(o => html += `<tr><td style="padding:8px; border:1px solid #ddd;">${o.orderId}</td><td style="padding:8px; border:1px solid #ddd;">${o.client}</td><td style="padding:8px; border:1px solid #ddd;">${o.phone}</td><td style="padding:8px; border:1px solid #ddd; color:red;">₹${o.balance}</td></tr>`);
+            html += `</tbody></table></div>`;
+            html2pdf().from(html).save(`Client_Dues_${Date.now()}.pdf`);
         }
 
-        function renderPRVendor() {
-            const tbody = document.querySelector('#pr-vendor-table tbody'); tbody.innerHTML = '';
-            
-            let filtered = [...appData.vendorAllotmentsHistory];
+        function downloadPRClientExcel() {
+            let data = getFilteredPRClient().map(o => ({ "Order ID": o.orderId, "Client Name": o.client, "Contact": o.phone, "Balance Due (₹)": o.balance }));
+            let ws = XLSX.utils.json_to_sheet(data);
+            let wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Client Dues");
+            XLSX.writeFile(wb, `Client_Dues_${Date.now()}.xlsx`);
+        }
 
-            const fDate = (document.getElementById('prv-filt-date').value || '').toLowerCase();
-            const fOrder = (document.getElementById('prv-filt-order').value || '').toLowerCase();
-            const fVendor = (document.getElementById('prv-filt-vendor').value || '').toLowerCase();
-            const fWork = (document.getElementById('prv-filt-work').value || '').toLowerCase();
-            const fAmt = parseFloat(document.getElementById('prv-filt-amt').value);
+        // PENDING REPORTS - VENDOR ALLOTMENTS
+        function getFilteredPRVendor(sortObj, prefix) {
+            let filtered = [...appData.vendorAllotmentsHistory];
+            const fDate = (document.getElementById(prefix + '-filt-date').value || '').toLowerCase();
+            const fOrder = (document.getElementById(prefix + '-filt-order').value || '').toLowerCase();
+            const fVendor = (document.getElementById(prefix + '-filt-vendor').value || '').toLowerCase();
+            const fWork = (document.getElementById(prefix + '-filt-work').value || '').toLowerCase();
+            const fAmt = parseFloat(document.getElementById(prefix + '-filt-amt').value);
 
             filtered = filtered.filter(o => {
                 if(fDate && !new Date(o.date).toLocaleDateString().includes(fDate)) return false;
@@ -1267,16 +1353,28 @@
                 return true;
             });
 
-            if(prVendorSort.col) {
+            if(sortObj.col) {
                 filtered.sort((a, b) => {
-                    let valA = a[prVendorSort.col] || ''; let valB = b[prVendorSort.col] || '';
-                    if(prVendorSort.col === 'amount') { valA = parseFloat(valA) || 0; valB = parseFloat(valB) || 0; }
-                    if(prVendorSort.col === 'date') { valA = new Date(valA).getTime(); valB = new Date(valB).getTime(); }
-                    if(valA < valB) return prVendorSort.asc ? -1 : 1;
-                    if(valA > valB) return prVendorSort.asc ? 1 : -1;
+                    let valA = a[sortObj.col] || ''; let valB = b[sortObj.col] || '';
+                    if(sortObj.col === 'amount') { valA = parseFloat(valA) || 0; valB = parseFloat(valB) || 0; }
+                    if(sortObj.col === 'date') { valA = new Date(valA).getTime(); valB = new Date(valB).getTime(); }
+                    if(valA < valB) return sortObj.asc ? -1 : 1;
+                    if(valA > valB) return sortObj.asc ? 1 : -1;
                     return 0;
                 });
             }
+            return filtered;
+        }
+
+        function sortPRVendor(col) {
+            if(prVendorSort.col === col) prVendorSort.asc = !prVendorSort.asc;
+            else { prVendorSort.col = col; prVendorSort.asc = true; }
+            renderPRVendor();
+        }
+
+        function renderPRVendor() {
+            const tbody = document.querySelector('#pr-vendor-table tbody'); tbody.innerHTML = '';
+            let filtered = getFilteredPRVendor(prVendorSort, 'prv');
 
             if (filtered.length === 0) return tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 20px;">No matching records.</td></tr>`;
             
@@ -1285,6 +1383,21 @@
                 tr.innerHTML = `<td>${new Date(o.date).toLocaleDateString()}</td><td><strong>${o.orderId}</strong></td><td>${o.vendor}</td><td>${o.work}</td><td style="font-weight:bold;">₹${o.amount}</td>`;
                 tbody.appendChild(tr);
             });
+        }
+
+        function downloadPRVendorPDF() {
+            let data = getFilteredPRVendor(prVendorSort, 'prv');
+            let html = `<div style="padding:20px; font-family:sans-serif;"><h2>Pending Vendor Allotments</h2><table style="width:100%; border-collapse:collapse; text-align:left;"><thead><tr style="background:#f4f4f4;"><th style="padding:10px; border:1px solid #ddd;">Date</th><th style="padding:10px; border:1px solid #ddd;">Order ID</th><th style="padding:10px; border:1px solid #ddd;">Vendor</th><th style="padding:10px; border:1px solid #ddd;">Work</th><th style="padding:10px; border:1px solid #ddd;">Amount</th></tr></thead><tbody>`;
+            data.forEach(o => html += `<tr><td style="padding:8px; border:1px solid #ddd;">${new Date(o.date).toLocaleDateString()}</td><td style="padding:8px; border:1px solid #ddd;">${o.orderId}</td><td style="padding:8px; border:1px solid #ddd;">${o.vendor}</td><td style="padding:8px; border:1px solid #ddd;">${o.work}</td><td style="padding:8px; border:1px solid #ddd;">₹${o.amount}</td></tr>`);
+            html += `</tbody></table></div>`;
+            html2pdf().from(html).save(`Vendor_Pending_${Date.now()}.pdf`);
+        }
+
+        function downloadPRVendorExcel() {
+            let data = getFilteredPRVendor(prVendorSort, 'prv').map(o => ({ "Date": new Date(o.date).toLocaleDateString(), "Order ID": o.orderId, "Vendor": o.vendor, "Work": o.work, "Amount (₹)": o.amount }));
+            let ws = XLSX.utils.json_to_sheet(data);
+            let wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Pending Vendor");
+            XLSX.writeFile(wb, `Vendor_Pending_${Date.now()}.xlsx`);
         }
 
         // VENDOR REPORTS - TOTAL
@@ -1296,34 +1409,7 @@
 
         function renderVendorReport() {
             const tbody = document.querySelector('#vr-table tbody'); tbody.innerHTML = '';
-            
-            let filtered = [...appData.vendorAllotmentsHistory];
-
-            const fDate = (document.getElementById('vr-filt-date').value || '').toLowerCase();
-            const fOrder = (document.getElementById('vr-filt-order').value || '').toLowerCase();
-            const fVendor = (document.getElementById('vr-filt-vendor').value || '').toLowerCase();
-            const fWork = (document.getElementById('vr-filt-work').value || '').toLowerCase();
-            const fAmt = parseFloat(document.getElementById('vr-filt-amt').value);
-
-            filtered = filtered.filter(o => {
-                if(fDate && !new Date(o.date).toLocaleDateString().includes(fDate)) return false;
-                if(fOrder && !o.orderId.toLowerCase().includes(fOrder)) return false;
-                if(fVendor && !o.vendor.toLowerCase().includes(fVendor)) return false;
-                if(fWork && !o.work.toLowerCase().includes(fWork)) return false;
-                if(!isNaN(fAmt) && parseFloat(o.amount) > fAmt) return false;
-                return true;
-            });
-
-            if(vrSort.col) {
-                filtered.sort((a, b) => {
-                    let valA = a[vrSort.col] || ''; let valB = b[vrSort.col] || '';
-                    if(vrSort.col === 'amount') { valA = parseFloat(valA) || 0; valB = parseFloat(valB) || 0; }
-                    if(vrSort.col === 'date') { valA = new Date(valA).getTime(); valB = new Date(valB).getTime(); }
-                    if(valA < valB) return vrSort.asc ? -1 : 1;
-                    if(valA > valB) return vrSort.asc ? 1 : -1;
-                    return 0;
-                });
-            }
+            let filtered = getFilteredPRVendor(vrSort, 'vr');
 
             if (filtered.length === 0) return tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 20px;">No matching records.</td></tr>`;
             
@@ -1332,6 +1418,21 @@
                 tr.innerHTML = `<td>${new Date(o.date).toLocaleDateString()}</td><td><strong>${o.orderId}</strong></td><td>${o.vendor}</td><td>${o.work}</td><td style="font-weight:bold;">₹${o.amount}</td>`;
                 tbody.appendChild(tr);
             });
+        }
+
+        function downloadVendorReportsPDF() {
+            let data = getFilteredPRVendor(vrSort, 'vr');
+            let html = `<div style="padding:20px; font-family:sans-serif;"><h2>Total Vendor Allotment Reports</h2><table style="width:100%; border-collapse:collapse; text-align:left;"><thead><tr style="background:#f4f4f4;"><th style="padding:10px; border:1px solid #ddd;">Date</th><th style="padding:10px; border:1px solid #ddd;">Order ID</th><th style="padding:10px; border:1px solid #ddd;">Vendor</th><th style="padding:10px; border:1px solid #ddd;">Work</th><th style="padding:10px; border:1px solid #ddd;">Amount</th></tr></thead><tbody>`;
+            data.forEach(o => html += `<tr><td style="padding:8px; border:1px solid #ddd;">${new Date(o.date).toLocaleDateString()}</td><td style="padding:8px; border:1px solid #ddd;">${o.orderId}</td><td style="padding:8px; border:1px solid #ddd;">${o.vendor}</td><td style="padding:8px; border:1px solid #ddd;">${o.work}</td><td style="padding:8px; border:1px solid #ddd;">₹${o.amount}</td></tr>`);
+            html += `</tbody></table></div>`;
+            html2pdf().from(html).save(`Vendor_Reports_${Date.now()}.pdf`);
+        }
+
+        function downloadVendorReportsExcel() {
+            let data = getFilteredPRVendor(vrSort, 'vr').map(o => ({ "Date": new Date(o.date).toLocaleDateString(), "Order ID": o.orderId, "Vendor": o.vendor, "Work": o.work, "Amount (₹)": o.amount }));
+            let ws = XLSX.utils.json_to_sheet(data);
+            let wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Vendor Reports");
+            XLSX.writeFile(wb, `Vendor_Reports_${Date.now()}.xlsx`);
         }
 
         // Global Order Finder
