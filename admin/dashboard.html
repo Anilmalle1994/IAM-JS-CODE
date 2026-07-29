@@ -73,11 +73,14 @@
         .stat-card:hover { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(0,0,0,0.08); }
         .stat-card h4 { font-size: 14px; color: var(--gray); margin-bottom: 10px; }
         .stat-card p { font-size: 28px; font-weight: 700; color: var(--dark); }
+        
         .table-responsive-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; width: 100%; padding-bottom: 10px;}
         .data-table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 14px; min-width: 800px; }
         .data-table th, .data-table td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #eaeaea; }
         .data-table th { background: var(--light-gray); color: var(--dark); font-weight: 600; cursor: pointer; user-select: none; }
-        
+        .sort-icon { font-size: 10px; margin-left: 5px; opacity: 0.5; }
+        .table-filter-row input, .table-filter-row select { width: 100%; padding: 6px; font-size: 12px; border: 1px solid #ddd; border-radius: 4px; font-family: inherit; }
+
         /* Buttons & Notification */
         .action-row { display: flex; gap: 15px; justify-content: flex-end; margin-top: 20px; padding-top: 20px; border-top: 1px solid #eee; flex-wrap: wrap;}
         .btn-primary { background: var(--primary); color: var(--white); border: none; padding: 12px 25px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.3s; }
@@ -176,13 +179,39 @@
 
                 <div class="admin-card" id="dashboard-list-container" style="display: none;">
                     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 15px;">
-                        <h3 style="margin:0; border:none; padding:0;">Order List</h3>
+                        <h3 style="margin:0; border:none; padding:0;" id="dashboard-list-title">Order List</h3>
                         <button class="btn-secondary" style="padding: 6px 15px; font-size: 12px;" onclick="closeDashboardTable()">Close View</button>
                     </div>
                     <div class="table-responsive-wrapper">
                         <table class="data-table" id="dashboard-table">
                             <thead>
-                                <tr><th>Order ID</th><th>Client</th><th>Contact</th><th>Work Details</th><th>Balance (₹)</th><th>Status</th></tr>
+                                <tr>
+                                    <th onclick="sortDashboard('orderId')">Order ID <span class="sort-icon">⇅</span></th>
+                                    <th onclick="sortDashboard('client')">Client <span class="sort-icon">⇅</span></th>
+                                    <th onclick="sortDashboard('phone')">Contact <span class="sort-icon">⇅</span></th>
+                                    <th onclick="sortDashboard('work')">Work Details <span class="sort-icon">⇅</span></th>
+                                    <th onclick="sortDashboard('balance')">Balance (₹) <span class="sort-icon">⇅</span></th>
+                                    <th onclick="sortDashboard('status')">Status <span class="sort-icon">⇅</span></th>
+                                    <th>Action</th>
+                                </tr>
+                                <tr class="table-filter-row" style="background: var(--white);">
+                                    <th><input type="text" id="dash-filt-id" onkeyup="renderDashboardTable()" placeholder="Filter ID..."></th>
+                                    <th><input type="text" id="dash-filt-client" onkeyup="renderDashboardTable()" placeholder="Filter Client..."></th>
+                                    <th><input type="text" id="dash-filt-phone" onkeyup="renderDashboardTable()" placeholder="Filter Phone..."></th>
+                                    <th><input type="text" id="dash-filt-work" onkeyup="renderDashboardTable()" placeholder="Filter Work..."></th>
+                                    <th><input type="number" id="dash-filt-bal" onkeyup="renderDashboardTable()" placeholder="Max Bal..."></th>
+                                    <th>
+                                        <select id="dash-filt-status" onchange="renderDashboardTable()">
+                                            <option value="">All</option>
+                                            <option value="designing">Designing</option>
+                                            <option value="processing">Processing</option>
+                                            <option value="vendor_allotted">Vendor Allotted</option>
+                                            <option value="ready_for_delivery">Ready for Delivery</option>
+                                            <option value="delivered">Delivered</option>
+                                        </select>
+                                    </th>
+                                    <th></th>
+                                </tr>
                             </thead>
                             <tbody></tbody>
                         </table>
@@ -411,7 +440,20 @@
                     <h3>Pending Client Dues</h3>
                     <div class="table-responsive-wrapper">
                         <table class="data-table" id="pr-client-table">
-                            <thead><tr><th>Order ID</th><th>Client Name</th><th>Contact</th><th>Balance Due (₹)</th></tr></thead>
+                            <thead>
+                                <tr>
+                                    <th onclick="sortPRClient('orderId')">Order ID <span class="sort-icon">⇅</span></th>
+                                    <th onclick="sortPRClient('client')">Client Name <span class="sort-icon">⇅</span></th>
+                                    <th onclick="sortPRClient('phone')">Contact <span class="sort-icon">⇅</span></th>
+                                    <th onclick="sortPRClient('balance')">Balance Due (₹) <span class="sort-icon">⇅</span></th>
+                                </tr>
+                                <tr class="table-filter-row" style="background: var(--white);">
+                                    <th><input type="text" id="prc-filt-id" onkeyup="renderPRClient()" placeholder="Filter ID..."></th>
+                                    <th><input type="text" id="prc-filt-client" onkeyup="renderPRClient()" placeholder="Filter Client..."></th>
+                                    <th><input type="text" id="prc-filt-phone" onkeyup="renderPRClient()" placeholder="Filter Phone..."></th>
+                                    <th><input type="number" id="prc-filt-bal" onkeyup="renderPRClient()" placeholder="Max Balance..."></th>
+                                </tr>
+                            </thead>
                             <tbody></tbody>
                         </table>
                     </div>
@@ -420,7 +462,22 @@
                     <h3>Pending Vendor Allotments</h3>
                     <div class="table-responsive-wrapper">
                         <table class="data-table" id="pr-vendor-table">
-                            <thead><tr><th>Date</th><th>Order ID</th><th>Vendor Name</th><th>Work Allotted</th><th>Amount (₹)</th></tr></thead>
+                            <thead>
+                                <tr>
+                                    <th onclick="sortPRVendor('date')">Date <span class="sort-icon">⇅</span></th>
+                                    <th onclick="sortPRVendor('orderId')">Order ID <span class="sort-icon">⇅</span></th>
+                                    <th onclick="sortPRVendor('vendor')">Vendor Name <span class="sort-icon">⇅</span></th>
+                                    <th onclick="sortPRVendor('work')">Work Allotted <span class="sort-icon">⇅</span></th>
+                                    <th onclick="sortPRVendor('amount')">Amount (₹) <span class="sort-icon">⇅</span></th>
+                                </tr>
+                                <tr class="table-filter-row" style="background: var(--white);">
+                                    <th><input type="text" id="prv-filt-date" onkeyup="renderPRVendor()" placeholder="MM/DD/YYYY"></th>
+                                    <th><input type="text" id="prv-filt-order" onkeyup="renderPRVendor()" placeholder="Filter Order..."></th>
+                                    <th><input type="text" id="prv-filt-vendor" onkeyup="renderPRVendor()" placeholder="Filter Vendor..."></th>
+                                    <th><input type="text" id="prv-filt-work" onkeyup="renderPRVendor()" placeholder="Filter Work..."></th>
+                                    <th><input type="number" id="prv-filt-amt" onkeyup="renderPRVendor()" placeholder="Max Amount..."></th>
+                                </tr>
+                            </thead>
                             <tbody></tbody>
                         </table>
                     </div>
@@ -433,7 +490,22 @@
                     <h3>Total Vendor Allotment Reports</h3>
                     <div class="table-responsive-wrapper">
                         <table class="data-table" id="vr-table">
-                            <thead><tr><th>Date</th><th>Order ID</th><th>Vendor Name</th><th>Work Allotted</th><th>Amount (₹)</th></tr></thead>
+                            <thead>
+                                <tr>
+                                    <th onclick="sortVR('date')">Date <span class="sort-icon">⇅</span></th>
+                                    <th onclick="sortVR('orderId')">Order ID <span class="sort-icon">⇅</span></th>
+                                    <th onclick="sortVR('vendor')">Vendor Name <span class="sort-icon">⇅</span></th>
+                                    <th onclick="sortVR('work')">Work Allotted <span class="sort-icon">⇅</span></th>
+                                    <th onclick="sortVR('amount')">Amount (₹) <span class="sort-icon">⇅</span></th>
+                                </tr>
+                                <tr class="table-filter-row" style="background: var(--white);">
+                                    <th><input type="text" id="vr-filt-date" onkeyup="renderVendorReport()" placeholder="MM/DD/YYYY"></th>
+                                    <th><input type="text" id="vr-filt-order" onkeyup="renderVendorReport()" placeholder="Filter Order..."></th>
+                                    <th><input type="text" id="vr-filt-vendor" onkeyup="renderVendorReport()" placeholder="Filter Vendor..."></th>
+                                    <th><input type="text" id="vr-filt-work" onkeyup="renderVendorReport()" placeholder="Filter Work..."></th>
+                                    <th><input type="number" id="vr-filt-amt" onkeyup="renderVendorReport()" placeholder="Max Amount..."></th>
+                                </tr>
+                            </thead>
                             <tbody></tbody>
                         </table>
                     </div>
@@ -505,6 +577,7 @@
 
         // Global Data Store
         let appData = { vendors: [], orders: {}, vendorAllotmentsHistory: [], staff: [] };
+        let pendingDesignToClose = null;
 
         // ==========================================
         // FETCH DATA FROM SUPABASE CLOUD
@@ -609,6 +682,23 @@
             updateDashboardStats();
         }
 
+        // Action Triggered from Dashboard "Create Print Order" button
+        function markDesignReady(orderId) {
+            const order = appData.orders[orderId];
+            if(!order) return;
+            
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
+            document.querySelector('[data-target="new-order"]').classList.add('active');
+            document.getElementById('new-order').classList.add('active');
+            
+            initNewOrder(); 
+            document.getElementById('nw-client').value = order.client;
+            document.getElementById('nw-phone').value = order.phone;
+            
+            pendingDesignToClose = orderId; 
+        }
+
         // ==========================================
         // NEW WORK ORDER LOGIC
         // ==========================================
@@ -691,6 +781,14 @@
             if (error) return alert("Failed to save order: " + error.message);
 
             appData.orders[orderId] = newOrderObj;
+
+            // CLEANUP: If from design request, delete old design entry
+            if (pendingDesignToClose) {
+                await supabaseClient.from('orders').delete().eq('orderId', pendingDesignToClose);
+                delete appData.orders[pendingDesignToClose];
+                pendingDesignToClose = null; 
+            }
+
             showToast("Order Saved to Cloud!");
 
             let msg = `Hello ${client},\nYour order ${orderId} has been placed.\nWork: ${newOrderObj.work}\nTotal: ₹${newOrderObj.amount}\nBalance Due: ₹${newOrderObj.balance}`;
@@ -985,42 +1083,15 @@
         });
 
         // ==========================================
-        // REPORTS RENDERING
+        // SORTING, FILTERING & REPORTS RENDERING
         // ==========================================
-        function renderPRClient() {
-            const tbody = document.querySelector('#pr-client-table tbody'); tbody.innerHTML = '';
-            let filtered = Object.values(appData.orders).filter(o => parseFloat(o.balance) > 0);
-            if (filtered.length === 0) return tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;">No pending dues.</td></tr>`;
-            filtered.forEach(o => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `<td><strong>${o.orderId}</strong></td><td>${o.client}</td><td>${o.phone}</td><td style="color:red; font-weight:bold;">₹${o.balance}</td>`;
-                tbody.appendChild(tr);
-            });
-        }
+        
+        let currentDashFilter = 'active';
+        let dashSort = { col: null, asc: true };
+        let prClientSort = { col: null, asc: true };
+        let prVendorSort = { col: null, asc: true };
+        let vrSort = { col: null, asc: true };
 
-        function renderPRVendor() {
-            const tbody = document.querySelector('#pr-vendor-table tbody'); tbody.innerHTML = '';
-            if (appData.vendorAllotmentsHistory.length === 0) return tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;">No records.</td></tr>`;
-            appData.vendorAllotmentsHistory.forEach(o => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `<td>${new Date(o.date).toLocaleDateString()}</td><td><strong>${o.orderId}</strong></td><td>${o.vendor}</td><td>${o.work}</td><td style="font-weight:bold;">₹${o.amount}</td>`;
-                tbody.appendChild(tr);
-            });
-        }
-
-        function renderVendorReport() {
-            const tbody = document.querySelector('#vr-table tbody'); tbody.innerHTML = '';
-            if (appData.vendorAllotmentsHistory.length === 0) return tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;">No records.</td></tr>`;
-            appData.vendorAllotmentsHistory.forEach(o => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `<td>${new Date(o.date).toLocaleDateString()}</td><td><strong>${o.orderId}</strong></td><td>${o.vendor}</td><td>${o.work}</td><td style="font-weight:bold;">₹${o.amount}</td>`;
-                tbody.appendChild(tr);
-            });
-        }
-
-        // ==========================================
-        // DASHBOARD HELPERS
-        // ==========================================
         function updateDashboardStats() {
             let active = 0, desPending = 0, payPending = 0, readyDel = 0, pickupReady = 0;
             Object.values(appData.orders).forEach(o => {
@@ -1037,21 +1108,85 @@
             document.getElementById('dash-delivery').innerText = readyDel;
         }
 
-        function renderDashboardTable(filterType) {
+        // MAIN DASHBOARD TABLE
+        function sortDashboard(col) {
+            if(dashSort.col === col) dashSort.asc = !dashSort.asc;
+            else { dashSort.col = col; dashSort.asc = true; }
+            renderDashboardTable();
+        }
+
+        function renderDashboardTable(filterType = currentDashFilter) {
+            currentDashFilter = filterType;
             document.getElementById('dashboard-welcome').style.display = 'none';
             document.getElementById('dashboard-list-container').style.display = 'block';
-            const tbody = document.querySelector('#dashboard-table tbody'); tbody.innerHTML = '';
+            
+            // Set dynamic title based on the card clicked
+            const titleMap = { 'active': 'Active Orders', 'designing': 'Designs Pending', 'payments': 'Payments Pending', 'staff_pickup': 'Staff Pickups', 'delivery': 'Ready for Delivery' };
+            document.getElementById('dashboard-list-title').innerText = titleMap[filterType] || 'Order List';
+
+            const tbody = document.querySelector('#dashboard-table tbody'); 
+            tbody.innerHTML = '';
+            
             let filtered = Object.values(appData.orders);
             
+            // Apply Status Filter (Tabs)
             if (filterType === 'active') filtered = filtered.filter(o => o.status !== 'delivered');
             if (filterType === 'designing') filtered = filtered.filter(o => o.status === 'designing');
             if (filterType === 'payments') filtered = filtered.filter(o => parseFloat(o.balance) > 0);
             if (filterType === 'staff_pickup') filtered = filtered.filter(o => o.status === 'vendor_allotted');
             if (filterType === 'delivery') filtered = filtered.filter(o => o.status === 'ready_for_delivery');
 
+            // Apply Input Filters
+            const fId = (document.getElementById('dash-filt-id').value || '').toLowerCase();
+            const fClient = (document.getElementById('dash-filt-client').value || '').toLowerCase();
+            const fPhone = (document.getElementById('dash-filt-phone').value || '').toLowerCase();
+            const fWork = (document.getElementById('dash-filt-work').value || '').toLowerCase();
+            const fBal = parseFloat(document.getElementById('dash-filt-bal').value);
+            const fStatus = document.getElementById('dash-filt-status').value;
+
+            filtered = filtered.filter(o => {
+                if (fId && !o.orderId.toLowerCase().includes(fId)) return false;
+                if (fClient && !o.client.toLowerCase().includes(fClient)) return false;
+                if (fPhone && !o.phone.includes(fPhone)) return false;
+                if (fWork && !(o.work || '').toLowerCase().includes(fWork)) return false;
+                if (!isNaN(fBal) && parseFloat(o.balance) > fBal) return false;
+                if (fStatus && o.status !== fStatus) return false;
+                return true;
+            });
+
+            // Apply Sort
+            if(dashSort.col) {
+                filtered.sort((a, b) => {
+                    let valA = a[dashSort.col] || ''; let valB = b[dashSort.col] || '';
+                    if(dashSort.col === 'balance') { valA = parseFloat(valA) || 0; valB = parseFloat(valB) || 0; }
+                    if(valA < valB) return dashSort.asc ? -1 : 1;
+                    if(valA > valB) return dashSort.asc ? 1 : -1;
+                    return 0;
+                });
+            }
+
+            if(filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding: 20px;">No matching orders found.</td></tr>`;
+                return;
+            }
+
             filtered.forEach(o => {
                 const tr = document.createElement('tr');
-                tr.innerHTML = `<td><strong>${o.orderId}</strong></td><td>${o.client}</td><td>${o.phone}</td><td>${o.work || 'N/A'}</td><td style="color:red; font-weight:bold;">₹${o.balance}</td><td><span class="status-badge status-${o.status.replace(/_/g, '-')}">${o.status.replace(/_/g, ' ')}</span></td>`;
+                
+                let actionBtn = '<span style="color:var(--gray); font-size:12px;">-</span>';
+                if (o.status === 'designing') {
+                    actionBtn = `<button class="btn-primary" style="padding: 6px 12px; font-size: 11px;" onclick="markDesignReady('${o.orderId}')">Create Print Order</button>`;
+                }
+                
+                tr.innerHTML = `
+                    <td><strong>${o.orderId}</strong></td>
+                    <td>${o.client}</td>
+                    <td>${o.phone}</td>
+                    <td>${o.work || 'N/A'}</td>
+                    <td style="color:red; font-weight:bold;">₹${o.balance}</td>
+                    <td><span class="status-badge status-${o.status.replace(/_/g, '-')}">${o.status.toUpperCase().replace('_', ' ')}</span></td>
+                    <td>${actionBtn}</td>
+                `;
                 tbody.appendChild(tr);
             });
         }
@@ -1061,6 +1196,145 @@
             document.getElementById('dashboard-welcome').style.display = 'block';
         }
 
+        // PENDING REPORTS - CLIENT DUES
+        function sortPRClient(col) {
+            if(prClientSort.col === col) prClientSort.asc = !prClientSort.asc;
+            else { prClientSort.col = col; prClientSort.asc = true; }
+            renderPRClient();
+        }
+
+        function renderPRClient() {
+            const tbody = document.querySelector('#pr-client-table tbody'); tbody.innerHTML = '';
+            
+            let filtered = Object.values(appData.orders).filter(o => parseFloat(o.balance) > 0);
+
+            const fId = (document.getElementById('prc-filt-id').value || '').toLowerCase();
+            const fClient = (document.getElementById('prc-filt-client').value || '').toLowerCase();
+            const fPhone = (document.getElementById('prc-filt-phone').value || '').toLowerCase();
+            const fBal = parseFloat(document.getElementById('prc-filt-bal').value);
+
+            filtered = filtered.filter(o => {
+                if(fId && !o.orderId.toLowerCase().includes(fId)) return false;
+                if(fClient && !o.client.toLowerCase().includes(fClient)) return false;
+                if(fPhone && !o.phone.includes(fPhone)) return false;
+                if(!isNaN(fBal) && parseFloat(o.balance) > fBal) return false;
+                return true;
+            });
+
+            if(prClientSort.col) {
+                filtered.sort((a, b) => {
+                    let valA = a[prClientSort.col] || ''; let valB = b[prClientSort.col] || '';
+                    if(prClientSort.col === 'balance') { valA = parseFloat(valA) || 0; valB = parseFloat(valB) || 0; }
+                    if(valA < valB) return prClientSort.asc ? -1 : 1;
+                    if(valA > valB) return prClientSort.asc ? 1 : -1;
+                    return 0;
+                });
+            }
+
+            if (filtered.length === 0) return tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding: 20px;">No matching pending dues.</td></tr>`;
+            
+            filtered.forEach(o => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td><strong>${o.orderId}</strong></td><td>${o.client}</td><td>${o.phone}</td><td style="color:red; font-weight:bold;">₹${o.balance}</td>`;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // PENDING REPORTS - VENDOR ALLOTMENTS
+        function sortPRVendor(col) {
+            if(prVendorSort.col === col) prVendorSort.asc = !prVendorSort.asc;
+            else { prVendorSort.col = col; prVendorSort.asc = true; }
+            renderPRVendor();
+        }
+
+        function renderPRVendor() {
+            const tbody = document.querySelector('#pr-vendor-table tbody'); tbody.innerHTML = '';
+            
+            let filtered = [...appData.vendorAllotmentsHistory];
+
+            const fDate = (document.getElementById('prv-filt-date').value || '').toLowerCase();
+            const fOrder = (document.getElementById('prv-filt-order').value || '').toLowerCase();
+            const fVendor = (document.getElementById('prv-filt-vendor').value || '').toLowerCase();
+            const fWork = (document.getElementById('prv-filt-work').value || '').toLowerCase();
+            const fAmt = parseFloat(document.getElementById('prv-filt-amt').value);
+
+            filtered = filtered.filter(o => {
+                if(fDate && !new Date(o.date).toLocaleDateString().includes(fDate)) return false;
+                if(fOrder && !o.orderId.toLowerCase().includes(fOrder)) return false;
+                if(fVendor && !o.vendor.toLowerCase().includes(fVendor)) return false;
+                if(fWork && !o.work.toLowerCase().includes(fWork)) return false;
+                if(!isNaN(fAmt) && parseFloat(o.amount) > fAmt) return false;
+                return true;
+            });
+
+            if(prVendorSort.col) {
+                filtered.sort((a, b) => {
+                    let valA = a[prVendorSort.col] || ''; let valB = b[prVendorSort.col] || '';
+                    if(prVendorSort.col === 'amount') { valA = parseFloat(valA) || 0; valB = parseFloat(valB) || 0; }
+                    if(prVendorSort.col === 'date') { valA = new Date(valA).getTime(); valB = new Date(valB).getTime(); }
+                    if(valA < valB) return prVendorSort.asc ? -1 : 1;
+                    if(valA > valB) return prVendorSort.asc ? 1 : -1;
+                    return 0;
+                });
+            }
+
+            if (filtered.length === 0) return tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 20px;">No matching records.</td></tr>`;
+            
+            filtered.forEach(o => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td>${new Date(o.date).toLocaleDateString()}</td><td><strong>${o.orderId}</strong></td><td>${o.vendor}</td><td>${o.work}</td><td style="font-weight:bold;">₹${o.amount}</td>`;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // VENDOR REPORTS - TOTAL
+        function sortVR(col) {
+            if(vrSort.col === col) vrSort.asc = !vrSort.asc;
+            else { vrSort.col = col; vrSort.asc = true; }
+            renderVendorReport();
+        }
+
+        function renderVendorReport() {
+            const tbody = document.querySelector('#vr-table tbody'); tbody.innerHTML = '';
+            
+            let filtered = [...appData.vendorAllotmentsHistory];
+
+            const fDate = (document.getElementById('vr-filt-date').value || '').toLowerCase();
+            const fOrder = (document.getElementById('vr-filt-order').value || '').toLowerCase();
+            const fVendor = (document.getElementById('vr-filt-vendor').value || '').toLowerCase();
+            const fWork = (document.getElementById('vr-filt-work').value || '').toLowerCase();
+            const fAmt = parseFloat(document.getElementById('vr-filt-amt').value);
+
+            filtered = filtered.filter(o => {
+                if(fDate && !new Date(o.date).toLocaleDateString().includes(fDate)) return false;
+                if(fOrder && !o.orderId.toLowerCase().includes(fOrder)) return false;
+                if(fVendor && !o.vendor.toLowerCase().includes(fVendor)) return false;
+                if(fWork && !o.work.toLowerCase().includes(fWork)) return false;
+                if(!isNaN(fAmt) && parseFloat(o.amount) > fAmt) return false;
+                return true;
+            });
+
+            if(vrSort.col) {
+                filtered.sort((a, b) => {
+                    let valA = a[vrSort.col] || ''; let valB = b[vrSort.col] || '';
+                    if(vrSort.col === 'amount') { valA = parseFloat(valA) || 0; valB = parseFloat(valB) || 0; }
+                    if(vrSort.col === 'date') { valA = new Date(valA).getTime(); valB = new Date(valB).getTime(); }
+                    if(valA < valB) return vrSort.asc ? -1 : 1;
+                    if(valA > valB) return vrSort.asc ? 1 : -1;
+                    return 0;
+                });
+            }
+
+            if (filtered.length === 0) return tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 20px;">No matching records.</td></tr>`;
+            
+            filtered.forEach(o => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td>${new Date(o.date).toLocaleDateString()}</td><td><strong>${o.orderId}</strong></td><td>${o.vendor}</td><td>${o.work}</td><td style="font-weight:bold;">₹${o.amount}</td>`;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Global Order Finder
         function findOrder(query) {
             query = (query || '').trim();
             if(appData.orders[query]) return appData.orders[query]; 
