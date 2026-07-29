@@ -5,15 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - iam des!gns</title>
     
-    <link rel="icon" href="LOGO.jpg.jpeg" type="image/jpeg">
+    <link rel="icon" href="../LOGO.jpg.jpeg" type="image/jpeg">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
     
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
     <style>
         :root { --primary: #f26522; --dark: #232323; --gray: #666666; --light-gray: #f4f4f4; --white: #ffffff; --sidebar-width: 260px; }
@@ -83,6 +79,7 @@
         .btn-primary:hover { background: #d9561a; }
         .btn-secondary { background: #ddd; color: var(--dark); border: none; padding: 12px 25px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.3s; }
         .btn-whatsapp { background: #25D366; color: var(--white); border: none; padding: 12px 25px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.3s; display: flex; align-items: center; justify-content: center; gap: 8px;}
+        .add-row-btn { background: none; border: none; color: var(--primary); font-weight: 600; cursor: pointer; margin-top: 5px; text-align: left;}
 
         .toast-notification { position: fixed; bottom: 30px; right: 30px; background: var(--dark); color: var(--white); padding: 15px 25px; border-radius: 8px; font-weight: 600; font-size: 14px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); transform: translateY(100px); opacity: 0; transition: all 0.4s; z-index: 9999; display: flex; align-items: center; gap: 10px; border-left: 5px solid var(--primary); }
         .toast-notification.show { transform: translateY(0); opacity: 1; }
@@ -107,7 +104,7 @@
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <button class="sidebar-close-btn" id="sidebar-close-btn">&times;</button>
-            <img src="LOGO.jpg.jpeg" alt="iam designs logo" onerror="this.src='https://via.placeholder.com/150x50?text=iam+designs'">
+            <img src="../LOGO.jpg.jpeg" alt="iam designs logo" onerror="this.src='https://via.placeholder.com/150x50?text=iam+designs'">
             <h3>Workspace</h3>
         </div>
         <ul class="sidebar-menu">
@@ -170,29 +167,36 @@
                     <h3>Create New Printing Order</h3>
                     <form id="new-order-form">
                         <div class="form-grid">
+                            <div class="form-group"><label>Date</label><input type="text" id="nw-date" readonly></div>
                             <div class="form-group"><label>Order ID</label><input type="text" id="nw-orderid" readonly></div>
                             <div class="form-group"><label>Client Name</label><input type="text" id="nw-client" required></div>
                             <div class="form-group"><label>Contact</label><input type="tel" id="nw-phone" maxlength="10" required></div>
                         </div>
                         
-                        <div id="nw-works-container">
-                            <div class="form-grid nw-work-row">
+                        <!-- Dynamic Work Container -->
+                        <div id="nw-works-container" style="margin-top: 15px;">
+                            <div class="form-grid nw-work-row" style="border-bottom: 1px dashed #ccc; padding-bottom: 15px;">
                                 <div class="form-group">
                                     <label>Work Type</label>
-                                    <select class="nw-work-type">
+                                    <select class="nw-work-type" onchange="handleWorkTypeChange(this)">
                                         <option value="Flex">Flex</option>
                                         <option value="Digital Printing">Digital Printing</option>
                                         <option value="Offset Printing">Offset Printing</option>
+                                        <option value="Special Work">Special Work</option>
+                                        <option value="Others">Others</option>
                                     </select>
+                                    <input type="text" class="nw-work-others-input" placeholder="Type custom work..." style="display: none; margin-top: 8px;">
                                 </div>
-                                <div class="form-group"><label>Description</label><input type="text" class="nw-work-desc" placeholder="Details/Dimensions"></div>
+                                <div class="form-group"><label>Description / Details</label><input type="text" class="nw-work-desc" placeholder="e.g. Dimensions or extra details"></div>
                             </div>
                         </div>
+                        
+                        <button type="button" class="add-row-btn" onclick="addNewWorkRow()">+ Add Another Work</button>
 
                         <div class="form-grid" style="margin-top: 20px;">
-                            <div class="form-group"><label>Amount (₹)</label><input type="number" id="nw-amount" value="0" oninput="calcBalance()"></div>
-                            <div class="form-group"><label>Advance (₹)</label><input type="number" id="nw-advance" value="0" oninput="calcBalance()"></div>
-                            <div class="form-group"><label>Balance (₹)</label><input type="number" id="nw-balance" value="0" readonly></div>
+                            <div class="form-group"><label>Total Amount (₹)</label><input type="number" id="nw-amount" value="0" oninput="calcBalance()"></div>
+                            <div class="form-group"><label>Advance Paid (₹)</label><input type="number" id="nw-advance" value="0" oninput="calcBalance()"></div>
+                            <div class="form-group"><label>Balance Due (₹)</label><input type="number" id="nw-balance" value="0" readonly></div>
                             <div class="qr-container"><div id="qrcode"></div></div>
                         </div>
                         <div class="action-row"><button type="button" class="btn-primary" onclick="saveNewOrder()">Save & Sync Cloud</button></div>
@@ -224,8 +228,8 @@
                     <h3>Process Payment</h3>
                     <div class="form-grid">
                         <div class="form-group" style="grid-column: 1 / -1;">
-                            <label>Order ID</label>
-                            <input type="text" id="pay-search-input" placeholder="Enter Order ID...">
+                            <label>Order ID or Phone Number</label>
+                            <input type="text" id="pay-search-input" placeholder="Enter Order ID or Contact...">
                         </div>
                     </div>
                     <div class="action-row"><button type="button" class="btn-primary" onclick="searchPayment()">Search Billing</button></div>
@@ -300,14 +304,17 @@
             <span class="close-modal" onclick="closePaymentModal()">&times;</span>
             <h3>Receive Payment</h3>
             <p><strong>Order ID:</strong> <span id="modal-order-id"></span></p>
+            
             <div class="form-group" style="margin-top:15px;">
                 <label>Amount Received (₹)</label>
-                <input type="number" id="pay-modal-amt">
+                <!-- This will auto-fill with the full balance when opened -->
+                <input type="number" id="pay-modal-amt" min="0">
             </div>
             <div class="form-group" style="margin-top:15px;">
-                <label>Round Off (₹)</label>
-                <input type="number" id="pay-modal-roundoff" value="0">
+                <label>Discount / Round Off (₹)</label>
+                <input type="number" id="pay-modal-roundoff" value="0" min="0">
             </div>
+            
             <button class="btn-primary" style="width: 100%; margin-top: 15px;" onclick="submitPayment()">Submit Payment</button>
         </div>
     </div>
@@ -325,7 +332,7 @@
         async function checkAuth() {
             const { data: { session }, error } = await supabaseClient.auth.getSession();
             if (!session || error) {
-                window.location.replace('Admin Login.html');
+                window.location.replace('index.html');
             } else {
                 document.getElementById('user-email').innerText = session.user.email;
             }
@@ -336,7 +343,7 @@
             await supabaseClient.auth.signOut();
             sessionStorage.clear();
             alert('Securely logged out.');
-            window.location.replace('Admin Login.html'); 
+            window.location.replace('index.html'); 
         }
 
         let appData = { vendors: [], orders: {}, vendorAllotmentsHistory: [], staff: [] };
@@ -367,21 +374,31 @@
         }
         loadAppData();
 
-        // Mobile/Sidebar UI
+        // ==========================================
+        // UI & NAVIGATION LOGIC
+        // ==========================================
         const sidebar = document.getElementById('sidebar');
         const overlay = document.getElementById('sidebar-overlay');
         document.getElementById('mobile-menu-btn').addEventListener('click', () => { sidebar.classList.toggle('open'); overlay.classList.toggle('active'); });
         document.getElementById('sidebar-close-btn').addEventListener('click', () => { sidebar.classList.remove('open'); overlay.classList.remove('active'); });
 
+        // Settings Submenu Toggle Fixed
+        document.getElementById('settings-menu-toggle').addEventListener('click', function(e) {
+            e.preventDefault();
+            document.getElementById('settings-submenu').classList.toggle('open');
+        });
+
         document.querySelectorAll('.nav-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
-                if(btn.id === 'settings-menu-toggle') return;
+                if(btn.id === 'settings-menu-toggle') return; // Handled above
+                
                 e.preventDefault();
                 document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
                 document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
                 const targetId = btn.getAttribute('data-target');
                 btn.classList.add('active');
                 document.getElementById(targetId).classList.add('active');
+                
                 if(targetId === 'dashboard') updateDashboardStats();
                 if(targetId === 'new-order') initNewOrder();
                 if(targetId === 'staff-master') renderStaffTable();
@@ -395,11 +412,56 @@
             setTimeout(() => { toast.classList.remove('show'); }, 4000);
         }
 
+        // ==========================================
+        // ORDER ID GENERATOR (IAM-YYMMDD-XXX)
+        // ==========================================
+        function generateOrderId() {
+            const now = new Date();
+            const yy = String(now.getFullYear()).slice(-2);
+            const mm = String(now.getMonth() + 1).padStart(2, '0');
+            const dd = String(now.getDate()).padStart(2, '0');
+            const datePrefix = `IAM-${yy}${mm}${dd}-`;
+
+            let maxSeq = 0;
+            Object.keys(appData.orders).forEach(id => {
+                if (id.startsWith(datePrefix)) {
+                    const seq = parseInt(id.split('-')[2]);
+                    if (!isNaN(seq) && seq > maxSeq) {
+                        maxSeq = seq;
+                    }
+                }
+            });
+            const nextSeq = String(maxSeq + 1).padStart(3, '0');
+            return `${datePrefix}${nextSeq}`;
+        }
+
         function initNewOrder() {
-            const newId = `IAM-${Date.now().toString().slice(-6)}`;
+            // Auto-fill today's date
+            const today = new Date();
+            document.getElementById('nw-date').value = `${String(today.getDate()).padStart(2, '0')}/${String(today.getMonth() + 1).padStart(2, '0')}/${today.getFullYear()}`;
+            
+            // Auto-generate proper Order ID format
+            const newId = generateOrderId();
             document.getElementById('nw-orderid').value = newId;
             document.getElementById('qrcode').innerHTML = ""; 
             new QRCode(document.getElementById("qrcode"), { text: newId, width: 80, height: 80 });
+        }
+
+        function handleWorkTypeChange(selectElement) {
+            const row = selectElement.closest('.nw-work-row');
+            const othersInput = row.querySelector('.nw-work-others-input');
+            othersInput.style.display = selectElement.value === 'Others' ? 'block' : 'none';
+        }
+
+        function addNewWorkRow() {
+            const container = document.getElementById('nw-works-container');
+            const row = document.createElement('div');
+            row.className = 'form-grid nw-work-row';
+            row.style.marginTop = '15px';
+            row.style.borderTop = '1px dashed #ccc';
+            row.style.paddingTop = '15px';
+            row.innerHTML = `<div class="form-group"><label>Work Type</label><select class="nw-work-type" onchange="handleWorkTypeChange(this)"><option value="Flex">Flex</option><option value="Digital Printing">Digital Printing</option><option value="Offset Printing">Offset Printing</option><option value="Special Work">Special Work</option><option value="Others">Others</option></select><input type="text" class="nw-work-others-input" placeholder="Type custom work..." style="display: none; margin-top: 8px;"></div><div class="form-group"><label>Description / Details</label><input type="text" class="nw-work-desc" placeholder="e.g. Dimensions or extra details"></div>`;
+            container.appendChild(row);
         }
 
         function calcBalance() {
@@ -418,11 +480,13 @@
             
             if(!client || phone.length !== 10) return alert("Valid client and 10 digit phone required.");
 
+            // Capture all multiple work items
             let workTypesArray = [];
             document.querySelectorAll('.nw-work-row').forEach(row => {
                 let type = row.querySelector('.nw-work-type').value;
+                if(type === 'Others') type = row.querySelector('.nw-work-others-input').value.trim() || 'Other Work';
                 const desc = row.querySelector('.nw-work-desc').value.trim();
-                workTypesArray.push(desc ? desc : type);
+                workTypesArray.push(desc ? `${type} - ${desc}` : type);
             });
 
             const newOrderObj = {
@@ -444,7 +508,9 @@
             let msg = `Hello ${client},\nYour order ${orderId} has been placed.\nWork: ${newOrderObj.work}\nTotal: ₹${newOrderObj.amount}\nBalance Due: ₹${newOrderObj.balance}`;
             window.open(`https://wa.me/91${phone}?text=${encodeURIComponent(msg)}`, '_blank');
 
+            // Reset UI
             document.getElementById('new-order-form').reset();
+            document.getElementById('nw-works-container').innerHTML = `<div class="form-grid nw-work-row" style="border-bottom: 1px dashed #ccc; padding-bottom: 15px;"><div class="form-group"><label>Work Type</label><select class="nw-work-type" onchange="handleWorkTypeChange(this)"><option value="Flex">Flex</option><option value="Digital Printing">Digital Printing</option><option value="Offset Printing">Offset Printing</option><option value="Special Work">Special Work</option><option value="Others">Others</option></select><input type="text" class="nw-work-others-input" placeholder="Type custom work..." style="display: none; margin-top: 8px;"></div><div class="form-group"><label>Description / Details</label><input type="text" class="nw-work-desc" placeholder="e.g. Dimensions or extra details"></div></div>`;
             initNewOrder(); 
             updateDashboardStats();
         }
@@ -494,9 +560,10 @@
         }
 
         // ==========================================
-        // PAYMENTS (SUPABASE UPDATE)
+        // PAYMENTS (SUPABASE UPDATE WITH DISCOUNT)
         // ==========================================
         let currentlySearchedOrderId = null;
+        
         function searchPayment() {
             const order = findOrder(document.getElementById('pay-search-input').value);
             if(order) {
@@ -504,11 +571,26 @@
                 document.getElementById('pa-oid').innerText = order.orderId;
                 document.getElementById('pa-bal').innerText = order.balance;
                 document.getElementById('pay-result-card').style.display = 'block';
-            } else alert("Order Not Found");
+            } else {
+                alert("Order Not Found! Ensure the Order ID is typed correctly.");
+            }
         }
 
-        function openPaymentModal(id) { document.getElementById('modal-order-id').innerText = id; document.getElementById('paymentModal').style.display = 'flex'; }
-        function closePaymentModal() { document.getElementById('paymentModal').style.display = 'none'; }
+        function openPaymentModal(id) { 
+            const order = appData.orders[id];
+            document.getElementById('modal-order-id').innerText = id; 
+            
+            // Auto-fill inputs
+            const amtInput = document.getElementById('pay-modal-amt');
+            amtInput.value = order.balance; 
+            document.getElementById('pay-modal-roundoff').value = '0';
+            
+            document.getElementById('paymentModal').style.display = 'flex'; 
+        }
+        
+        function closePaymentModal() { 
+            document.getElementById('paymentModal').style.display = 'none'; 
+        }
 
         async function submitPayment() {
             const amt = parseFloat(document.getElementById('pay-modal-amt').value) || 0;
@@ -516,6 +598,12 @@
             const order = appData.orders[currentlySearchedOrderId];
             
             if(order && (amt > 0 || ro > 0)) {
+                
+                // Strict check: Payment + Discount cannot exceed pending balance
+                if((amt + ro) > parseFloat(order.balance)) {
+                    return alert("Error: Total deduction (Payment + Discount) cannot exceed the pending balance of ₹" + order.balance);
+                }
+                
                 const newAdvance = (parseFloat(order.advance) + amt).toFixed(2);
                 const newBalance = (parseFloat(order.balance) - (amt + ro)).toFixed(2);
 
@@ -525,9 +613,15 @@
 
                 if (error) return alert("Payment failed: " + error.message);
 
-                order.advance = newAdvance; order.balance = newBalance;
-                showToast(`Payment of ₹${amt} received.`);
-                closePaymentModal(); searchPayment(); updateDashboardStats();
+                order.advance = newAdvance; 
+                order.balance = newBalance;
+                
+                showToast(`Payment of ₹${amt} and Discount of ₹${ro} applied.`);
+                closePaymentModal(); 
+                searchPayment(); 
+                updateDashboardStats();
+            } else {
+                alert("Please enter a valid amount to receive.");
             }
         }
 
@@ -626,7 +720,7 @@
 
             filtered.forEach(o => {
                 const tr = document.createElement('tr');
-                tr.innerHTML = `<td><strong>${o.orderId}</strong></td><td>${o.client}</td><td>${o.phone}</td><td>${o.work || 'N/A'}</td><td style="color:red; font-weight:bold;">₹${o.balance}</td><td>${o.status}</td>`;
+                tr.innerHTML = `<td><strong>${o.orderId}</strong></td><td>${o.client}</td><td>${o.phone}</td><td>${o.work || 'N/A'}</td><td style="color:red; font-weight:bold;">₹${o.balance}</td><td>${o.status.toUpperCase().replace('_', ' ')}</td>`;
                 tbody.appendChild(tr);
             });
         }
