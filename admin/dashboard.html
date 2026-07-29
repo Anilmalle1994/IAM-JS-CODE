@@ -5,15 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - iam des!gns</title>
     
-    <!-- Assuming your logo is in the main GitHub folder, ../ goes up one level -->
+    <!-- Path updated to point to the main folder logo -->
     <link rel="icon" href="../LOGO.jpg.jpeg" type="image/jpeg">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     
     <!-- External Libraries -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
     <style>
         /* Variables & Base Setup */
@@ -91,6 +89,7 @@
         .toast-notification { position: fixed; bottom: 30px; right: 30px; background: var(--dark); color: var(--white); padding: 15px 25px; border-radius: 8px; font-weight: 600; font-size: 14px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); transform: translateY(100px); opacity: 0; transition: all 0.4s; z-index: 9999; display: flex; align-items: center; gap: 10px; border-left: 5px solid var(--primary); }
         .toast-notification.show { transform: translateY(0); opacity: 1; }
 
+        /* Modals & Badges */
         .modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); backdrop-filter: blur(3px); align-items: center; justify-content: center; padding: 15px; }
         .modal-content { background-color: var(--white); padding: 30px; border-radius: 15px; width: 100%; max-width: 500px; position: relative; box-shadow: 0 25px 50px rgba(0,0,0,0.3); }
         .close-modal { color: var(--gray); position: absolute; top: 15px; right: 20px; font-size: 28px; font-weight: bold; cursor: pointer; z-index: 10;}
@@ -103,6 +102,7 @@
         .status-ready-for-delivery { background: #d4edda; color: #155724; }
         .status-delivered { background: #e2e3e5; color: #383d41; }
 
+        /* Mobile Responsiveness */
         @media (max-width: 768px) {
             .menu-toggle, .sidebar-close-btn { display: block; }
             .sidebar { transform: translateX(-100%); }
@@ -231,6 +231,7 @@
                             <div class="form-group"><label>Contact</label><input type="tel" id="nw-phone" maxlength="10" required></div>
                         </div>
                         
+                        <!-- Dynamic Work Container -->
                         <div id="nw-works-container" style="margin-top: 15px;">
                             <div class="form-grid nw-work-row" style="border-bottom: 1px dashed #ccc; padding-bottom: 15px;">
                                 <div class="form-group">
@@ -317,6 +318,7 @@
                         </div>
                     </div>
                 </div>
+                
                 <div class="admin-card" id="pay-result-card" style="display: none;">
                     <h3>Billing Summary</h3>
                     <p><strong>Order ID:</strong> <span id="pa-oid"></span></p>
@@ -379,23 +381,25 @@
                 </div>
             </div>
 
-            <!-- Settings: Web Content -->
+            <!-- Settings: Web Content (Fully Functional) -->
             <div id="web-content" class="view-section">
                 <div class="form-grid">
                     <div class="admin-card">
                         <h3>Add New Portfolio Item</h3>
                         <p style="font-size: 13px; color: var(--gray); margin-bottom: 20px;">Upload a new image to appear in the "Our Portfolio" section.</p>
-                        <form onsubmit="alert('Portfolio updated (UI Demo).'); this.reset(); return false;">
-                            <div class="form-group"><label>Project Title</label><input type="text" required></div>
-                            <div class="action-row"><button type="submit" class="btn-primary">Publish</button></div>
+                        <form id="portfolio-form">
+                            <div class="form-group"><label>Project Title / Description</label><input type="text" id="port-title" placeholder="e.g., Brand Redesign" required></div>
+                            <div class="form-group"><label>Upload Image File</label><input type="file" id="port-img" accept="image/*" required style="background: white;"></div>
+                            <div class="action-row"><button type="submit" id="btn-port" class="btn-primary">Publish to Website</button></div>
                         </form>
                     </div>
                     <div class="admin-card">
                         <h3>Add Trusted Client Logo</h3>
                         <p style="font-size: 13px; color: var(--gray); margin-bottom: 20px;">Upload a client's logo to scroll in the "Trusted By" marquee.</p>
-                        <form onsubmit="alert('Client added to marquee (UI Demo).'); this.reset(); return false;">
-                            <div class="form-group"><label>Client Name</label><input type="text" required></div>
-                            <div class="action-row"><button type="submit" class="btn-primary">Add Logo</button></div>
+                        <form id="client-form">
+                            <div class="form-group"><label>Client Name</label><input type="text" id="client-name" placeholder="e.g., Globex Corporation" required></div>
+                            <div class="form-group"><label>Upload Logo File</label><input type="file" id="client-img" accept="image/*" required style="background: white;"></div>
+                            <div class="action-row"><button type="submit" id="btn-client" class="btn-primary">Add to Marquee</button></div>
                         </form>
                     </div>
                 </div>
@@ -450,7 +454,7 @@
         </div>
     </main>
 
-    <!-- Payment Modal (Hidden by Default) -->
+    <!-- Payment Modal -->
     <div id="paymentModal" class="modal">
         <div class="modal-content">
             <span class="close-modal" onclick="closePaymentModal()">&times;</span>
@@ -544,13 +548,11 @@
             sidebar.classList.remove('open'); overlay.classList.remove('active'); 
         });
 
-        // Settings Submenu Fix
         document.getElementById('settings-menu-toggle').addEventListener('click', function(e) {
             e.preventDefault();
             document.getElementById('settings-submenu').classList.toggle('open');
         });
 
-        // Page Navigation
         document.querySelectorAll('.nav-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 if(btn.id === 'settings-menu-toggle') return; 
@@ -563,14 +565,12 @@
                 btn.classList.add('active');
                 document.getElementById(targetId).classList.add('active');
                 
-                // Trigger page-specific logic
                 if(targetId === 'dashboard') updateDashboardStats();
                 if(targetId === 'new-order') initNewOrder();
                 if(targetId === 'staff-master') renderStaffTable();
                 if(targetId === 'pending-reports') { renderPRClient(); renderPRVendor(); }
                 if(targetId === 'vendor-reports') renderVendorReport();
 
-                // Close mobile menu on click
                 if(window.innerWidth <= 768) {
                     sidebar.classList.remove('open'); overlay.classList.remove('active');
                 }
@@ -588,7 +588,7 @@
         // DESIGNING SECTION
         // ==========================================
         function addDesignWorkRow() {
-            document.getElementById('des-works-container').innerHTML += `<div class="form-grid des-work-row"><div class="form-group"><label>Work</label><input type="text" class="des-work-input"></div><div class="form-group"><label>Dimensions</label><input type="text" class="des-dim-input"></div></div>`;
+            document.getElementById('des-works-container').innerHTML += `<div class="form-grid des-work-row"><div class="form-group"><label>Work</label><input type="text" class="des-work-input" required></div><div class="form-group"><label>Dimensions</label><input type="text" class="des-dim-input"></div></div>`;
         }
 
         async function saveDesignRequest() {
@@ -781,6 +781,8 @@
         // ==========================================
         // PAYMENTS & ROUND OFF LOGIC
         // ==========================================
+        let currentlySearchedOrderId = null;
+        
         function searchPayment() {
             const order = findOrder(document.getElementById('pay-search-input').value);
             if(order) {
@@ -825,7 +827,6 @@
                 if (error) return alert("Payment failed: " + error.message);
 
                 order.advance = newAdvance; order.balance = newBalance;
-                
                 showToast(`Payment of ₹${amt} and Discount of ₹${ro} applied.`);
                 closePaymentModal(); searchPayment(); updateDashboardStats();
             }
@@ -923,6 +924,65 @@
             link.download = `Clients_Contacts.vcf`;
             link.click();
         }
+
+        // ==========================================
+        // WEB CONTENT UPLOAD (SUPABASE STORAGE)
+        // ==========================================
+        document.getElementById('portfolio-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btn-port');
+            btn.innerText = "Publishing..."; btn.disabled = true;
+
+            try {
+                const file = document.getElementById('port-img').files[0];
+                const title = document.getElementById('port-title').value;
+                const fileExt = file.name.split('.').pop();
+                const fileName = `portfolio_${Date.now()}.${fileExt}`;
+                
+                const { error: uploadError } = await supabaseClient.storage.from('web_content').upload(fileName, file);
+                if (uploadError) throw uploadError;
+
+                const { data: { publicUrl } } = supabaseClient.storage.from('web_content').getPublicUrl(fileName);
+
+                const { error: dbError } = await supabaseClient.from('portfolio').insert([{ title, image_url: publicUrl }]);
+                if (dbError) throw dbError;
+
+                showToast("Portfolio published to frontend!");
+                e.target.reset();
+            } catch (err) {
+                alert("Upload Error: " + err.message);
+            } finally {
+                btn.innerText = "Publish to Website"; btn.disabled = false;
+            }
+        });
+
+        document.getElementById('client-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btn-client');
+            btn.innerText = "Uploading..."; btn.disabled = true;
+
+            try {
+                const file = document.getElementById('client-img').files[0];
+                const name = document.getElementById('client-name').value;
+                const fileExt = file.name.split('.').pop();
+                const fileName = `client_${Date.now()}.${fileExt}`;
+                
+                const { error: uploadError } = await supabaseClient.storage.from('web_content').upload(fileName, file);
+                if (uploadError) throw uploadError;
+
+                const { data: { publicUrl } } = supabaseClient.storage.from('web_content').getPublicUrl(fileName);
+
+                const { error: dbError } = await supabaseClient.from('clients').insert([{ name, logo_url: publicUrl }]);
+                if (dbError) throw dbError;
+
+                showToast("Client Logo added to Marquee!");
+                e.target.reset();
+            } catch (err) {
+                alert("Upload Error: " + err.message);
+            } finally {
+                btn.innerText = "Add to Marquee"; btn.disabled = false;
+            }
+        });
 
         // ==========================================
         // REPORTS RENDERING
