@@ -118,11 +118,11 @@
         }
 
         async function checkActiveSession() {
-            const { data: { session } } = await supabaseClient.auth.getSession();
-            if (session) {
-                window.location.href = 'Admin dashboard.html'; 
-            }
-        }
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    if (session) {
+        window.location.href = 'dashboard.html'; // <-- MUST BE EXACTLY THIS
+    }
+}
 
         const loginForm = document.getElementById('login-form');
         const submitBtn = document.getElementById('submit-btn');
@@ -185,11 +185,14 @@
 
                 try {
                     const { data: { session }, error } = await supabaseClient.auth.verifyOtp({
-                        email: currentUserEmail,
-                        token: token,
-                        type: 'email'
-                    });
+    email: currentUserEmail,
+    token: token,
+    type: 'email'
+});
 
+if (error) throw error;
+
+window.location.href = 'dashboard.html'; // <-- MUST BE EXACTLY THIS
                     if (error) throw error;
 
                     window.location.href = 'Admin dashboard.html'; 
