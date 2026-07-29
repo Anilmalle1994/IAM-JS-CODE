@@ -138,7 +138,7 @@
             <li><a href="#" class="nav-btn" data-target="vendor-allotment"><span class="nav-text">🤝 Vendor Allotment</span></a></li>
             <li><a href="#" class="nav-btn" data-target="staff-pickup"><span class="nav-text">🚚 Staff Pickup</span></a></li>
             <li><a href="#" class="nav-btn" data-target="payment"><span class="nav-text">💰 Payment</span></a></li>
-            <li><a href="#" class="nav-btn" data-target="delivery"><span class="nav-text">📦 Delivery</span></a></li>
+            <li><a href="#" class="nav-btn" data-target="delivery"><span class="nav-text">📦 Ready For Delivery</span></a></li>
             <li>
                 <a href="#" id="settings-menu-toggle"><span class="nav-text">⚙️ Settings</span> <span style="font-size: 10px;">▼</span></a>
                 <ul class="submenu" id="settings-submenu">
@@ -289,7 +289,7 @@
                             <div class="form-group"><label>Balance Due (₹)</label><input type="number" id="nw-balance" value="0" readonly></div>
                             <div class="qr-container"><div id="qrcode"></div></div>
                         </div>
-                        <div class="action-row"><button type="button" class="btn-primary" onclick="saveNewOrder()">Save & Sync Cloud</button></div>
+                        <div class="action-row"><button type="button" class="btn-primary" onclick="saveNewOrder()">Save & WhatsApp</button></div>
                     </form>
                 </div>
             </div>
@@ -364,15 +364,15 @@
                 </div>
             </div>
 
-            <!-- Delivery Section -->
+            <!-- Ready For Delivery Section -->
             <div id="delivery" class="view-section">
                 <div class="admin-card">
-                    <h3>Delivery Confirmation</h3>
+                    <h3>Ready For Delivery</h3>
                     <div class="form-grid">
                         <div class="form-group" style="grid-column: 1 / -1;">
                             <label>Search Order ID</label>
                             <div style="display: flex; gap: 10px;">
-                                <input type="text" id="del-search-input" style="flex: 1;" placeholder="Enter Order ID...">
+                                <input type="text" id="del-search-input" style="flex: 1;" placeholder="Enter Order ID or scan QR...">
                                 <button type="button" class="btn-secondary" onclick="openQRScanner('del-search-input', searchDelivery)">📷 Scan</button>
                                 <button type="button" class="btn-secondary" onclick="searchDelivery()">Search</button>
                             </div>
@@ -386,7 +386,7 @@
                     <p><strong>Contact:</strong> <span id="res-phone"></span></p>
                     <p><strong>Work Details:</strong> <span id="del-work"></span></p>
                     <p><strong>Balance Due:</strong> ₹<span id="res-bal" style="color:red; font-weight:bold;"></span></p>
-                    <div class="action-row"><button type="button" class="btn-whatsapp" onclick="sendDeliveryWhatsApp()">📱 Send WhatsApp & Deliver</button></div>
+                    <div class="action-row"><button type="button" class="btn-whatsapp" onclick="sendDeliveryWhatsApp()">📱 Ready For Delivery</button></div>
                 </div>
             </div>
 
@@ -421,7 +421,7 @@
                 </div>
             </div>
 
-            <!-- Settings: Web Content -->
+            <!-- Settings: Web Content (Fully Functional) -->
             <div id="web-content" class="view-section">
                 <div class="form-grid">
                     <div class="admin-card">
@@ -735,7 +735,7 @@
         }
 
         async function markDesignDone(orderId) {
-            if(!confirm("Are you sure you want to mark this design as Done?")) return;
+            if(!confirm("Are you sure you want to mark this design as Design Deliver?")) return;
             const order = appData.orders[orderId];
             if(!order) return;
             
@@ -743,7 +743,7 @@
             if(error) return alert("Failed: " + error.message);
             
             order.status = 'delivered';
-            showToast("Design marked as Done.");
+            showToast("Design marked as Delivered.");
             updateDashboardStats();
             renderDashboardTable(currentDashFilter);
         }
@@ -847,6 +847,7 @@
 
             appData.orders[orderId] = newOrderObj;
 
+            // CLEANUP: If from design request, delete old design entry
             if (pendingDesignToClose) {
                 await supabaseClient.from('orders').delete().eq('orderId', pendingDesignToClose);
                 delete appData.orders[pendingDesignToClose];
@@ -865,7 +866,7 @@
         }
 
         // ==========================================
-        // VENDOR ALLOTMENT LOGIC
+        // VENDOR ALLOTMENT LOGIC (Multiple Works)
         // ==========================================
         function fetchOrderForAllotment() {
             const query = document.getElementById('va-orderid').value.trim();
@@ -873,10 +874,37 @@
             if(!order) return alert("Order not found!");
             
             const container = document.getElementById('va-rows-container');
-            container.innerHTML = `<div class="form-grid va-row"><div class="form-group"><label>Vendor</label><select class="va-vendor"><option value="">Select Vendor...</option></select></div><div class="form-group"><label>Amount (₹)</label><input type="number" class="va-amount"></div></div>`;
-            const vSelect = container.querySelector('.va-vendor');
-            appData.vendors.forEach((v, index) => {
-                let opt = document.createElement('option'); opt.value = index; opt.innerText = v.name; vSelect.appendChild(opt);
+            container.innerHTML = ''; 
+
+            const workItems = order.work ? order.work.split(', ') : ['General Work'];
+            
+            workItems.forEach((workItem) => {
+                const row = document.createElement('div');
+                row.className = 'form-grid va-row';
+                row.style.borderBottom = '1px dashed #ccc';
+                row.style.paddingBottom = '15px';
+                row.style.marginBottom = '15px';
+                
+                row.innerHTML = `
+                    <div class="form-group" style="grid-column: 1 / -1;">
+                        <label style="color: var(--primary);">Work Item: ${workItem}</label>
+                        <input type="hidden" class="va-work-item" value="${workItem}">
+                    </div>
+                    <div class="form-group">
+                        <label>Vendor</label>
+                        <select class="va-vendor"><option value="">Select Vendor...</option></select>
+                    </div>
+                    <div class="form-group">
+                        <label>Amount (₹)</label>
+                        <input type="number" class="va-amount" min="0">
+                    </div>
+                `;
+                container.appendChild(row);
+
+                const vSelect = row.querySelector('.va-vendor');
+                appData.vendors.forEach((v, index) => {
+                    let opt = document.createElement('option'); opt.value = index; opt.innerText = v.name; vSelect.appendChild(opt);
+                });
             });
         }
 
@@ -885,26 +913,43 @@
             const order = findOrder(query);
             if(!order) return alert("Fetch an order first.");
 
-            const vIndex = document.querySelector('.va-vendor').value;
-            if(vIndex === "") return alert("Select a vendor.");
-            const vendorName = appData.vendors[vIndex].name;
-            const amt = parseFloat(document.querySelector('.va-amount').value) || 0;
+            let allotments = [];
+            let historyEntries = [];
+            let allValid = true;
+
+            document.querySelectorAll('.va-row').forEach(row => {
+                const vIndex = row.querySelector('.va-vendor').value;
+                if(vIndex !== "") {
+                    const vendorName = appData.vendors[vIndex].name;
+                    const amt = parseFloat(row.querySelector('.va-amount').value) || 0;
+                    const workItem = row.querySelector('.va-work-item').value;
+                    
+                    allotments.push({ workItem, vendorName, amount: amt });
+                    historyEntries.push({ date: new Date().toISOString(), orderId: order.orderId, vendor: vendorName, work: workItem, amount: amt });
+                } else {
+                    allValid = false;
+                }
+            });
+
+            if(!allValid) return alert("Please select a vendor for all work items.");
+            if(allotments.length === 0) return alert("No vendors selected.");
+
+            const vendorNamesCombined = [...new Set(allotments.map(a => a.vendorName))].join(", ");
 
             const { error: oErr } = await supabaseClient.from('orders').update({
-                status: 'vendor_allotted', vendorName
+                status: 'vendor_allotted', vendorName: vendorNamesCombined
             }).eq('orderId', order.orderId);
-
             if (oErr) return alert(oErr.message);
 
-            const { error: hErr } = await supabaseClient.from('vendor_allotments_history').insert([{
-                date: new Date().toISOString(), orderId: order.orderId, vendor: vendorName, work: order.work, amount: amt
-            }]);
-
+            const { error: hErr } = await supabaseClient.from('vendor_allotments_history').insert(historyEntries);
             if (hErr) return alert(hErr.message);
 
-            order.status = 'vendor_allotted'; order.vendorName = vendorName;
+            order.status = 'vendor_allotted'; order.vendorName = vendorNamesCombined;
+            appData.vendorAllotmentsHistory.push(...historyEntries);
+
             showToast("Vendor Allotted in Cloud!");
             document.getElementById('va-rows-container').innerHTML = '';
+            document.getElementById('va-orderid').value = '';
             updateDashboardStats();
         }
 
@@ -938,10 +983,11 @@
             document.getElementById('pickup-result-card').style.display = 'none';
             document.getElementById('pickup-search-input').value = '';
             updateDashboardStats();
+            if(currentDashFilter === 'staff_pickup') renderDashboardTable('staff_pickup');
         }
 
         // ==========================================
-        // PAYMENTS & ROUND OFF LOGIC
+        // PAYMENTS & BILL GENERATION LOGIC
         // ==========================================
         let currentlySearchedOrderId = null;
         
@@ -991,7 +1037,52 @@
                 order.advance = newAdvance; order.balance = newBalance;
                 showToast(`Payment of ₹${amt} and Discount of ₹${ro} applied.`);
                 closePaymentModal(); searchPayment(); updateDashboardStats();
+
+                if (parseFloat(newBalance) <= 0) {
+                    generateBillAndSend(order);
+                }
             }
+        }
+
+        function generateBillAndSend(order) {
+            const billDiv = document.createElement('div');
+            billDiv.style.position = 'absolute'; billDiv.style.left = '-9999px'; billDiv.style.top = '0'; billDiv.style.width = '800px'; billDiv.style.padding = '40px'; billDiv.style.background = '#fff'; billDiv.style.fontFamily = 'Poppins, sans-serif';
+            billDiv.innerHTML = `
+                <div style="text-align:center; border-bottom: 2px solid #f26522; padding-bottom: 20px; margin-bottom: 20px;">
+                    <h1 style="color:#f26522; margin:0;">iam des!gns</h1>
+                    <p style="margin:5px 0 0 0; color:#666;">Majestic Complex, Cinema Road, Kakinada</p>
+                    <p style="margin:0; color:#666;">Phone: +91 92999 99564</p>
+                </div>
+                <div style="display:flex; justify-content:space-between; margin-bottom:30px;">
+                    <div>
+                        <h3 style="margin:0 0 10px 0;">Bill To:</h3>
+                        <p style="margin:0;"><strong>${order.client}</strong></p>
+                        <p style="margin:0;">Phone: ${order.phone}</p>
+                    </div>
+                    <div style="text-align:right;">
+                        <h3 style="margin:0 0 10px 0;">Invoice Details:</h3>
+                        <p style="margin:0;"><strong>Order ID:</strong> ${order.orderId}</p>
+                        <p style="margin:0;"><strong>Date:</strong> ${new Date().toLocaleDateString()}</p>
+                    </div>
+                </div>
+                <table style="width:100%; border-collapse:collapse; margin-bottom:30px;">
+                    <thead><tr style="background:#f4f4f4; text-align:left;"><th style="padding:12px; border:1px solid #ddd;">Description</th><th style="padding:12px; border:1px solid #ddd; text-align:right;">Amount</th></tr></thead>
+                    <tbody><tr><td style="padding:12px; border:1px solid #ddd;">${order.work}</td><td style="padding:12px; border:1px solid #ddd; text-align:right;">₹${order.amount}</td></tr></tbody>
+                </table>
+                <div style="text-align:right; font-size:18px;">
+                    <p><strong>Total Amount Paid:</strong> <span style="color:green;">₹${order.amount}</span></p>
+                    <p><strong>Balance Due:</strong> <span style="color:green;">₹0.00</span></p>
+                </div>
+                <div style="margin-top:50px; text-align:center; color:#888; font-size:12px;"><p>Thank you for your business!</p></div>
+            `;
+            document.body.appendChild(billDiv);
+
+            const opt = { margin: 10, filename: `Invoice_${order.orderId}.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } };
+            html2pdf().set(opt).from(billDiv).save().then(() => {
+                document.body.removeChild(billDiv);
+                const msg = `Dear ${order.client},\nYour payment for Order ${order.orderId} is complete. Your balance is ₹0. Please find your bill attached in this chat.\nThank you!`;
+                window.open(`https://wa.me/91${order.phone}?text=${encodeURIComponent(msg)}`, '_blank');
+            });
         }
 
         // ==========================================
@@ -1016,7 +1107,7 @@
             if(order) {
                 await supabaseClient.from('orders').update({ status: 'delivered' }).eq('orderId', order.orderId);
                 order.status = 'delivered';
-                const msg = `Dear Customer, your order ${order.orderId} is ready for delivery!`;
+                const msg = `Dear Customer, your order ${order.orderId} is ready for delivery!\nDue : ₹${order.balance}`;
                 window.open(`https://wa.me/91${phone}?text=${encodeURIComponent(msg)}`, '_blank');
                 updateDashboardStats();
                 document.getElementById('del-result-card').style.display = 'none';
@@ -1053,7 +1144,6 @@
             appData.vendors.push(data[0]);
             showToast("Vendor Saved to Cloud!");
             
-            // Reset Form completely
             document.getElementById('vm-name').value = '';
             document.getElementById('vm-materials-container').innerHTML = `<div class="form-grid vm-material-row"><div class="form-group"><label>Material Name</label><input type="text" class="vm-mat-name"></div><div class="form-group"><label>Rate (₹)</label><input type="number" class="vm-mat-rate"></div></div>`;
         }
@@ -1252,7 +1342,7 @@
                 
                 let actionBtn = '<span style="color:var(--gray); font-size:12px;">-</span>';
                 if (o.status === 'designing') {
-                    actionBtn = `<div style="display:flex; gap:5px;"><button class="btn-primary" style="padding: 4px 8px; font-size: 11px;" onclick="markDesignDone('${o.orderId}')">Done</button><button class="btn-secondary" style="padding: 4px 8px; font-size: 11px;" onclick="markDesignReady('${o.orderId}')">Print</button></div>`;
+                    actionBtn = `<div style="display:flex; gap:5px;"><button class="btn-primary" style="padding: 4px 8px; font-size: 11px;" onclick="markDesignDone('${o.orderId}')">Design Deliver</button><button class="btn-secondary" style="padding: 4px 8px; font-size: 11px;" onclick="markDesignReady('${o.orderId}')">Print</button></div>`;
                 }
                 
                 tr.innerHTML = `
