@@ -535,8 +535,28 @@
                 </div>
             </div>
 
-            <!-- Settings: Clients Data -->
+            <!-- Settings: Clients Data (Updated to include Edit) -->
             <div id="clients-data" class="view-section">
+                <div class="admin-card" style="margin-bottom: 30px;">
+                    <h3>Edit Client / Order Details</h3>
+                    <div class="form-grid">
+                        <div class="form-group" style="grid-column: 1 / -1;">
+                            <label>Search Order ID</label>
+                            <div style="display: flex; gap: 10px;">
+                                <input type="text" id="edit-search-input" style="flex: 1;" placeholder="Enter Order ID...">
+                                <button type="button" class="btn-secondary" onclick="searchEditClient()">Search</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="edit-client-form" style="display: none; margin-top: 20px;">
+                        <div class="form-grid">
+                            <div class="form-group"><label>Client Name</label><input type="text" id="edit-client-name"></div>
+                            <div class="form-group"><label>Contact Number</label><input type="tel" id="edit-client-phone" maxlength="10"></div>
+                        </div>
+                        <div class="action-row"><button type="button" class="btn-primary" onclick="saveClientEdit()">Save Changes</button></div>
+                    </div>
+                </div>
+
                 <div class="admin-card">
                     <h3>Clients Directory</h3>
                     <p style="font-size: 13px; color: var(--gray); margin-bottom: 20px;">Download all your unique clients' contact information in vCard (.vcf) format to easily import them into your phone contacts.</p>
@@ -1173,7 +1193,7 @@
         }
 
         // ==========================================
-        // VENDORS, STAFF & VCF DOWNLOAD
+        // VENDORS, STAFF & EDIT CLIENTS
         // ==========================================
         function addMaterialRow() {
             const container = document.getElementById('vm-materials-container');
@@ -1232,6 +1252,41 @@
             await supabaseClient.from('staff').delete().eq('id', id);
             appData.staff = appData.staff.filter(s => s.id !== id);
             renderStaffTable();
+        }
+        
+        let editTargetOrderId = null;
+        function searchEditClient() {
+            const query = document.getElementById('edit-search-input').value.trim();
+            const order = findOrder(query);
+            if(order) {
+                editTargetOrderId = order.orderId;
+                document.getElementById('edit-client-name').value = order.client;
+                document.getElementById('edit-client-phone').value = order.phone;
+                document.getElementById('edit-client-form').style.display = 'block';
+            } else {
+                alert("Order not found!");
+                document.getElementById('edit-client-form').style.display = 'none';
+            }
+        }
+
+        async function saveClientEdit() {
+            if(!editTargetOrderId) return;
+            const newName = document.getElementById('edit-client-name').value.trim();
+            const newPhone = document.getElementById('edit-client-phone').value.trim();
+            
+            if(!newName || newPhone.length !== 10) return alert("Valid name and 10-digit phone required.");
+
+            const { error } = await supabaseClient.from('orders').update({ client: newName, phone: newPhone }).eq('orderId', editTargetOrderId);
+            if (error) return alert("Failed to update: " + error.message);
+
+            appData.orders[editTargetOrderId].client = newName;
+            appData.orders[editTargetOrderId].phone = newPhone;
+
+            showToast("Client Details Updated!");
+            document.getElementById('edit-client-form').style.display = 'none';
+            document.getElementById('edit-search-input').value = '';
+            editTargetOrderId = null;
+            if(currentDashFilter === 'active') renderDashboardTable();
         }
 
         function downloadClientsVCF() {
@@ -1344,6 +1399,16 @@
             renderDashboardTable();
         }
 
+        async function deleteOrder(orderId) {
+            if(!confirm(`Are you sure you want to permanently delete order ${orderId}? This cannot be undone.`)) return;
+            const { error } = await supabaseClient.from('orders').delete().eq('orderId', orderId);
+            if (error) return alert("Failed to delete order: " + error.message);
+            delete appData.orders[orderId];
+            showToast("Order Deleted!");
+            updateDashboardStats();
+            renderDashboardTable(currentDashFilter);
+        }
+
         function renderDashboardTable(filterType = currentDashFilter) {
             currentDashFilter = filterType;
             document.getElementById('dashboard-welcome').style.display = 'none';
@@ -1398,10 +1463,14 @@
             filtered.forEach(o => {
                 const tr = document.createElement('tr');
                 
-                let actionBtn = '<span style="color:var(--gray); font-size:12px;">-</span>';
+                let actionBtns = [];
                 if (o.status === 'designing') {
-                    actionBtn = `<div style="display:flex; gap:5px;"><button class="btn-primary" style="padding: 4px 8px; font-size: 11px;" onclick="markDesignDone('${o.orderId}')">Design Deliver</button><button class="btn-secondary" style="padding: 4px 8px; font-size: 11px;" onclick="markDesignReady('${o.orderId}')">Print</button></div>`;
+                    actionBtns.push(`<button class="btn-primary" style="padding: 4px 8px; font-size: 11px;" onclick="markDesignDone('${o.orderId}')">Design Deliver</button>`);
+                    actionBtns.push(`<button class="btn-secondary" style="padding: 4px 8px; font-size: 11px;" onclick="markDesignReady('${o.orderId}')">Print</button>`);
                 }
+                actionBtns.push(`<button class="btn-primary" style="padding: 4px 8px; font-size: 11px; background: #dc3545;" onclick="deleteOrder('${o.orderId}')">Delete</button>`);
+                
+                let actionBtnHTML = `<div style="display:flex; gap:5px; flex-wrap:wrap;">${actionBtns.join('')}</div>`;
                 
                 tr.innerHTML = `
                     <td><strong>${o.orderId}</strong></td>
@@ -1410,7 +1479,7 @@
                     <td>${o.work || 'N/A'}</td>
                     <td style="color:red; font-weight:bold;">₹${o.balance}</td>
                     <td><span class="status-badge status-${o.status.replace(/_/g, '-')}">${o.status.toUpperCase().replace('_', ' ')}</span></td>
-                    <td>${actionBtn}</td>
+                    <td>${actionBtnHTML}</td>
                 `;
                 tbody.appendChild(tr);
             });
