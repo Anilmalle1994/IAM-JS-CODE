@@ -299,7 +299,7 @@
                     if (clients && clients.length > 0) {
                         let logosHtml = '';
                         clients.forEach(c => {
-                            logosHtml += `<img src="${c.logo_url}" alt="${c.name}" title="${c.name}" style="height: 60px; max-width: 150px; object-fit: contain; flex-shrink: 0; filter: grayscale(100%) opacity(0.8); transition: filter 0.3s;" onmouseover="this.style.filter='none'" onmouseout="this.style.filter='grayscale(100%) opacity(0.8)'">`;
+                            logosHtml += `<img src="${c.logo_url}" alt="${c.name}" title="${c.name}" style="height: 60px; max-width: 150px; object-fit: contain; flex-shrink: 0; transition: transform 0.3s ease;" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'">`;
                         });
                         document.getElementById('marquee-1').innerHTML = logosHtml;
                         document.getElementById('marquee-2').innerHTML = logosHtml;
