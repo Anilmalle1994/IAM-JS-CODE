@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Anil Malle - Graphic Design & Printing</title>
+    
+    <!-- Path updated to point to the main folder logo -->
+    <link rel="icon" href="LOGO.jpg.jpeg" type="image/jpeg">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     
     <!-- Supabase Library -->
@@ -115,7 +118,7 @@
         .contact-info-item span { color: var(--gray); font-size: 17px; line-height: 1.6; }
 
         .contact-form { display: flex; flex-direction: column; gap: 20px; }
-        .contact-form input, .contact-form textarea { width: 100%; padding: 18px; border: 1px solid #eaeaea; border-radius: 8px; font-family: inherit; font-size: 17px; background: var(--light-gray); transition: 0.3s; }
+        .contact-form input[type="text"], .contact-form input[type="email"], .contact-form input[type="tel"], .contact-form textarea { width: 100%; padding: 18px; border: 1px solid #eaeaea; border-radius: 8px; font-family: inherit; font-size: 17px; background: var(--light-gray); transition: 0.3s; }
         .contact-form input:focus, .contact-form textarea:focus { outline: none; border-color: var(--primary); background: var(--white); }
         .contact-form textarea { height: 150px; resize: none; }
         .contact-form button { background: linear-gradient(90deg, var(--primary), #ff3c00); color: var(--white); border: none; padding: 18px; border-radius: 8px; font-size: 19px; font-weight: 700; cursor: pointer; transition: 0.3s ease; box-shadow: 0 10px 20px rgba(242, 101, 34, 0.2); }
@@ -259,6 +262,15 @@
                 <input type="email" id="contact-email" placeholder="Your Email" required>
                 <input type="tel" id="contact-phone" placeholder="Contact Number" required>
                 <textarea id="contact-message" placeholder="Tell us about your project..." required></textarea>
+                
+                <!-- Attachment UI -->
+                <div style="margin-top: -10px; margin-bottom: 10px;">
+                    <input type="file" id="contact-file" style="display: none;">
+                    <label for="contact-file" style="display: block; width: 100%; padding: 15px; border: 2px dashed #eaeaea; border-radius: 8px; background: var(--light-gray); color: var(--gray); cursor: pointer; text-align: center; transition: all 0.3s ease; font-weight: 600;">
+                        <span id="contact-file-name">📎 Attach a file (optional)</span>
+                    </label>
+                </div>
+
                 <button type="submit" id="contact-submit">Send Message</button>
             </form>
         </div>
@@ -294,7 +306,7 @@
                         });
                     }
 
-                    // Fetch Client Logos
+                    // Fetch Client Logos (Full Color with Hover Popup)
                     const { data: clients } = await supabaseClient.from('clients').select('*').order('id', { ascending: false });
                     if (clients && clients.length > 0) {
                         let logosHtml = '';
@@ -317,31 +329,97 @@
                 mobileMenuBtn.addEventListener('click', () => { mainNav.classList.toggle('nav-active'); });
             }
 
-            // Contact Form -> Supabase Submission
+            // ==========================================
+            // CONTACT FORM UPLOAD & EMAIL LOGIC
+            // ==========================================
             const contactForm = document.getElementById('contact-form');
+            const contactFileInput = document.getElementById('contact-file');
+            const contactFileName = document.getElementById('contact-file-name');
+
+            // 1. Change UI when a file is attached
+            if (contactFileInput) {
+                contactFileInput.addEventListener('change', function() {
+                    if (this.files && this.files.length > 0) {
+                        contactFileName.textContent = '📎 ' + this.files[0].name;
+                        contactFileName.parentElement.style.borderColor = 'var(--primary)';
+                        contactFileName.parentElement.style.color = 'var(--primary)';
+                        contactFileName.parentElement.style.background = 'rgba(242, 101, 34, 0.05)';
+                    } else {
+                        contactFileName.textContent = '📎 Attach a file (optional)';
+                        contactFileName.parentElement.style.borderColor = '#eaeaea';
+                        contactFileName.parentElement.style.color = 'var(--gray)';
+                        contactFileName.parentElement.style.background = 'var(--light-gray)';
+                    }
+                });
+            }
+
+            // 2. Handle Submission, Database Save, and Email Alert
             if (contactForm) {
                 contactForm.addEventListener('submit', async (e) => {
                     e.preventDefault();
                     const submitBtn = document.getElementById('contact-submit');
-                    submitBtn.innerText = "Sending Message..."; submitBtn.disabled = true;
+                    submitBtn.innerText = "Sending Message..."; 
+                    submitBtn.disabled = true;
 
                     try {
-                        const { error } = await supabaseClient.from('contact_messages').insert([{
-                            name: document.getElementById('contact-name').value.trim(),
-                            email: document.getElementById('contact-email').value.trim(),
-                            phone: document.getElementById('contact-phone').value.trim(),
-                            message: document.getElementById('contact-message').value.trim(),
+                        const name = document.getElementById('contact-name').value.trim();
+                        const email = document.getElementById('contact-email').value.trim();
+                        const phone = document.getElementById('contact-phone').value.trim();
+                        const message = document.getElementById('contact-message').value.trim();
+                        const file = document.getElementById('contact-file').files[0];
+                        
+                        let attachmentUrl = null;
+
+                        // Step A: Upload file to Supabase if attached
+                        if (file) {
+                            const fileExt = file.name.split('.').pop();
+                            const fileName = `client_${Date.now()}.${fileExt}`;
+                            
+                            const { error: uploadError } = await supabaseClient.storage.from('client_uploads').upload(fileName, file);
+                            if (uploadError) throw uploadError;
+                            
+                            const { data } = supabaseClient.storage.from('client_uploads').getPublicUrl(fileName);
+                            attachmentUrl = data.publicUrl;
+                        }
+
+                        // Step B: Save everything to Supabase Database
+                        const { error: dbError } = await supabaseClient.from('contact_messages').insert([{
+                            name, email, phone, message, 
+                            attachment_url: attachmentUrl,
                             date: new Date().toISOString()
                         }]);
+                        
+                        if (dbError) throw dbError;
 
-                        if (error) throw error;
-                        alert("Thank you! Your message has been received.");
+                        // Step C: Send Email Notification to you via FormSubmit
+                        const emailData = new FormData();
+                        emailData.append("Name", name);
+                        emailData.append("Email", email);
+                        emailData.append("Phone", phone);
+                        emailData.append("Message", message);
+                        if (attachmentUrl) emailData.append("Attachment Link", attachmentUrl);
+
+                        await fetch("https://formsubmit.co/ajax/anilmalle1994@gmail.com", {
+                            method: "POST",
+                            body: emailData
+                        });
+
+                        alert("Thank you! Your message and file have been successfully sent.");
+                        
+                        // Reset Form and UI
                         contactForm.reset();
+                        if(contactFileName) {
+                            contactFileName.textContent = '📎 Attach a file (optional)';
+                            contactFileName.parentElement.style.borderColor = '#eaeaea';
+                            contactFileName.parentElement.style.color = 'var(--gray)';
+                            contactFileName.parentElement.style.background = 'var(--light-gray)';
+                        }
+
                     } catch (err) {
-                        alert("Message saved or sent successfully!");
-                        contactForm.reset();
+                        alert("Error sending message: " + err.message);
                     } finally {
-                        submitBtn.innerText = "Send Message"; submitBtn.disabled = false;
+                        submitBtn.innerText = "Send Message"; 
+                        submitBtn.disabled = false;
                     }
                 });
             }
