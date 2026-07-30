@@ -241,7 +241,7 @@
                     <form id="designing-form">
                         <div class="form-grid">
                             <div class="form-group"><label>Client Name</label><input type="text" id="des-client" required></div>
-                            <div class="form-group"><label>Contact Number</label><input type="tel" id="des-phone" maxlength="10" required></div>
+                            <div class="form-group"><label>Contact Number</label><input type="tel" id="des-phone" placeholder="e.g. +91 9876..." required></div>
                         </div>
                         <div id="des-works-container">
                             <div class="form-grid des-work-row">
@@ -267,7 +267,7 @@
                             <div class="form-group"><label>Date</label><input type="text" id="nw-date" readonly></div>
                             <div class="form-group"><label>Order ID</label><input type="text" id="nw-orderid" readonly></div>
                             <div class="form-group"><label>Client Name</label><input type="text" id="nw-client" required></div>
-                            <div class="form-group"><label>Contact</label><input type="tel" id="nw-phone" maxlength="10" required></div>
+                            <div class="form-group"><label>Contact</label><input type="tel" id="nw-phone" placeholder="e.g. +91 9876..." required></div>
                         </div>
                         
                         <!-- Dynamic Work Container -->
@@ -459,7 +459,7 @@
                     <h3>Add New Staff Member</h3>
                     <div class="form-grid">
                         <div class="form-group"><label>Staff Name</label><input type="text" id="sm-name"></div>
-                        <div class="form-group"><label>WhatsApp Number</label><input type="tel" id="sm-phone" maxlength="10"></div>
+                        <div class="form-group"><label>WhatsApp Number</label><input type="tel" id="sm-phone" placeholder="e.g. +91 9876..."></div>
                     </div>
                     <div class="action-row"><button type="button" class="btn-primary" onclick="saveStaff()">Save Staff Member</button></div>
                 </div>
@@ -604,7 +604,7 @@
                     <div id="edit-client-form" style="display: none; margin-top: 20px;">
                         <div class="form-grid">
                             <div class="form-group"><label>Client Name</label><input type="text" id="edit-client-name"></div>
-                            <div class="form-group"><label>Contact Number</label><input type="tel" id="edit-client-phone" maxlength="10"></div>
+                            <div class="form-group"><label>Contact Number</label><input type="tel" id="edit-client-phone" placeholder="e.g. +91 9876..."></div>
                         </div>
                         <div class="action-row"><button type="button" class="btn-primary" onclick="saveClientEdit()">Save Changes</button></div>
                     </div>
@@ -657,6 +657,24 @@
     <!-- MAIN SCRIPT -->
     <script>
         // ==========================================
+        // SMART PHONE FORMATTING FOR WHATSAPP
+        // ==========================================
+        function getWhatsAppLink(phone, message) {
+            // Remove all non-numeric characters (like spaces, +, dashes, brackets)
+            let cleanedPhone = phone.replace(/[^0-9]/g, '');
+            
+            // If the user entered exactly 10 digits, assume it is an Indian number
+            if (cleanedPhone.length === 10) {
+                cleanedPhone = '91' + cleanedPhone;
+            }
+            
+            // If they entered more than 10 digits (e.g. +1 555-1234 or +61 412... ), 
+            // the 'cleanedPhone' will just use the country code they provided.
+            
+            return `https://wa.me/${cleanedPhone}?text=${encodeURIComponent(message)}`;
+        }
+
+        // ==========================================
         // SUPABASE CLIENT & AUTH SECUIRTY
         // ==========================================
         const SUPABASE_URL = 'https://wrqkrpysvhtjenxyytfp.supabase.co';
@@ -666,7 +684,6 @@
         async function checkAuth() {
             const { data: { session }, error } = await supabaseClient.auth.getSession();
             if (!session || error) {
-                // Ensure this links correctly to your login system
                 window.location.replace('index.html');
             } else {
                 document.getElementById('user-email').innerText = session.user.email;
@@ -792,9 +809,9 @@
         }
 
         async function saveDesignRequest() {
-            const client = document.getElementById('des-client').value;
-            const phone = document.getElementById('des-phone').value;
-            if(!client || phone.length !== 10) return alert("Valid client and 10 digit phone required.");
+            const client = document.getElementById('des-client').value.trim();
+            const phone = document.getElementById('des-phone').value.trim();
+            if(!client || phone.length < 7) return alert("Valid client and phone number required.");
             
             const orderId = `IAM-DES-${Date.now().toString().slice(-6)}`;
             let estAmt = document.getElementById('des-est-amt').value || 0;
@@ -900,7 +917,7 @@
             const client = document.getElementById('nw-client').value.trim();
             const phone = document.getElementById('nw-phone').value.trim();
             
-            if(!client || phone.length !== 10) return alert("Valid client and 10 digit phone required.");
+            if(!client || phone.length < 7) return alert("Valid client and phone number required.");
 
             let workTypesArray = [];
             document.querySelectorAll('.nw-work-row').forEach(row => {
@@ -934,7 +951,7 @@
             showToast("Order Saved to Cloud!");
 
             let msg = `Hello ${client},\nYour order ${orderId} has been successfully placed with iam des!gns.\n\nWork : ${newOrderObj.work}\nTotal Amount: ₹${newOrderObj.amount}\nPaid: ₹${newOrderObj.advance}\nBalance Due: ₹${newOrderObj.balance}\n\nWe will notify you when it is ready!`;
-            window.open(`https://wa.me/91${phone}?text=${encodeURIComponent(msg)}`, '_blank');
+            window.open(getWhatsAppLink(phone, msg), '_blank');
 
             document.getElementById('new-order-form').reset();
             document.getElementById('nw-works-container').innerHTML = `<div class="form-grid nw-work-row" style="border-bottom: 1px dashed #ccc; padding-bottom: 15px;"><div class="form-group"><label>Work Type</label><select class="nw-work-type" onchange="handleWorkTypeChange(this)"><option value="Flex">Flex</option><option value="Digital Printing">Digital Printing</option><option value="Offset Printing">Offset Printing</option><option value="Special Work">Special Work</option><option value="Others">Others</option></select><input type="text" class="nw-work-others-input" placeholder="Type custom work..." style="display: none; margin-top: 8px;"></div><div class="form-group"><label>Description / Details</label><input type="text" class="nw-work-desc" placeholder="e.g. Dimensions or extra details"></div></div>`;
@@ -1112,6 +1129,7 @@
 
             order.status = 'ready_for_delivery';
             let msg = `Hello Team,\nPlease pick up the following order:\n*Order ID:* ${order.orderId}\n*Vendor:* ${order.vendorName}\n*Work Details:* ${order.work}`;
+            // Intentionally not encoding a phone number here as it usually goes to an internal group chat
             window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
             
             showToast(`Pickup Ready Notification Sent`);
@@ -1262,7 +1280,7 @@
             
             html2pdf().set(opt).from(invoiceHTML).save().then(() => {
                 const msg = `Dear ${order.client},\nYour payment for Order ${order.orderId} is complete. Your balance is ₹0. Please find your invoice attached in this chat.\nThank you!`;
-                window.open(`https://wa.me/91${order.phone}?text=${encodeURIComponent(msg)}`, '_blank');
+                window.open(getWhatsAppLink(order.phone, msg), '_blank');
             });
         }
 
@@ -1289,7 +1307,7 @@
                 await supabaseClient.from('orders').update({ status: 'delivered' }).eq('orderId', order.orderId);
                 order.status = 'delivered';
                 const msg = `Dear Customer, your order ${order.orderId} is ready for delivery!\nDue : ₹${order.balance}`;
-                window.open(`https://wa.me/91${phone}?text=${encodeURIComponent(msg)}`, '_blank');
+                window.open(getWhatsAppLink(phone, msg), '_blank');
                 updateDashboardStats();
                 document.getElementById('del-result-card').style.display = 'none';
                 document.getElementById('del-search-input').value = '';
@@ -1332,7 +1350,7 @@
         async function saveStaff() {
             const name = document.getElementById('sm-name').value.trim();
             const phone = document.getElementById('sm-phone').value.trim();
-            if(!name || phone.length !== 10) return alert("Valid 10-digit phone required.");
+            if(!name || phone.length < 7) return alert("Valid name and phone number required.");
 
             const newStaff = { id: Date.now(), name, phone };
             const { error } = await supabaseClient.from('staff').insert([newStaff]);
@@ -1377,7 +1395,7 @@
             const newName = document.getElementById('edit-client-name').value.trim();
             const newPhone = document.getElementById('edit-client-phone').value.trim();
             
-            if(!newName || newPhone.length !== 10) return alert("Valid name and 10-digit phone required.");
+            if(!newName || newPhone.length < 7) return alert("Valid name and phone number required.");
 
             const { error } = await supabaseClient.from('orders').update({ client: newName, phone: newPhone }).eq('orderId', editTargetOrderId);
             if (error) return alert("Failed to update: " + error.message);
@@ -1637,7 +1655,7 @@
             filtered.forEach(o => {
                 const tr = document.createElement('tr');
                 const msg = `Dear ${o.client}, a gentle reminder that a balance of ₹${o.balance} is pending for your order ${o.orderId}. Please clear the dues. Thank you!`;
-                const waLink = `https://wa.me/91${o.phone}?text=${encodeURIComponent(msg)}`;
+                const waLink = getWhatsAppLink(o.phone, msg);
                 
                 tr.innerHTML = `
                     <td><strong>${o.orderId}</strong></td>
