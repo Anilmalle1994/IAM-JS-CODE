@@ -468,7 +468,7 @@
                 </div>
             </div>
 
-            <!-- Settings: Web Content (Fully Functional) -->
+            <!-- Settings: Web Content -->
             <div id="web-content" class="view-section">
                 <div class="form-grid">
                     <div class="admin-card">
@@ -1200,7 +1200,7 @@
         function generateBillAndSend(order) {
             // HTML String to pass directly to html2pdf (no hidden elements needed)
             const invoiceHTML = `
-                <div style="width: 800px; padding: 40px; background-color: #ffffff; font-family: 'Poppins', sans-serif; color: #333; box-sizing: border-box;">
+                <div style="width: 750px; padding: 40px; background-color: #ffffff; font-family: 'Poppins', sans-serif; color: #333; box-sizing: border-box;">
                     <!-- Header -->
                     <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 3px solid #f26522; padding-bottom: 20px; margin-bottom: 30px;">
                         <div>
@@ -1271,10 +1271,10 @@
             `;
 
             const opt = { 
-                margin: 10, 
+                margin: [10, 10, 10, 10], 
                 filename: `Invoice_${order.orderId}.pdf`, 
                 image: { type: 'jpeg', quality: 0.98 }, 
-                html2canvas: { scale: 2, useCORS: true }, 
+                html2canvas: { scale: 2, useCORS: true, windowWidth: 800 }, 
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } 
             };
             
