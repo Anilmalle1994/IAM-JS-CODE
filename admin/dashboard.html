@@ -397,7 +397,6 @@
                 </div>
             </div>
 
-            <!-- Remaining Settings Menus Snipped for Length but fully functional as per original code -->
             <!-- Settings: All Work Orders (Lifetime) -->
             <div id="all-orders" class="view-section">
                 <div class="admin-card">
@@ -1181,17 +1180,9 @@
         }
 
         function generateBillAndSend(order) {
-            const billDiv = document.createElement('div');
-            // Hide the div rendering off screen so it captures clean on PDF
-            billDiv.style.position = 'absolute'; 
-            billDiv.style.left = '-9999px'; 
-            billDiv.style.top = '0'; 
-            billDiv.style.width = '800px'; // Set width specifically for A4 aspect ratio rendering
-            billDiv.style.background = '#ffffff'; 
-
-            // INJECTED BLENDED RESPONSIVE & STYLED INVOICE CODE
-            billDiv.innerHTML = `
-                <div style="font-family: 'Poppins', sans-serif; color: #333; margin: 0; padding: 40px; background-color: #ffffff;">
+            // HTML String to pass directly to html2pdf (no hidden elements needed)
+            const invoiceHTML = `
+                <div style="width: 800px; padding: 40px; background-color: #ffffff; font-family: 'Poppins', sans-serif; color: #333; box-sizing: border-box;">
                     <!-- Header -->
                     <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 3px solid #f26522; padding-bottom: 20px; margin-bottom: 30px;">
                         <div>
@@ -1260,19 +1251,16 @@
                     </div>
                 </div>
             `;
-            
-            document.body.appendChild(billDiv);
 
             const opt = { 
                 margin: 10, 
                 filename: `Invoice_${order.orderId}.pdf`, 
                 image: { type: 'jpeg', quality: 0.98 }, 
-                html2canvas: { scale: 2 }, 
+                html2canvas: { scale: 2, useCORS: true }, 
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } 
             };
             
-            html2pdf().set(opt).from(billDiv).save().then(() => {
-                document.body.removeChild(billDiv);
+            html2pdf().set(opt).from(invoiceHTML).save().then(() => {
                 const msg = `Dear ${order.client},\nYour payment for Order ${order.orderId} is complete. Your balance is ₹0. Please find your invoice attached in this chat.\nThank you!`;
                 window.open(`https://wa.me/91${order.phone}?text=${encodeURIComponent(msg)}`, '_blank');
             });
