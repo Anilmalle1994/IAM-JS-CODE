@@ -660,17 +660,8 @@
         // SMART PHONE FORMATTING FOR WHATSAPP
         // ==========================================
         function getWhatsAppLink(phone, message) {
-            // Remove all non-numeric characters (like spaces, +, dashes, brackets)
             let cleanedPhone = phone.replace(/[^0-9]/g, '');
-            
-            // If the user entered exactly 10 digits, assume it is an Indian number
-            if (cleanedPhone.length === 10) {
-                cleanedPhone = '91' + cleanedPhone;
-            }
-            
-            // If they entered more than 10 digits (e.g. +1 555-1234 or +61 412... ), 
-            // the 'cleanedPhone' will just use the country code they provided.
-            
+            if (cleanedPhone.length === 10) { cleanedPhone = '91' + cleanedPhone; }
             return `https://wa.me/${cleanedPhone}?text=${encodeURIComponent(message)}`;
         }
 
@@ -1129,7 +1120,6 @@
 
             order.status = 'ready_for_delivery';
             let msg = `Hello Team,\nPlease pick up the following order:\n*Order ID:* ${order.orderId}\n*Vendor:* ${order.vendorName}\n*Work Details:* ${order.work}`;
-            // Intentionally not encoding a phone number here as it usually goes to an internal group chat
             window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
             
             showToast(`Pickup Ready Notification Sent`);
@@ -1140,7 +1130,7 @@
         }
 
         // ==========================================
-        // PAYMENTS & BLENDED BEAUTIFUL BILL GENERATION
+        // PAYMENTS & BULLETPROOF PDF GENERATION
         // ==========================================
         let currentlySearchedOrderId = null;
         
@@ -1198,37 +1188,50 @@
         }
 
         function generateBillAndSend(order) {
-            // HTML String to pass directly to html2pdf (no hidden elements needed)
-            const invoiceHTML = `
-                <div style="width: 750px; padding: 40px; background-color: #ffffff; font-family: 'Poppins', sans-serif; color: #333; box-sizing: border-box;">
+            const billDiv = document.createElement('div');
+            // Bulletproof positioning to avoid html2canvas cropping
+            billDiv.style.position = 'absolute';
+            billDiv.style.top = '0';
+            billDiv.style.left = '0';
+            billDiv.style.width = '794px'; // Exact A4 pixel width
+            billDiv.style.backgroundColor = '#ffffff';
+            billDiv.style.zIndex = '-9999'; // Hide behind main content, but keeps it inside viewport flow
+            
+            // Replaced flexbox with table layouts for 100% reliable edge-to-edge PDF rendering
+            billDiv.innerHTML = `
+                <div style="padding: 40px; font-family: 'Poppins', sans-serif; color: #333; box-sizing: border-box;">
                     <!-- Header -->
-                    <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 3px solid #f26522; padding-bottom: 20px; margin-bottom: 30px;">
-                        <div>
-                            <h1 style="margin: 0; color: #f26522; font-size: 42px; letter-spacing: 1px;">INVOICE</h1>
-                            <p style="margin-top: 8px; color: #6b7280; font-weight: 600;">#${order.orderId}</p>
-                            <p style="margin: 4px 0; color: #6b7280;">Date: ${new Date().toLocaleDateString()}</p>
-                        </div>
-                        <div style="text-align: right;">
-                            <h2 style="margin: 0 0 5px 0; color: #1f2937; font-size: 24px;">iam des!gns</h2>
-                            <p style="margin: 2px 0; font-size: 14px; color: #6b7280;">Majestic Complex, Cinema Road</p>
-                            <p style="margin: 2px 0; font-size: 14px; color: #6b7280;">Kakinada, Andhra Pradesh</p>
-                            <p style="margin: 2px 0; font-size: 14px; color: #6b7280;">Phone: +91 92999 99564</p>
-                        </div>
-                    </div>
+                    <table style="width: 100%; border-bottom: 3px solid #f26522; padding-bottom: 20px; margin-bottom: 30px;">
+                        <tr>
+                            <td style="vertical-align: top;">
+                                <h1 style="margin: 0; color: #f26522; font-size: 42px; letter-spacing: 1px;">INVOICE</h1>
+                                <p style="margin-top: 8px; color: #6b7280; font-weight: 600; font-size: 16px;">#${order.orderId}</p>
+                                <p style="margin: 4px 0; color: #6b7280; font-size: 14px;">Date: ${new Date().toLocaleDateString()}</p>
+                            </td>
+                            <td style="vertical-align: top; text-align: right;">
+                                <h2 style="margin: 0 0 5px 0; color: #1f2937; font-size: 24px;">iam des!gns</h2>
+                                <p style="margin: 2px 0; font-size: 14px; color: #6b7280;">Majestic Complex, Cinema Road</p>
+                                <p style="margin: 2px 0; font-size: 14px; color: #6b7280;">Kakinada, Andhra Pradesh</p>
+                                <p style="margin: 2px 0; font-size: 14px; color: #6b7280;">Phone: +91 92999 99564</p>
+                            </td>
+                        </tr>
+                    </table>
 
                     <!-- Billing Details -->
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 40px;">
-                        <div>
-                            <h3 style="margin-top: 0; margin-bottom: 8px; color: #4b5563; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">Billed To:</h3>
-                            <p style="margin: 4px 0; font-size: 15px; color: #374151;"><strong>${order.client}</strong></p>
-                            <p style="margin: 4px 0; font-size: 15px; color: #374151;">Contact: ${order.phone}</p>
-                        </div>
-                        <div style="text-align: right;">
-                            <h3 style="margin-top: 0; margin-bottom: 8px; color: #4b5563; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">Payment Details:</h3>
-                            <p style="margin: 4px 0; font-size: 15px; color: #374151;"><strong>Status:</strong> <span style="color: #28a745; font-weight: bold;">Fully Paid</span></p>
-                            <p style="margin: 4px 0; font-size: 15px; color: #374151;"><strong>Date Settled:</strong> ${new Date().toLocaleDateString()}</p>
-                        </div>
-                    </div>
+                    <table style="width: 100%; margin-bottom: 40px;">
+                        <tr>
+                            <td style="vertical-align: top; width: 50%;">
+                                <h3 style="margin-top: 0; margin-bottom: 8px; color: #4b5563; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">Billed To:</h3>
+                                <p style="margin: 4px 0; font-size: 15px; color: #374151;"><strong>${order.client}</strong></p>
+                                <p style="margin: 4px 0; font-size: 15px; color: #374151;">Contact: ${order.phone}</p>
+                            </td>
+                            <td style="vertical-align: top; text-align: right; width: 50%;">
+                                <h3 style="margin-top: 0; margin-bottom: 8px; color: #4b5563; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">Payment Details:</h3>
+                                <p style="margin: 4px 0; font-size: 15px; color: #374151;"><strong>Status:</strong> <span style="color: #28a745; font-weight: bold;">Fully Paid</span></p>
+                                <p style="margin: 4px 0; font-size: 15px; color: #374151;"><strong>Date Settled:</strong> ${new Date().toLocaleDateString()}</p>
+                            </td>
+                        </tr>
+                    </table>
 
                     <!-- Itemized Table -->
                     <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px;">
@@ -1247,20 +1250,23 @@
                     </table>
 
                     <!-- Totals Summary -->
-                    <div style="display: flex; justify-content: flex-end;">
-                        <div style="width: 350px;">
-                            <table style="width: 100%; border-collapse: collapse;">
-                                <tr>
-                                    <th style="padding: 10px; text-align: left; border: none; font-weight: normal;">Subtotal:</th>
-                                    <td style="padding: 10px; text-align: right; border: none;">₹${order.amount}</td>
-                                </tr>
-                                <tr style="font-weight: bold; font-size: 20px; color: #f26522; border-top: 2px solid #e5e7eb;">
-                                    <th style="padding: 15px 10px; text-align: left; border: none;">Total Paid:</th>
-                                    <td style="padding: 15px 10px; text-align: right; border: none;">₹${order.amount}</td>
-                                </tr>
-                            </table>
-                        </div>
-                    </div>
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <tr>
+                            <td style="width: 50%;"></td>
+                            <td style="width: 50%;">
+                                <table style="width: 100%; border-collapse: collapse;">
+                                    <tr>
+                                        <th style="padding: 10px; text-align: left; border: none; font-weight: normal;">Subtotal:</th>
+                                        <td style="padding: 10px; text-align: right; border: none;">₹${order.amount}</td>
+                                    </tr>
+                                    <tr style="font-weight: bold; font-size: 20px; color: #f26522; border-top: 2px solid #e5e7eb;">
+                                        <th style="padding: 15px 10px; text-align: left; border: none;">Total Paid:</th>
+                                        <td style="padding: 15px 10px; text-align: right; border: none;">₹${order.amount}</td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                    </table>
 
                     <!-- Footer Notes -->
                     <div style="text-align: center; margin-top: 50px; font-size: 13px; color: #9ca3af; border-top: 1px solid #e5e7eb; padding-top: 20px;">
@@ -1270,15 +1276,22 @@
                 </div>
             `;
 
+            document.body.appendChild(billDiv);
+
             const opt = { 
                 margin: [10, 10, 10, 10], 
                 filename: `Invoice_${order.orderId}.pdf`, 
-                image: { type: 'jpeg', quality: 0.98 }, 
-                html2canvas: { scale: 2, useCORS: true, windowWidth: 800 }, 
+                image: { type: 'jpeg', quality: 1.0 }, 
+                html2canvas: { 
+                    scale: 2, 
+                    useCORS: true, 
+                    windowWidth: 794 // Strictly locks canvas render width 
+                }, 
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } 
             };
             
-            html2pdf().set(opt).from(invoiceHTML).save().then(() => {
+            html2pdf().set(opt).from(billDiv).save().then(() => {
+                document.body.removeChild(billDiv);
                 const msg = `Dear ${order.client},\nYour payment for Order ${order.orderId} is complete. Your balance is ₹0. Please find your invoice attached in this chat.\nThank you!`;
                 window.open(getWhatsAppLink(order.phone, msg), '_blank');
             });
