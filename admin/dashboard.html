@@ -421,7 +421,7 @@
                 </div>
             </div>
 
-            <!-- Settings: Web Content (Fully Functional) -->
+            <!-- Settings: Web Content -->
             <div id="web-content" class="view-section">
                 <div class="form-grid">
                     <div class="admin-card">
@@ -461,12 +461,14 @@
                                     <th onclick="sortPRClient('client')">Client Name <span class="sort-icon">⇅</span></th>
                                     <th onclick="sortPRClient('phone')">Contact <span class="sort-icon">⇅</span></th>
                                     <th onclick="sortPRClient('balance')">Balance Due (₹) <span class="sort-icon">⇅</span></th>
+                                    <th>Action</th>
                                 </tr>
                                 <tr class="table-filter-row" style="background: var(--white);">
                                     <th><input type="text" id="prc-filt-id" onkeyup="renderPRClient()" placeholder="Filter ID..."></th>
                                     <th><input type="text" id="prc-filt-client" onkeyup="renderPRClient()" placeholder="Filter Client..."></th>
                                     <th><input type="text" id="prc-filt-phone" onkeyup="renderPRClient()" placeholder="Filter Phone..."></th>
                                     <th><input type="number" id="prc-filt-bal" onkeyup="renderPRClient()" placeholder="Max Balance..."></th>
+                                    <th></th>
                                 </tr>
                             </thead>
                             <tbody></tbody>
@@ -520,6 +522,7 @@
                                     <th onclick="sortVR('vendor')">Vendor Name <span class="sort-icon">⇅</span></th>
                                     <th onclick="sortVR('work')">Work Allotted <span class="sort-icon">⇅</span></th>
                                     <th onclick="sortVR('amount')">Amount (₹) <span class="sort-icon">⇅</span></th>
+                                    <th>Payment</th>
                                 </tr>
                                 <tr class="table-filter-row" style="background: var(--white);">
                                     <th><input type="text" id="vr-filt-date" onkeyup="renderVendorReport()" placeholder="MM/DD/YYYY"></th>
@@ -527,6 +530,7 @@
                                     <th><input type="text" id="vr-filt-vendor" onkeyup="renderVendorReport()" placeholder="Filter Vendor..."></th>
                                     <th><input type="text" id="vr-filt-work" onkeyup="renderVendorReport()" placeholder="Filter Work..."></th>
                                     <th><input type="number" id="vr-filt-amt" onkeyup="renderVendorReport()" placeholder="Max Amount..."></th>
+                                    <th></th>
                                 </tr>
                             </thead>
                             <tbody></tbody>
@@ -867,6 +871,7 @@
 
             appData.orders[orderId] = newOrderObj;
 
+            // CLEANUP: If from design request, delete old design entry
             if (pendingDesignToClose) {
                 await supabaseClient.from('orders').delete().eq('orderId', pendingDesignToClose);
                 delete appData.orders[pendingDesignToClose];
@@ -1002,7 +1007,7 @@
                     const workItem = row.querySelector('.va-work-item').value;
                     
                     allotments.push({ workItem, vendorName, amount: amt });
-                    historyEntries.push({ date: new Date().toISOString(), orderId: order.orderId, vendor: vendorName, work: workItem, amount: amt });
+                    historyEntries.push({ date: new Date().toISOString(), orderId: order.orderId, vendor: vendorName, work: workItem, amount: amt, is_paid: false });
                 } else {
                     allValid = false;
                 }
@@ -1018,11 +1023,11 @@
             }).eq('orderId', order.orderId);
             if (oErr) return alert(oErr.message);
 
-            const { error: hErr } = await supabaseClient.from('vendor_allotments_history').insert(historyEntries);
+            const { data: insertedHistory, error: hErr } = await supabaseClient.from('vendor_allotments_history').insert(historyEntries).select();
             if (hErr) return alert(hErr.message);
 
             order.status = 'vendor_allotted'; order.vendorName = vendorNamesCombined;
-            appData.vendorAllotmentsHistory.push(...historyEntries);
+            appData.vendorAllotmentsHistory.push(...insertedHistory);
 
             showToast("Vendor Allotted in Cloud!");
             document.getElementById('va-rows-container').innerHTML = '';
@@ -1528,11 +1533,20 @@
             const tbody = document.querySelector('#pr-client-table tbody'); tbody.innerHTML = '';
             let filtered = getFilteredPRClient();
 
-            if (filtered.length === 0) return tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding: 20px;">No matching pending dues.</td></tr>`;
+            if (filtered.length === 0) return tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 20px;">No matching pending dues.</td></tr>`;
             
             filtered.forEach(o => {
                 const tr = document.createElement('tr');
-                tr.innerHTML = `<td><strong>${o.orderId}</strong></td><td>${o.client}</td><td>${o.phone}</td><td style="color:red; font-weight:bold;">₹${o.balance}</td>`;
+                const msg = `Dear ${o.client}, a gentle reminder that a balance of ₹${o.balance} is pending for your order ${o.orderId}. Please clear the dues. Thank you!`;
+                const waLink = `https://wa.me/91${o.phone}?text=${encodeURIComponent(msg)}`;
+                
+                tr.innerHTML = `
+                    <td><strong>${o.orderId}</strong></td>
+                    <td>${o.client}</td>
+                    <td>${o.phone}</td>
+                    <td style="color:red; font-weight:bold;">₹${o.balance}</td>
+                    <td><button class="btn-whatsapp" style="padding: 4px 8px; font-size: 11px;" onclick="window.open('${waLink}', '_blank')">🔔 Remind</button></td>
+                `;
                 tbody.appendChild(tr);
             });
         }
@@ -1591,7 +1605,8 @@
 
         function renderPRVendor() {
             const tbody = document.querySelector('#pr-vendor-table tbody'); tbody.innerHTML = '';
-            let filtered = getFilteredPRVendor(prVendorSort, 'prv');
+            // Only show UNPAID for pending reports
+            let filtered = getFilteredPRVendor(prVendorSort, 'prv').filter(o => !o.is_paid);
 
             if (filtered.length === 0) return tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 20px;">No matching records.</td></tr>`;
             
@@ -1603,7 +1618,7 @@
         }
 
         function downloadPRVendorPDF() {
-            let data = getFilteredPRVendor(prVendorSort, 'prv');
+            let data = getFilteredPRVendor(prVendorSort, 'prv').filter(o => !o.is_paid);
             let html = `<div style="padding:20px; font-family:sans-serif;"><h2>Pending Vendor Allotments</h2><table style="width:100%; border-collapse:collapse; text-align:left;"><thead><tr style="background:#f4f4f4;"><th style="padding:10px; border:1px solid #ddd;">Date</th><th style="padding:10px; border:1px solid #ddd;">Order ID</th><th style="padding:10px; border:1px solid #ddd;">Vendor</th><th style="padding:10px; border:1px solid #ddd;">Work</th><th style="padding:10px; border:1px solid #ddd;">Amount</th></tr></thead><tbody>`;
             data.forEach(o => html += `<tr><td style="padding:8px; border:1px solid #ddd;">${new Date(o.date).toLocaleDateString()}</td><td style="padding:8px; border:1px solid #ddd;">${o.orderId}</td><td style="padding:8px; border:1px solid #ddd;">${o.vendor}</td><td style="padding:8px; border:1px solid #ddd;">${o.work}</td><td style="padding:8px; border:1px solid #ddd;">₹${o.amount}</td></tr>`);
             html += `</tbody></table></div>`;
@@ -1611,7 +1626,7 @@
         }
 
         function downloadPRVendorExcel() {
-            let data = getFilteredPRVendor(prVendorSort, 'prv').map(o => ({ "Date": new Date(o.date).toLocaleDateString(), "Order ID": o.orderId, "Vendor": o.vendor, "Work": o.work, "Amount (₹)": o.amount }));
+            let data = getFilteredPRVendor(prVendorSort, 'prv').filter(o => !o.is_paid).map(o => ({ "Date": new Date(o.date).toLocaleDateString(), "Order ID": o.orderId, "Vendor": o.vendor, "Work": o.work, "Amount (₹)": o.amount }));
             let ws = XLSX.utils.json_to_sheet(data);
             let wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Pending Vendor");
             XLSX.writeFile(wb, `Vendor_Pending_${Date.now()}.xlsx`);
@@ -1624,15 +1639,38 @@
             renderVendorReport();
         }
 
+        async function markVendorPaid(id) {
+            if(!confirm("Mark this vendor allotment as paid?")) return;
+            const { error } = await supabaseClient.from('vendor_allotments_history').update({ is_paid: true }).eq('id', id);
+            
+            if (error) {
+                if(error.message.includes('is_paid')) {
+                    alert("Database Error: You must run the SQL command provided earlier to add the 'is_paid' column to the 'vendor_allotments_history' table.");
+                } else {
+                    alert("Error: " + error.message);
+                }
+                return;
+            }
+            
+            const record = appData.vendorAllotmentsHistory.find(r => r.id === id);
+            if(record) record.is_paid = true;
+            
+            showToast("Vendor marked as paid!");
+            renderVendorReport();
+            if(document.getElementById('pending-reports').classList.contains('active')) renderPRVendor();
+        }
+
         function renderVendorReport() {
             const tbody = document.querySelector('#vr-table tbody'); tbody.innerHTML = '';
             let filtered = getFilteredPRVendor(vrSort, 'vr');
 
-            if (filtered.length === 0) return tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 20px;">No matching records.</td></tr>`;
+            if (filtered.length === 0) return tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding: 20px;">No matching records.</td></tr>`;
             
             filtered.forEach(o => {
                 const tr = document.createElement('tr');
-                tr.innerHTML = `<td>${new Date(o.date).toLocaleDateString()}</td><td><strong>${o.orderId}</strong></td><td>${o.vendor}</td><td>${o.work}</td><td style="font-weight:bold;">₹${o.amount}</td>`;
+                let actionBtn = o.is_paid ? `<span style="color: green; font-weight: bold;">Paid ✅</span>` : `<button class="btn-primary" style="padding: 4px 8px; font-size: 11px; background: #28a745;" onclick="markVendorPaid(${o.id})">💳 Pay</button>`;
+                
+                tr.innerHTML = `<td>${new Date(o.date).toLocaleDateString()}</td><td><strong>${o.orderId}</strong></td><td>${o.vendor}</td><td>${o.work}</td><td style="font-weight:bold;">₹${o.amount}</td><td>${actionBtn}</td>`;
                 tbody.appendChild(tr);
             });
         }
@@ -1646,7 +1684,7 @@
         }
 
         function downloadVendorReportsExcel() {
-            let data = getFilteredPRVendor(vrSort, 'vr').map(o => ({ "Date": new Date(o.date).toLocaleDateString(), "Order ID": o.orderId, "Vendor": o.vendor, "Work": o.work, "Amount (₹)": o.amount }));
+            let data = getFilteredPRVendor(vrSort, 'vr').map(o => ({ "Date": new Date(o.date).toLocaleDateString(), "Order ID": o.orderId, "Vendor": o.vendor, "Work": o.work, "Amount (₹)": o.amount, "Status": o.is_paid ? "Paid" : "Pending" }));
             let ws = XLSX.utils.json_to_sheet(data);
             let wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Vendor Reports");
             XLSX.writeFile(wb, `Vendor_Reports_${Date.now()}.xlsx`);
