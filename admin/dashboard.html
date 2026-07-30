@@ -114,9 +114,15 @@
             .sidebar { transform: translateX(-100%); }
             .sidebar.open { transform: translateX(0); }
             .main-content { margin-left: 0 !important; width: 100% !important; }
-            .content-area { padding: 20px; }
+            .content-area { padding: 15px; }
             .topbar { padding: 15px 20px; flex-direction: column; align-items: flex-start; }
             .admin-profile { width: 100%; justify-content: flex-end; border-top: 1px solid #eaeaea; padding-top: 15px; }
+            .form-grid { grid-template-columns: 1fr; gap: 15px; }
+            .card-grid { grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 15px; }
+            .action-row { justify-content: stretch; }
+            .action-row button { width: 100%; margin-bottom: 10px; }
+            .admin-card { padding: 20px; }
+            .data-table { font-size: 12px; }
         }
     </style>
 </head>
@@ -184,7 +190,7 @@
                 <div class="admin-card" id="dashboard-list-container" style="display: none;">
                     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 15px;">
                         <h3 style="margin:0; border:none; padding:0;" id="dashboard-list-title">Order List</h3>
-                        <button class="btn-secondary" style="padding: 6px 15px; font-size: 12px;" onclick="closeDashboardTable()">Close View</button>
+                        <button class="btn-secondary" style="padding: 6px 15px; font-size: 12px; width: auto;" onclick="closeDashboardTable()">Close View</button>
                     </div>
                     <div class="table-responsive-wrapper">
                         <table class="data-table" id="dashboard-table">
@@ -304,8 +310,8 @@
                             <label>Search Order ID</label>
                             <div style="display: flex; gap: 10px;">
                                 <input type="text" id="va-orderid" style="flex: 1;" placeholder="Enter Order ID or scan QR...">
-                                <button type="button" class="btn-secondary" onclick="openQRScanner('va-orderid', fetchOrderForAllotment)">📷 Scan</button>
-                                <button type="button" class="btn-secondary" onclick="fetchOrderForAllotment()">Fetch</button>
+                                <button type="button" class="btn-secondary" style="width:auto;" onclick="openQRScanner('va-orderid', fetchOrderForAllotment)">📷 Scan</button>
+                                <button type="button" class="btn-secondary" style="width:auto;" onclick="fetchOrderForAllotment()">Fetch</button>
                             </div>
                         </div>
                     </div>
@@ -323,8 +329,8 @@
                             <label>Search Order ID</label>
                             <div style="display: flex; gap: 10px;">
                                 <input type="text" id="pickup-search-input" style="flex: 1;" placeholder="Enter Order ID or scan QR...">
-                                <button type="button" class="btn-secondary" onclick="openQRScanner('pickup-search-input', searchPickup)">📷 Scan</button>
-                                <button type="button" class="btn-secondary" onclick="searchPickup()">Search</button>
+                                <button type="button" class="btn-secondary" style="width:auto;" onclick="openQRScanner('pickup-search-input', searchPickup)">📷 Scan</button>
+                                <button type="button" class="btn-secondary" style="width:auto;" onclick="searchPickup()">Search</button>
                             </div>
                         </div>
                     </div>
@@ -348,8 +354,8 @@
                             <label>Order ID or Phone Number</label>
                             <div style="display: flex; gap: 10px;">
                                 <input type="text" id="pay-search-input" style="flex: 1;" placeholder="Enter Order ID or Contact...">
-                                <button type="button" class="btn-secondary" onclick="openQRScanner('pay-search-input', searchPayment)">📷 Scan</button>
-                                <button type="button" class="btn-secondary" onclick="searchPayment()">Search</button>
+                                <button type="button" class="btn-secondary" style="width:auto;" onclick="openQRScanner('pay-search-input', searchPayment)">📷 Scan</button>
+                                <button type="button" class="btn-secondary" style="width:auto;" onclick="searchPayment()">Search</button>
                             </div>
                         </div>
                     </div>
@@ -374,8 +380,8 @@
                             <label>Search Order ID</label>
                             <div style="display: flex; gap: 10px;">
                                 <input type="text" id="del-search-input" style="flex: 1;" placeholder="Enter Order ID or scan QR...">
-                                <button type="button" class="btn-secondary" onclick="openQRScanner('del-search-input', searchDelivery)">📷 Scan</button>
-                                <button type="button" class="btn-secondary" onclick="searchDelivery()">Search</button>
+                                <button type="button" class="btn-secondary" style="width:auto;" onclick="openQRScanner('del-search-input', searchDelivery)">📷 Scan</button>
+                                <button type="button" class="btn-secondary" style="width:auto;" onclick="searchDelivery()">Search</button>
                             </div>
                         </div>
                     </div>
@@ -391,6 +397,7 @@
                 </div>
             </div>
 
+            <!-- Remaining Settings Menus Snipped for Length but fully functional as per original code -->
             <!-- Settings: All Work Orders (Lifetime) -->
             <div id="all-orders" class="view-section">
                 <div class="admin-card">
@@ -591,7 +598,7 @@
                             <label>Search Order ID</label>
                             <div style="display: flex; gap: 10px;">
                                 <input type="text" id="edit-search-input" style="flex: 1;" placeholder="Enter Order ID...">
-                                <button type="button" class="btn-secondary" onclick="searchEditClient()">Search</button>
+                                <button type="button" class="btn-secondary" style="width:auto;" onclick="searchEditClient()">Search</button>
                             </div>
                         </div>
                     </div>
@@ -660,6 +667,7 @@
         async function checkAuth() {
             const { data: { session }, error } = await supabaseClient.auth.getSession();
             if (!session || error) {
+                // Ensure this links correctly to your login system
                 window.location.replace('index.html');
             } else {
                 document.getElementById('user-email').innerText = session.user.email;
@@ -1115,7 +1123,7 @@
         }
 
         // ==========================================
-        // PAYMENTS & BILL GENERATION LOGIC
+        // PAYMENTS & BLENDED BEAUTIFUL BILL GENERATION
         // ==========================================
         let currentlySearchedOrderId = null;
         
@@ -1174,41 +1182,98 @@
 
         function generateBillAndSend(order) {
             const billDiv = document.createElement('div');
-            billDiv.style.position = 'absolute'; billDiv.style.left = '-9999px'; billDiv.style.top = '0'; billDiv.style.width = '800px'; billDiv.style.padding = '40px'; billDiv.style.background = '#fff'; billDiv.style.fontFamily = 'Poppins, sans-serif';
+            // Hide the div rendering off screen so it captures clean on PDF
+            billDiv.style.position = 'absolute'; 
+            billDiv.style.left = '-9999px'; 
+            billDiv.style.top = '0'; 
+            billDiv.style.width = '800px'; // Set width specifically for A4 aspect ratio rendering
+            billDiv.style.background = '#ffffff'; 
+
+            // INJECTED BLENDED RESPONSIVE & STYLED INVOICE CODE
             billDiv.innerHTML = `
-                <div style="text-align:center; border-bottom: 2px solid #f26522; padding-bottom: 20px; margin-bottom: 20px;">
-                    <h1 style="color:#f26522; margin:0;">iam des!gns</h1>
-                    <p style="margin:5px 0 0 0; color:#666;">Majestic Complex, Cinema Road, Kakinada</p>
-                    <p style="margin:0; color:#666;">Phone: +91 92999 99564</p>
-                </div>
-                <div style="display:flex; justify-content:space-between; margin-bottom:30px;">
-                    <div>
-                        <h3 style="margin:0 0 10px 0;">Bill To:</h3>
-                        <p style="margin:0;"><strong>${order.client}</strong></p>
-                        <p style="margin:0;">Phone: ${order.phone}</p>
+                <div style="font-family: 'Poppins', sans-serif; color: #333; margin: 0; padding: 40px; background-color: #ffffff;">
+                    <!-- Header -->
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 3px solid #f26522; padding-bottom: 20px; margin-bottom: 30px;">
+                        <div>
+                            <h1 style="margin: 0; color: #f26522; font-size: 42px; letter-spacing: 1px;">INVOICE</h1>
+                            <p style="margin-top: 8px; color: #6b7280; font-weight: 600;">#${order.orderId}</p>
+                            <p style="margin: 4px 0; color: #6b7280;">Date: ${new Date().toLocaleDateString()}</p>
+                        </div>
+                        <div style="text-align: right;">
+                            <h2 style="margin: 0 0 5px 0; color: #1f2937; font-size: 24px;">iam des!gns</h2>
+                            <p style="margin: 2px 0; font-size: 14px; color: #6b7280;">Majestic Complex, Cinema Road</p>
+                            <p style="margin: 2px 0; font-size: 14px; color: #6b7280;">Kakinada, Andhra Pradesh</p>
+                            <p style="margin: 2px 0; font-size: 14px; color: #6b7280;">Phone: +91 92999 99564</p>
+                        </div>
                     </div>
-                    <div style="text-align:right;">
-                        <h3 style="margin:0 0 10px 0;">Invoice Details:</h3>
-                        <p style="margin:0;"><strong>Order ID:</strong> ${order.orderId}</p>
-                        <p style="margin:0;"><strong>Date:</strong> ${new Date().toLocaleDateString()}</p>
+
+                    <!-- Billing Details -->
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 40px;">
+                        <div>
+                            <h3 style="margin-top: 0; margin-bottom: 8px; color: #4b5563; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">Billed To:</h3>
+                            <p style="margin: 4px 0; font-size: 15px; color: #374151;"><strong>${order.client}</strong></p>
+                            <p style="margin: 4px 0; font-size: 15px; color: #374151;">Contact: ${order.phone}</p>
+                        </div>
+                        <div style="text-align: right;">
+                            <h3 style="margin-top: 0; margin-bottom: 8px; color: #4b5563; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">Payment Details:</h3>
+                            <p style="margin: 4px 0; font-size: 15px; color: #374151;"><strong>Status:</strong> <span style="color: #28a745; font-weight: bold;">Fully Paid</span></p>
+                            <p style="margin: 4px 0; font-size: 15px; color: #374151;"><strong>Date Settled:</strong> ${new Date().toLocaleDateString()}</p>
+                        </div>
+                    </div>
+
+                    <!-- Itemized Table -->
+                    <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px;">
+                        <thead>
+                            <tr>
+                                <th style="background-color: #f9fafb; color: #374151; font-weight: 600; padding: 15px 10px; text-align: left; border-bottom: 1px solid #e5e7eb;">Description</th>
+                                <th style="background-color: #f9fafb; color: #374151; font-weight: 600; padding: 15px 10px; text-align: right; border-bottom: 1px solid #e5e7eb;">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td style="padding: 15px 10px; text-align: left; border-bottom: 1px solid #e5e7eb;">${order.work || 'Design & Printing Work'}</td>
+                                <td style="padding: 15px 10px; text-align: right; border-bottom: 1px solid #e5e7eb;">₹${order.amount}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <!-- Totals Summary -->
+                    <div style="display: flex; justify-content: flex-end;">
+                        <div style="width: 350px;">
+                            <table style="width: 100%; border-collapse: collapse;">
+                                <tr>
+                                    <th style="padding: 10px; text-align: left; border: none; font-weight: normal;">Subtotal:</th>
+                                    <td style="padding: 10px; text-align: right; border: none;">₹${order.amount}</td>
+                                </tr>
+                                <tr style="font-weight: bold; font-size: 20px; color: #f26522; border-top: 2px solid #e5e7eb;">
+                                    <th style="padding: 15px 10px; text-align: left; border: none;">Total Paid:</th>
+                                    <td style="padding: 15px 10px; text-align: right; border: none;">₹${order.amount}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Footer Notes -->
+                    <div style="text-align: center; margin-top: 50px; font-size: 13px; color: #9ca3af; border-top: 1px solid #e5e7eb; padding-top: 20px;">
+                        <p><strong style="color: #374151; font-size: 15px;">Thank you for your business!</strong></p>
+                        <p>This is a computer-generated invoice and requires no signature.</p>
                     </div>
                 </div>
-                <table style="width:100%; border-collapse:collapse; margin-bottom:30px;">
-                    <thead><tr style="background:#f4f4f4; text-align:left;"><th style="padding:12px; border:1px solid #ddd;">Description</th><th style="padding:12px; border:1px solid #ddd; text-align:right;">Amount</th></tr></thead>
-                    <tbody><tr><td style="padding:12px; border:1px solid #ddd;">${order.work}</td><td style="padding:12px; border:1px solid #ddd; text-align:right;">₹${order.amount}</td></tr></tbody>
-                </table>
-                <div style="text-align:right; font-size:18px;">
-                    <p><strong>Total Amount Paid:</strong> <span style="color:green;">₹${order.amount}</span></p>
-                    <p><strong>Balance Due:</strong> <span style="color:green;">₹0.00</span></p>
-                </div>
-                <div style="margin-top:50px; text-align:center; color:#888; font-size:12px;"><p>Thank you for your business!</p></div>
             `;
+            
             document.body.appendChild(billDiv);
 
-            const opt = { margin: 10, filename: `Invoice_${order.orderId}.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } };
+            const opt = { 
+                margin: 10, 
+                filename: `Invoice_${order.orderId}.pdf`, 
+                image: { type: 'jpeg', quality: 0.98 }, 
+                html2canvas: { scale: 2 }, 
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } 
+            };
+            
             html2pdf().set(opt).from(billDiv).save().then(() => {
                 document.body.removeChild(billDiv);
-                const msg = `Dear ${order.client},\nYour payment for Order ${order.orderId} is complete. Your balance is ₹0. Please find your bill attached in this chat.\nThank you!`;
+                const msg = `Dear ${order.client},\nYour payment for Order ${order.orderId} is complete. Your balance is ₹0. Please find your invoice attached in this chat.\nThank you!`;
                 window.open(`https://wa.me/91${order.phone}?text=${encodeURIComponent(msg)}`, '_blank');
             });
         }
