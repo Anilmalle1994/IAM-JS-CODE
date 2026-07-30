@@ -531,6 +531,7 @@
                                     <th onclick="sortPRVendor('vendor')">Vendor Name <span class="sort-icon">⇅</span></th>
                                     <th onclick="sortPRVendor('work')">Work Allotted <span class="sort-icon">⇅</span></th>
                                     <th onclick="sortPRVendor('amount')">Amount (₹) <span class="sort-icon">⇅</span></th>
+                                    <th>Action</th>
                                 </tr>
                                 <tr class="table-filter-row" style="background: var(--white);">
                                     <th><input type="text" id="prv-filt-date" onkeyup="renderPRVendor()" placeholder="MM/DD/YYYY"></th>
@@ -538,6 +539,7 @@
                                     <th><input type="text" id="prv-filt-vendor" onkeyup="renderPRVendor()" placeholder="Filter Vendor..."></th>
                                     <th><input type="text" id="prv-filt-work" onkeyup="renderPRVendor()" placeholder="Filter Work..."></th>
                                     <th><input type="number" id="prv-filt-amt" onkeyup="renderPRVendor()" placeholder="Max Amount..."></th>
+                                    <th></th>
                                 </tr>
                             </thead>
                             <tbody></tbody>
@@ -580,7 +582,7 @@
                 </div>
             </div>
 
-            <!-- Settings: Clients Data (Updated to include Edit) -->
+            <!-- Settings: Clients Data -->
             <div id="clients-data" class="view-section">
                 <div class="admin-card" style="margin-bottom: 30px;">
                     <h3>Edit Client / Order Details</h3>
@@ -842,7 +844,6 @@
 
             let maxSeq = 0;
             Object.keys(appData.orders).forEach(id => {
-                // Continuous global incrementer based on ALL "IAM-" orders
                 if (id.startsWith('IAM-')) {
                     const parts = id.split('-');
                     if (parts.length === 3) {
@@ -1611,7 +1612,7 @@
             XLSX.writeFile(wb, `Client_Dues_${Date.now()}.xlsx`);
         }
 
-        // ALL VENDOR ALLOTMENTS (Works Assigned)
+        // PENDING REPORTS - VENDOR ALLOTMENTS
         function getFilteredPRVendor(sortObj, prefix) {
             let filtered = [...appData.vendorAllotmentsHistory];
             const fDate = (document.getElementById(prefix + '-filt-date').value || '').toLowerCase();
@@ -1648,15 +1649,35 @@
             renderPRVendor();
         }
 
+        async function deleteVendorAllotment(id) {
+            if(!confirm("Are you sure you want to delete this vendor allotment record? This cannot be undone.")) return;
+            
+            const { error } = await supabaseClient.from('vendor_allotments_history').delete().eq('id', id);
+            if (error) return alert("Failed to delete record: " + error.message);
+            
+            appData.vendorAllotmentsHistory = appData.vendorAllotmentsHistory.filter(r => r.id !== id);
+            
+            showToast("Vendor Allotment Deleted!");
+            renderPRVendor();
+            if(document.getElementById('vendor-reports').classList.contains('active')) renderVendorReport();
+        }
+
         function renderPRVendor() {
             const tbody = document.querySelector('#pr-vendor-table tbody'); tbody.innerHTML = '';
             let filtered = getFilteredPRVendor(prVendorSort, 'prv');
 
-            if (filtered.length === 0) return tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 20px;">No matching records.</td></tr>`;
+            if (filtered.length === 0) return tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding: 20px;">No matching records.</td></tr>`;
             
             filtered.forEach(o => {
                 const tr = document.createElement('tr');
-                tr.innerHTML = `<td>${new Date(o.date).toLocaleDateString()}</td><td><strong>${o.orderId}</strong></td><td>${o.vendor}</td><td>${o.work}</td><td style="font-weight:bold;">₹${o.amount}</td>`;
+                tr.innerHTML = `
+                    <td>${new Date(o.date).toLocaleDateString()}</td>
+                    <td><strong>${o.orderId}</strong></td>
+                    <td>${o.vendor}</td>
+                    <td>${o.work}</td>
+                    <td style="font-weight:bold;">₹${o.amount}</td>
+                    <td><button onclick="deleteVendorAllotment(${o.id})" style="background:none; border:none; color:red; font-size:16px; cursor:pointer;" title="Delete Allotment">❌</button></td>
+                `;
                 tbody.appendChild(tr);
             });
         }
