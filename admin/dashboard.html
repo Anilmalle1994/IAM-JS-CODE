@@ -547,12 +547,26 @@
                         <table class="data-table" id="all-orders-table">
                             <thead>
                                 <tr>
-                                    <th>Date</th>
-                                    <th>Order ID</th>
-                                    <th>Client Name</th>
-                                    <th>Work</th>
-                                    <th>Amount (₹)</th>
-                                    <th>Payment Status</th>
+                                    <th onclick="sortAllOrders('date')">Date <span class="sort-icon">⇅</span></th>
+                                    <th onclick="sortAllOrders('orderId')">Order ID <span class="sort-icon">⇅</span></th>
+                                    <th onclick="sortAllOrders('client')">Client Name <span class="sort-icon">⇅</span></th>
+                                    <th onclick="sortAllOrders('work')">Work <span class="sort-icon">⇅</span></th>
+                                    <th onclick="sortAllOrders('amount')">Amount (₹) <span class="sort-icon">⇅</span></th>
+                                    <th onclick="sortAllOrders('balance')">Payment Status <span class="sort-icon">⇅</span></th>
+                                </tr>
+                                <tr class="table-filter-row">
+                                    <th><input type="text" id="ao-filt-date" onkeyup="renderAllOrders()" placeholder="MM/DD/YYYY"></th>
+                                    <th><input type="text" id="ao-filt-id" onkeyup="renderAllOrders()" placeholder="Filter ID..."></th>
+                                    <th><input type="text" id="ao-filt-client" onkeyup="renderAllOrders()" placeholder="Filter Client..."></th>
+                                    <th><input type="text" id="ao-filt-work" onkeyup="renderAllOrders()" placeholder="Filter Work..."></th>
+                                    <th><input type="number" id="ao-filt-amt" onkeyup="renderAllOrders()" placeholder="Min Amount..."></th>
+                                    <th>
+                                        <select id="ao-filt-status" onchange="renderAllOrders()">
+                                            <option value="">All</option>
+                                            <option value="paid">Paid</option>
+                                            <option value="pending">Pending</option>
+                                        </select>
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody></tbody>
@@ -1051,7 +1065,7 @@
 
                 closeAllSubmenus();
                 
-                // View specific initialization
+                // View specific initialization & rendering
                 if(targetId === 'dashboard') updateDashboardStats();
                 if(targetId === 'new-order') initNewOrder();
                 if(targetId === 'staff-master') renderStaffTable();
@@ -1096,16 +1110,9 @@
             window.location.replace('index.html'); 
         }
 
-        // Check for page refresh or reload using navigation entry
-        try {
-            const navEntries = performance.getEntriesByType("navigation");
-            if (navEntries.length > 0 && navEntries[0].type === 'reload') {
-                logout();
-            }
-        } catch (e) {
-            if (performance.navigation && performance.navigation.type === 1) {
-                logout();
-            }
+        // Check for page refresh or reload
+        if (performance.getEntriesByType("navigation")[0]?.type === 'reload' || performance.navigation?.type === 1) {
+            logout();
         }
 
         // 3 Minutes Inactivity (No mouse/keyboard movement) Auto-Logoff Timer
@@ -1136,7 +1143,6 @@
                     applySatishRestrictions();
                 } else {
                     document.getElementById('greeting-text').innerText = "Good Morning, Anil Malle";
-                    loadAppData();
                 }
             }
         }
@@ -1166,20 +1172,53 @@
             try {
                 const { data: orders, error: oError } = await supabaseClient.from('orders').select('*');
                 if (oError) console.error("Orders fetch error:", oError.message);
+                
                 appData.orders = {};
-                if (orders) orders.forEach(o => appData.orders[o.orderId] = o);
+                if (orders) {
+                    orders.forEach(o => {
+                        const normalized = {
+                            orderId: o.orderId || o.order_id || o.id,
+                            client: o.client || o.client_name || o.name || 'Unknown',
+                            phone: o.phone || o.contact || o.mobile || '',
+                            date: o.date || o.created_at || new Date().toISOString(),
+                            work: o.work || o.work_details || o.description || '',
+                            amount: parseFloat(o.amount || o.total_amount || 0),
+                            advance: parseFloat(o.advance || o.paid_amount || 0),
+                            balance: parseFloat(o.balance || o.balance_due || 0),
+                            status: String(o.status || o.order_status || 'processing').toLowerCase().trim(),
+                            vendorName: o.vendorName || o.vendor_name || o.vendor || ''
+                        };
+                        appData.orders[normalized.orderId] = normalized;
+                    });
+                }
 
                 const { data: vendors, error: vError } = await supabaseClient.from('vendors').select('*');
                 if (vError) console.error("Vendors fetch error:", vError.message);
-                appData.vendors = vendors || [];
+                appData.vendors = (vendors || []).map(v => ({
+                    id: v.id || v.vendor_id,
+                    name: v.name || v.vendor_name || 'Vendor',
+                    materials: v.materials || v.material_list || []
+                }));
 
                 const { data: staff, error: sError } = await supabaseClient.from('staff').select('*');
                 if (sError) console.error("Staff fetch error:", sError.message);
-                appData.staff = staff || [];
+                appData.staff = (staff || []).map(s => ({
+                    id: s.id || s.staff_id,
+                    name: s.name || s.staff_name || 'Staff',
+                    phone: s.phone || s.contact || ''
+                }));
 
                 const { data: history, error: hError } = await supabaseClient.from('vendor_allotments_history').select('*');
                 if (hError) console.error("History fetch error:", hError.message);
-                appData.vendorAllotmentsHistory = history || [];
+                appData.vendorAllotmentsHistory = (history || []).map(h => ({
+                    id: h.id || h.history_id,
+                    date: h.date || h.created_at || new Date().toISOString(),
+                    orderId: h.orderId || h.order_id || '',
+                    vendor: h.vendor || h.vendor_name || '',
+                    work: h.work || h.work_allotted || '',
+                    amount: parseFloat(h.amount || 0),
+                    is_paid: h.is_paid !== undefined ? h.is_paid : (h.paid || false)
+                }));
 
                 updateDashboardStats();
                 renderAllOrders();
@@ -1187,11 +1226,13 @@
                 renderPRVendor();
                 renderVendorReport();
                 renderStaffTable();
+                if(currentDashFilter) renderDashboardTable(currentDashFilter);
             } catch (err) {
                 console.error("Supabase Load Error:", err.message);
                 showToast("Error loading cloud data!");
             }
         }
+        loadAppData();
 
         // ==========================================
         // QR SCANNER LOGIC
@@ -1638,17 +1679,26 @@
         function updateDashboardStats() {
             let active = 0, desPending = 0, payPending = 0, readyDel = 0, pickupReady = 0;
             Object.values(appData.orders).forEach(o => {
-                if(o.status !== 'delivered') active++;
-                if(o.status === 'designing') desPending++;
-                if(parseFloat(o.balance) > 0) payPending++;
-                if(o.status === 'ready_for_delivery') readyDel++;
-                if(o.status === 'vendor_allotted') pickupReady++;
+                const status = String(o.status || '').toLowerCase().trim();
+                const balance = parseFloat(o.balance) || 0;
+                
+                if(status !== 'delivered') active++;
+                if(status === 'designing') desPending++;
+                if(balance > 0) payPending++;
+                if(status === 'ready_for_delivery') readyDel++;
+                if(status === 'vendor_allotted') pickupReady++;
             });
-            document.getElementById('dash-active').innerText = active;
-            document.getElementById('dash-designs').innerText = desPending;
-            document.getElementById('dash-payments').innerText = payPending;
-            document.getElementById('dash-pickup').innerText = pickupReady;
-            document.getElementById('dash-delivery').innerText = readyDel;
+            const dActive = document.getElementById('dash-active');
+            const dDesigns = document.getElementById('dash-designs');
+            const dPayments = document.getElementById('dash-payments');
+            const dPickup = document.getElementById('dash-pickup');
+            const dDelivery = document.getElementById('dash-delivery');
+
+            if(dActive) dActive.innerText = active;
+            if(dDesigns) dDesigns.innerText = desPending;
+            if(dPayments) dPayments.innerText = payPending;
+            if(dPickup) dPickup.innerText = pickupReady;
+            if(dDelivery) dDelivery.innerText = readyDel;
         }
 
         function setActiveCard(filterType) {
@@ -1669,20 +1719,30 @@
         function renderDashboardTable(filterType = currentDashFilter) {
             currentDashFilter = filterType;
             setActiveCard(filterType);
-            document.getElementById('dashboard-list-container').style.display = 'block';
+            const container = document.getElementById('dashboard-list-container');
+            if(container) container.style.display = 'block';
             
             const titleMap = { 'active': 'Active Orders', 'designing': 'Designs Pending', 'payments': 'Payments Pending', 'staff_pickup': 'Staff Pickups', 'delivery': 'Ready for Delivery' };
-            document.getElementById('dashboard-list-title').innerText = titleMap[filterType] || 'Order List';
+            const titleElem = document.getElementById('dashboard-list-title');
+            if(titleElem) titleElem.innerText = titleMap[filterType] || 'Order List';
 
             const tbody = document.querySelector('#dashboard-table tbody'); 
+            if(!tbody) return;
             tbody.innerHTML = '';
             
             let filtered = Object.values(appData.orders);
-            if (filterType === 'active') filtered = filtered.filter(o => o.status !== 'delivered');
-            if (filterType === 'designing') filtered = filtered.filter(o => o.status === 'designing');
-            if (filterType === 'payments') filtered = filtered.filter(o => parseFloat(o.balance) > 0);
-            if (filterType === 'staff_pickup') filtered = filtered.filter(o => o.status === 'vendor_allotted');
-            if (filterType === 'delivery') filtered = filtered.filter(o => o.status === 'ready_for_delivery');
+            
+            filtered = filtered.filter(o => {
+                const status = String(o.status || '').toLowerCase().trim();
+                const balance = parseFloat(o.balance) || 0;
+
+                if (filterType === 'active') return status !== 'delivered';
+                if (filterType === 'designing') return status === 'designing';
+                if (filterType === 'payments') return balance > 0;
+                if (filterType === 'staff_pickup') return status === 'vendor_allotted';
+                if (filterType === 'delivery') return status === 'ready_for_delivery';
+                return true;
+            });
 
             if(filtered.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding: 20px;">No matching orders found.</td></tr>`;
@@ -1704,6 +1764,20 @@
             });
         }
         
+        async function deleteOrder(orderId) {
+            if(!confirm(`Permanently delete order ${orderId}?`)) return;
+            await supabaseClient.from('orders').delete().eq('orderId', orderId);
+            delete appData.orders[orderId];
+            showToast("Order Deleted!");
+            updateDashboardStats();
+            renderDashboardTable(currentDashFilter);
+        }
+
+        function formatStatusBadge(status) {
+            let cleanStatus = String(status || '').toUpperCase().replace(/_/g, ' ');
+            return `<span class="status-badge status-${String(status || '').replace(/_/g, '-')}">${cleanStatus}</span>`;
+        }
+
         function closeDashboardTable() {
             document.getElementById('dashboard-list-container').style.display = 'none';
             document.querySelectorAll('.stat-card').forEach(card => card.classList.remove('active-stat'));
