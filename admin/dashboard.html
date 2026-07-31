@@ -547,26 +547,12 @@
                         <table class="data-table" id="all-orders-table">
                             <thead>
                                 <tr>
-                                    <th onclick="sortAllOrders('date')">Date <span class="sort-icon">⇅</span></th>
-                                    <th onclick="sortAllOrders('orderId')">Order ID <span class="sort-icon">⇅</span></th>
-                                    <th onclick="sortAllOrders('client')">Client Name <span class="sort-icon">⇅</span></th>
-                                    <th onclick="sortAllOrders('work')">Work <span class="sort-icon">⇅</span></th>
-                                    <th onclick="sortAllOrders('amount')">Amount (₹) <span class="sort-icon">⇅</span></th>
-                                    <th onclick="sortAllOrders('balance')">Payment Status <span class="sort-icon">⇅</span></th>
-                                </tr>
-                                <tr class="table-filter-row">
-                                    <th><input type="text" id="ao-filt-date" onkeyup="renderAllOrders()" placeholder="MM/DD/YYYY"></th>
-                                    <th><input type="text" id="ao-filt-id" onkeyup="renderAllOrders()" placeholder="Filter ID..."></th>
-                                    <th><input type="text" id="ao-filt-client" onkeyup="renderAllOrders()" placeholder="Filter Client..."></th>
-                                    <th><input type="text" id="ao-filt-work" onkeyup="renderAllOrders()" placeholder="Filter Work..."></th>
-                                    <th><input type="number" id="ao-filt-amt" onkeyup="renderAllOrders()" placeholder="Min Amount..."></th>
-                                    <th>
-                                        <select id="ao-filt-status" onchange="renderAllOrders()">
-                                            <option value="">All</option>
-                                            <option value="paid">Paid</option>
-                                            <option value="pending">Pending</option>
-                                        </select>
-                                    </th>
+                                    <th>Date</th>
+                                    <th>Order ID</th>
+                                    <th>Client Name</th>
+                                    <th>Work</th>
+                                    <th>Amount (₹)</th>
+                                    <th>Payment Status</th>
                                 </tr>
                             </thead>
                             <tbody></tbody>
@@ -1110,9 +1096,16 @@
             window.location.replace('index.html'); 
         }
 
-        // Check for page refresh or reload
-        if (performance.getEntriesByType("navigation")[0]?.type === 'reload' || performance.navigation?.type === 1) {
-            logout();
+        // Check for page refresh or reload using navigation entry
+        try {
+            const navEntries = performance.getEntriesByType("navigation");
+            if (navEntries.length > 0 && navEntries[0].type === 'reload') {
+                logout();
+            }
+        } catch (e) {
+            if (performance.navigation && performance.navigation.type === 1) {
+                logout();
+            }
         }
 
         // 3 Minutes Inactivity (No mouse/keyboard movement) Auto-Logoff Timer
@@ -1143,6 +1136,7 @@
                     applySatishRestrictions();
                 } else {
                     document.getElementById('greeting-text').innerText = "Good Morning, Anil Malle";
+                    loadAppData();
                 }
             }
         }
@@ -1198,7 +1192,6 @@
                 showToast("Error loading cloud data!");
             }
         }
-        loadAppData();
 
         // ==========================================
         // QR SCANNER LOGIC
