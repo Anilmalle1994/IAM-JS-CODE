@@ -640,18 +640,11 @@
                         <table class="data-table" id="pr-client-table">
                             <thead>
                                 <tr>
-                                    <th onclick="sortPRClient('orderId')">Order ID <span class="sort-icon">⇅</span></th>
-                                    <th onclick="sortPRClient('client')">Client Name <span class="sort-icon">⇅</span></th>
-                                    <th onclick="sortPRClient('phone')">Contact <span class="sort-icon">⇅</span></th>
-                                    <th onclick="sortPRClient('balance')">Balance Due (₹) <span class="sort-icon">⇅</span></th>
+                                    <th>Order ID</th>
+                                    <th>Client Name</th>
+                                    <th>Contact</th>
+                                    <th>Balance Due (₹)</th>
                                     <th>Action</th>
-                                </tr>
-                                <tr class="table-filter-row">
-                                    <th><input type="text" id="prc-filt-id" onkeyup="renderPRClient()" placeholder="Filter ID..."></th>
-                                    <th><input type="text" id="prc-filt-client" onkeyup="renderPRClient()" placeholder="Filter Client..."></th>
-                                    <th><input type="text" id="prc-filt-phone" onkeyup="renderPRClient()" placeholder="Filter Phone..."></th>
-                                    <th><input type="number" id="prc-filt-bal" onkeyup="renderPRClient()" placeholder="Max Balance..."></th>
-                                    <th></th>
                                 </tr>
                             </thead>
                             <tbody></tbody>
@@ -668,20 +661,12 @@
                         <table class="data-table" id="pr-vendor-table">
                             <thead>
                                 <tr>
-                                    <th onclick="sortPRVendor('date')">Date <span class="sort-icon">⇅</span></th>
-                                    <th onclick="sortPRVendor('orderId')">Order ID <span class="sort-icon">⇅</span></th>
-                                    <th onclick="sortPRVendor('vendor')">Vendor Name <span class="sort-icon">⇅</span></th>
-                                    <th onclick="sortPRVendor('work')">Work Allotted <span class="sort-icon">⇅</span></th>
-                                    <th onclick="sortPRVendor('amount')">Amount (₹) <span class="sort-icon">⇅</span></th>
+                                    <th>Date</th>
+                                    <th>Order ID</th>
+                                    <th>Vendor Name</th>
+                                    <th>Work Allotted</th>
+                                    <th>Amount (₹)</th>
                                     <th>Action</th>
-                                </tr>
-                                <tr class="table-filter-row">
-                                    <th><input type="text" id="prv-filt-date" onkeyup="renderPRVendor()" placeholder="MM/DD/YYYY"></th>
-                                    <th><input type="text" id="prv-filt-order" onkeyup="renderPRVendor()" placeholder="Filter Order..."></th>
-                                    <th><input type="text" id="prv-filt-vendor" onkeyup="renderPRVendor()" placeholder="Filter Vendor..."></th>
-                                    <th><input type="text" id="prv-filt-work" onkeyup="renderPRVendor()" placeholder="Filter Work..."></th>
-                                    <th><input type="number" id="prv-filt-amt" onkeyup="renderPRVendor()" placeholder="Max Amount..."></th>
-                                    <th></th>
                                 </tr>
                             </thead>
                             <tbody></tbody>
@@ -701,20 +686,12 @@
                         <table class="data-table" id="vr-table">
                             <thead>
                                 <tr>
-                                    <th onclick="sortVR('date')">Date <span class="sort-icon">⇅</span></th>
-                                    <th onclick="sortVR('orderId')">Order ID <span class="sort-icon">⇅</span></th>
-                                    <th onclick="sortVR('vendor')">Vendor Name <span class="sort-icon">⇅</span></th>
-                                    <th onclick="sortVR('work')">Work Allotted <span class="sort-icon">⇅</span></th>
-                                    <th onclick="sortVR('amount')">Amount (₹) <span class="sort-icon">⇅</span></th>
+                                    <th>Date</th>
+                                    <th>Order ID</th>
+                                    <th>Vendor Name</th>
+                                    <th>Work Allotted</th>
+                                    <th>Amount (₹)</th>
                                     <th>Payment</th>
-                                </tr>
-                                <tr class="table-filter-row">
-                                    <th><input type="text" id="vr-filt-date" onkeyup="renderVendorReport()" placeholder="MM/DD/YYYY"></th>
-                                    <th><input type="text" id="vr-filt-order" onkeyup="renderVendorReport()" placeholder="Filter Order..."></th>
-                                    <th><input type="text" id="vr-filt-vendor" onkeyup="renderVendorReport()" placeholder="Filter Vendor..."></th>
-                                    <th><input type="text" id="vr-filt-work" onkeyup="renderVendorReport()" placeholder="Filter Work..."></th>
-                                    <th><input type="number" id="vr-filt-amt" onkeyup="renderVendorReport()" placeholder="Max Amount..."></th>
-                                    <th></th>
                                 </tr>
                             </thead>
                             <tbody></tbody>
@@ -1193,17 +1170,21 @@
 
         async function loadAppData() {
             try {
-                const { data: orders } = await supabaseClient.from('orders').select('*');
+                const { data: orders, error: oError } = await supabaseClient.from('orders').select('*');
+                if (oError) console.error("Orders fetch error:", oError.message);
                 appData.orders = {};
                 if (orders) orders.forEach(o => appData.orders[o.orderId] = o);
 
-                const { data: vendors } = await supabaseClient.from('vendors').select('*');
+                const { data: vendors, error: vError } = await supabaseClient.from('vendors').select('*');
+                if (vError) console.error("Vendors fetch error:", vError.message);
                 appData.vendors = vendors || [];
 
-                const { data: staff } = await supabaseClient.from('staff').select('*');
+                const { data: staff, error: sError } = await supabaseClient.from('staff').select('*');
+                if (sError) console.error("Staff fetch error:", sError.message);
                 appData.staff = staff || [];
 
-                const { data: history } = await supabaseClient.from('vendor_allotments_history').select('*');
+                const { data: history, error: hError } = await supabaseClient.from('vendor_allotments_history').select('*');
+                if (hError) console.error("History fetch error:", hError.message);
                 appData.vendorAllotmentsHistory = history || [];
 
                 updateDashboardStats();
@@ -1214,6 +1195,7 @@
                 renderStaffTable();
             } catch (err) {
                 console.error("Supabase Load Error:", err.message);
+                showToast("Error loading cloud data!");
             }
         }
         loadAppData();
