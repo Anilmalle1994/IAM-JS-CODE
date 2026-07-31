@@ -58,7 +58,7 @@
         }
         .side-icon-btn:hover, .side-icon-btn.active { background: #f0f2f5; color: var(--dark); }
         
-        /* Floating Settings Dropdown */
+        /* Floating Dropdown Menus */
         .settings-wrapper { position: relative; width: 100%; display: flex; justify-content: center;}
         .submenu { position: absolute; left: 65px; top: 0; background: var(--white); width: 220px; border-radius: var(--radius-md); box-shadow: 0 15px 35px rgba(0,0,0,0.08); list-style: none; padding: 8px; display: none; z-index: 200; border: 1px solid #f0f0f0;}
         .submenu.open { display: block; animation: slideIn 0.2s ease; }
@@ -260,6 +260,16 @@
                     <li><a href="#" class="nav-btn" data-target="pending-reports">📑 Pending Reports</a></li>
                     <li><a href="#" class="nav-btn" data-target="vendor-reports">📈 Vendor Reports</a></li>
                     <li><a href="#" class="nav-btn" data-target="clients-data">📇 Clients Data</a></li>
+                </ul>
+            </li>
+
+            <!-- GST Billing Menu Icon -->
+            <li class="settings-wrapper" id="gst-menu-wrapper">
+                <button class="side-icon-btn" id="gst-menu-toggle" title="GST Billing">🧾</button>
+                <ul class="submenu" id="gst-submenu">
+                    <li><a href="#" class="nav-btn" data-target="gst-dashboard">📊 GST Ledger</a></li>
+                    <li><a href="#" class="nav-btn" data-target="gst-sale">🧾 Sales Bill</a></li>
+                    <li><a href="#" class="nav-btn" data-target="gst-vendor">📥 Input Vendor</a></li>
                 </ul>
             </li>
         </ul>
@@ -1017,24 +1027,51 @@
             sidebar.classList.remove('open');
             topNav.classList.remove('open');
             overlay.classList.remove('active'); 
-            const submenu = document.getElementById('settings-submenu');
-            if(submenu) submenu.classList.remove('open');
+            closeAllSubmenus();
         });
 
+        function closeAllSubmenus() {
+            const sub1 = document.getElementById('settings-submenu');
+            const sub2 = document.getElementById('gst-submenu');
+            if(sub1) sub1.classList.remove('open');
+            if(sub2) sub2.classList.remove('open');
+        }
+
+        // Floating Settings Menu Toggle
         const settingsToggle = document.getElementById('settings-menu-toggle');
         if(settingsToggle) {
             settingsToggle.addEventListener('click', function(e) {
                 e.preventDefault();
                 e.stopPropagation();
+                const sub2 = document.getElementById('gst-submenu');
+                if(sub2) sub2.classList.remove('open');
                 document.getElementById('settings-submenu').classList.toggle('open');
             });
         }
 
+        // Floating GST Menu Toggle
+        const gstToggle = document.getElementById('gst-menu-toggle');
+        if(gstToggle) {
+            gstToggle.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                const sub1 = document.getElementById('settings-submenu');
+                if(sub1) sub1.classList.remove('open');
+                document.getElementById('gst-submenu').classList.toggle('open');
+            });
+        }
+
         document.addEventListener('click', function(e) {
-            const submenu = document.getElementById('settings-submenu');
-            const toggleBtn = document.getElementById('settings-menu-toggle');
-            if(submenu && submenu.classList.contains('open') && !submenu.contains(e.target) && e.target !== toggleBtn) {
-                submenu.classList.remove('open');
+            const sub1 = document.getElementById('settings-submenu');
+            const sub2 = document.getElementById('gst-submenu');
+            const tog1 = document.getElementById('settings-menu-toggle');
+            const tog2 = document.getElementById('gst-menu-toggle');
+            
+            if(sub1 && sub1.classList.contains('open') && !sub1.contains(e.target) && e.target !== tog1) {
+                sub1.classList.remove('open');
+            }
+            if(sub2 && sub2.classList.contains('open') && !sub2.contains(e.target) && e.target !== tog2) {
+                sub2.classList.remove('open');
             }
         });
 
@@ -1054,9 +1091,7 @@
                     btn.classList.add('active');
                 }
 
-                if(btn.closest('.submenu')) {
-                    document.getElementById('settings-submenu').classList.remove('open');
-                }
+                closeAllSubmenus();
                 
                 // View specific initialization
                 if(targetId === 'dashboard') updateDashboardStats();
@@ -1678,24 +1713,101 @@
         // REPORTS, ALL ORDERS & EXPORT LOGIC
         // ==========================================
         function renderAllOrders() {
-            const tbody = document.querySelector('#all-orders-table tbody'); tbody.innerHTML = '';
+            const tbody = document.querySelector('#all-orders-table tbody'); 
+            if(!tbody) return;
+            tbody.innerHTML = '';
             Object.values(appData.orders).forEach(o => {
                 const isPaid = parseFloat(o.balance) <= 0;
                 tbody.innerHTML += `<tr><td>${new Date(o.date).toLocaleDateString()}</td><td><strong>${o.orderId}</strong></td><td>${o.client}</td><td>${o.work || 'N/A'}</td><td style="font-weight:bold;">₹${o.amount}</td><td>${isPaid ? 'Paid' : 'Pending'}</td></tr>`;
             });
         }
+
+        function renderPRClient() {
+            const tbody = document.querySelector('#pr-client-table tbody');
+            if(!tbody) return;
+            tbody.innerHTML = '';
+            let filtered = Object.values(appData.orders).filter(o => parseFloat(o.balance) > 0);
+            if(filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 15px;">No pending client dues.</td></tr>`;
+                return;
+            }
+            filtered.forEach(o => {
+                const msg = `Dear ${o.client}, gentle reminder that a balance of ₹${o.balance} is due for order ${o.orderId}. Thank you!`;
+                const wa = getWhatsAppLink(o.phone, msg);
+                tbody.innerHTML += `<tr><td><strong>${o.orderId}</strong></td><td>${o.client}</td><td>${o.phone}</td><td style="color:red; font-weight:bold;">₹${o.balance}</td><td><button class="btn-whatsapp" style="padding: 6px 12px; font-size: 11px;" onclick="window.open('${wa}', '_blank')">🔔 Remind</button></td></tr>`;
+            });
+        }
+
+        function renderPRVendor() {
+            const tbody = document.querySelector('#pr-vendor-table tbody');
+            if(!tbody) return;
+            tbody.innerHTML = '';
+            let history = appData.vendorAllotmentsHistory || [];
+            if(history.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding: 15px;">No vendor allotments found.</td></tr>`;
+                return;
+            }
+            history.forEach(h => {
+                tbody.innerHTML += `<tr><td>${new Date(h.date).toLocaleDateString()}</td><td><strong>${h.orderId}</strong></td><td>${h.vendor}</td><td>${h.work}</td><td style="font-weight:bold;">₹${h.amount}</td><td><button onclick="deleteVendorAllotment(${h.id})" class="remove-btn">🗑️</button></td></tr>`;
+            });
+        }
+
+        function renderVendorReport() {
+            const tbody = document.querySelector('#vr-table tbody');
+            if(!tbody) return;
+            tbody.innerHTML = '';
+            let history = appData.vendorAllotmentsHistory || [];
+            if(history.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding: 15px;">No vendor allotment reports.</td></tr>`;
+                return;
+            }
+            history.forEach(h => {
+                let actionBtn = h.is_paid ? `<span style="color:green; font-weight:bold;">Paid</span>` : `<button class="btn-primary" style="padding: 6px 12px; font-size: 11px; background:#28a745;" onclick="markVendorPaid(${h.id})">💳 Pay</button>`;
+                tbody.innerHTML += `<tr><td>${new Date(h.date).toLocaleDateString()}</td><td><strong>${h.orderId}</strong></td><td>${h.vendor}</td><td>${h.work}</td><td style="font-weight:bold;">₹${h.amount}</td><td>${actionBtn}</td></tr>`;
+            });
+        }
+
+        async function deleteVendorAllotment(id) {
+            if(!confirm("Delete this vendor record?")) return;
+            await supabaseClient.from('vendor_allotments_history').delete().eq('id', id);
+            appData.vendorAllotmentsHistory = appData.vendorAllotmentsHistory.filter(h => h.id !== id);
+            showToast("Record Deleted!");
+            renderPRVendor();
+            renderVendorReport();
+        }
+
+        async function markVendorPaid(id) {
+            await supabaseClient.from('vendor_allotments_history').update({ is_paid: true }).eq('id', id);
+            const rec = appData.vendorAllotmentsHistory.find(h => h.id === id);
+            if(rec) rec.is_paid = true;
+            showToast("Marked as Paid!");
+            renderVendorReport();
+        }
+
         function downloadAllOrdersExcel() {
             let data = Object.values(appData.orders).map(o => ({ "Order ID": o.orderId, "Client": o.client, "Amount": o.amount }));
             let ws = XLSX.utils.json_to_sheet(data); let wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Orders");
             XLSX.writeFile(wb, `All_Orders_${Date.now()}.xlsx`);
         }
-        function renderPRClient() {}
-        function renderPRVendor() {}
-        function renderVendorReport() {}
         function downloadAllOrdersPDF() { html2pdf().from(document.getElementById('all-orders-table')).save(); }
-        function downloadPRClientPDF() {} function downloadPRClientExcel() {}
-        function downloadPRVendorPDF() {} function downloadPRVendorExcel() {}
-        function downloadVendorReportsPDF() {} function downloadVendorReportsExcel() {}
+        function downloadPRClientPDF() { html2pdf().from(document.getElementById('pr-client-table')).save(); }
+        function downloadPRClientExcel() {
+            let data = Object.values(appData.orders).filter(o => parseFloat(o.balance) > 0).map(o => ({ "Order ID": o.orderId, "Client": o.client, "Balance": o.balance }));
+            let ws = XLSX.utils.json_to_sheet(data); let wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Client Dues");
+            XLSX.writeFile(wb, `Client_Dues_${Date.now()}.xlsx`);
+        }
+        function downloadPRVendorPDF() { html2pdf().from(document.getElementById('pr-vendor-table')).save(); }
+        function downloadPRVendorExcel() {
+            let data = (appData.vendorAllotmentsHistory || []).map(h => ({ "Order": h.orderId, "Vendor": h.vendor, "Amount": h.amount }));
+            let ws = XLSX.utils.json_to_sheet(data); let wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Vendor Allotments");
+            XLSX.writeFile(wb, `Vendor_Allotments_${Date.now()}.xlsx`);
+        }
+        function downloadVendorReportsPDF() { html2pdf().from(document.getElementById('vr-table')).save(); }
+        function downloadVendorReportsExcel() {
+            let data = (appData.vendorAllotmentsHistory || []).map(h => ({ "Order": h.orderId, "Vendor": h.vendor, "Amount": h.amount, "Paid": h.is_paid ? "Yes" : "No" }));
+            let ws = XLSX.utils.json_to_sheet(data); let wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Vendor Reports");
+            XLSX.writeFile(wb, `Vendor_Reports_${Date.now()}.xlsx`);
+        }
 
         // ==========================================
         // GST LEDGER & BILLING SYSTEM LOGIC (Surya Creations)
@@ -1936,6 +2048,13 @@
             document.getElementById('vendorForm').reset();
             showToast("Vendor Bill Saved to Ledger!");
             loadLedger();
+        }
+
+        function findOrder(query) {
+            query = (query || '').trim();
+            if(appData.orders[query]) return appData.orders[query]; 
+            for (let id in appData.orders) { if (appData.orders[id].phone === query) return appData.orders[id]; }
+            return null;
         }
     </script>
 </body>
