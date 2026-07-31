@@ -691,6 +691,26 @@
             </div>
 
             <div id="vendor-reports" class="view-section admin-view">
+                <!-- VENDOR BULK PAYMENT SECTION (New Feature) -->
+                <div class="admin-card">
+                    <h3>Vendor Bulk Payment (Settle Pending)</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Select Vendor</label>
+                            <select id="bulk-vendor-select" onchange="calcBulkPending()">
+                                <option value="">Choose Vendor...</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Total Pending Amount (₹)</label>
+                            <input type="text" id="bulk-vendor-pending" value="0.00" readonly style="font-weight: bold; color: #ef4444; background: #fdf2f2;">
+                        </div>
+                    </div>
+                    <div class="action-row">
+                        <button type="button" class="btn-primary" style="background: #28a745;" onclick="processBulkVendorPayment()">💳 Settle All Pending</button>
+                    </div>
+                </div>
+
                 <div class="admin-card">
                     <h3>Total Vendor Allotment Reports</h3>
                     <div class="action-row" style="margin-top: 0; padding-top: 0; border: none; justify-content: flex-start; margin-bottom: 10px;">
@@ -1000,6 +1020,64 @@
     <!-- MAIN SCRIPT -->
     <script>
         // ==========================================
+        // VENDOR BULK PAYMENT LOGIC (Added Feature)
+        // ==========================================
+        function populateBulkVendorDropdown() {
+            const select = document.getElementById('bulk-vendor-select');
+            if (!select) return;
+            select.innerHTML = '<option value="">Choose Vendor...</option>';
+            const uniqueVendors = [...new Set(appData.vendorAllotmentsHistory.map(h => h.vendor))];
+            uniqueVendors.forEach(v => {
+                if (v) select.innerHTML += `<option value="${v}">${v}</option>`;
+            });
+        }
+
+        function calcBulkPending() {
+            const vendor = document.getElementById('bulk-vendor-select').value;
+            const pendingInput = document.getElementById('bulk-vendor-pending');
+            if (!vendor) {
+                pendingInput.value = '0.00';
+                return;
+            }
+            let total = 0;
+            appData.vendorAllotmentsHistory.forEach(h => {
+                if (h.vendor === vendor && !h.is_paid) {
+                    total += parseFloat(h.amount) || 0;
+                }
+            });
+            pendingInput.value = total.toFixed(2);
+        }
+
+        async function processBulkVendorPayment() {
+            const vendor = document.getElementById('bulk-vendor-select').value;
+            if (!vendor) return alert('Select a vendor first.');
+            
+            const totalPending = parseFloat(document.getElementById('bulk-vendor-pending').value);
+            if (totalPending <= 0) return alert('No pending payments for this vendor.');
+
+            if (!confirm(`Are you sure you want to mark all pending payments (₹${totalPending}) as PAID for ${vendor}?`)) return;
+
+            const { error } = await supabaseClient
+                .from('vendor_allotments_history')
+                .update({ is_paid: true })
+                .eq('vendor', vendor)
+                .eq('is_paid', false);
+
+            if (error) return alert("Error processing bulk payment: " + error.message);
+
+            appData.vendorAllotmentsHistory.forEach(h => {
+                if (h.vendor === vendor && !h.is_paid) {
+                    h.is_paid = true;
+                }
+            });
+
+            showToast(`Bulk payment of ₹${totalPending} successful for ${vendor}!`);
+            calcBulkPending();
+            renderVendorReport();
+            renderPRVendor();
+        }
+
+        // ==========================================
         // UI & NAVIGATION LOGIC
         // ==========================================
         const sidebar = document.getElementById('sidebar');
@@ -1032,7 +1110,6 @@
             if(sub2) sub2.classList.remove('open');
         }
 
-        // Floating Settings Menu Toggle
         const settingsToggle = document.getElementById('settings-menu-toggle');
         if(settingsToggle) {
             settingsToggle.addEventListener('click', function(e) {
@@ -1044,7 +1121,6 @@
             });
         }
 
-        // Floating GST Menu Toggle
         const gstToggle = document.getElementById('gst-menu-toggle');
         if(gstToggle) {
             gstToggle.addEventListener('click', function(e) {
@@ -1070,7 +1146,6 @@
             }
         });
 
-        // Navigation Switching
         document.querySelectorAll('.nav-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.preventDefault();
@@ -1088,12 +1163,11 @@
 
                 closeAllSubmenus();
                 
-                // View specific initialization
                 if(targetId === 'dashboard') updateDashboardStats();
                 if(targetId === 'new-order') initNewOrder();
                 if(targetId === 'staff-master') renderStaffTable();
                 if(targetId === 'pending-reports') { renderPRClient(); renderPRVendor(); }
-                if(targetId === 'vendor-reports') renderVendorReport();
+                if(targetId === 'vendor-reports') { renderVendorReport(); populateBulkVendorDropdown(); }
                 if(targetId === 'all-orders') renderAllOrders();
                 if(targetId === 'gst-dashboard') loadLedger();
                 if(targetId === 'gst-sale') initSaleForm();
@@ -1119,9 +1193,6 @@
             return `https://wa.me/${cleanedPhone}?text=${encodeURIComponent(message)}`;
         }
 
-        // ==========================================
-        // SUPABASE CLIENT & AUTH SECURITY WITH USER RESTRICTIONS & AUTO LOGOFF
-        // ==========================================
         const SUPABASE_URL = 'https://wrqkrpysvhtjenxyytfp.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_-DXwYtZ4x8XSt1DV_sQc-w_wA7Ir0N_';
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -1133,20 +1204,18 @@
             window.location.replace('index.html'); 
         }
 
-        // Check for page refresh or reload
         if (performance.getEntriesByType("navigation").length > 0 && performance.getEntriesByType("navigation")[0].type === "reload") {
             logout();
         } else if (performance.navigation && performance.navigation.type === 1) {
             logout();
         }
 
-        // 3 Minutes Inactivity (No mouse/keyboard movement) Auto-Logoff Timer
         let idleTimer;
         function resetIdleTimer() {
             clearTimeout(idleTimer);
             idleTimer = setTimeout(() => {
                 logout();
-            }, 3 * 60 * 1000); // 3 minutes
+            }, 3 * 60 * 1000);
         }
 
         window.addEventListener('mousemove', resetIdleTimer);
@@ -1195,7 +1264,7 @@
         async function loadAppData() {
             try {
                 const { data: orders, error: oError } = await supabaseClient.from('orders').select('*');
-                if (oError) { alert("Orders Load Error: " + oError.message); console.error(oError); }
+                if (oError) console.error("Orders fetch error:", oError.message);
                 appData.orders = {};
                 if (orders) orders.forEach(o => appData.orders[o.orderId] = o);
 
@@ -1217,6 +1286,7 @@
                 renderPRVendor();
                 renderVendorReport();
                 renderStaffTable();
+                populateBulkVendorDropdown();
             } catch (err) {
                 console.error("Supabase Load Error:", err.message);
                 showToast("Error loading cloud data!");
@@ -1224,9 +1294,6 @@
         }
         loadAppData();
 
-        // ==========================================
-        // QR SCANNER LOGIC
-        // ==========================================
         let html5QrcodeScanner = null;
 
         function openQRScanner(targetInputId, callback) {
@@ -1244,9 +1311,6 @@
             if(html5QrcodeScanner) { html5QrcodeScanner.clear(); html5QrcodeScanner = null; }
         }
 
-        // ==========================================
-        // DESIGNING & WORK ORDER LOGIC
-        // ==========================================
         function addDesignWorkRow() {
             document.getElementById('des-works-container').innerHTML += `<div class="form-grid des-work-row"><div class="form-group"><label>Work</label><input type="text" class="des-work-input" required></div><div class="form-group"><label>Dimensions</label><input type="text" class="des-dim-input"></div></div>`;
         }
@@ -1363,9 +1427,6 @@
             renderAllOrders();
         }
 
-        // ==========================================
-        // VENDOR ALLOTMENT & STAFF PICKUP
-        // ==========================================
         function findOrder(query) {
             query = (query || '').trim();
             if(appData.orders[query]) return appData.orders[query]; 
@@ -1480,6 +1541,7 @@
             updateDashboardStats();
             renderPRVendor();
             renderVendorReport();
+            populateBulkVendorDropdown();
         }
 
         function searchPickup() {
@@ -1508,9 +1570,6 @@
             updateDashboardStats();
         }
 
-        // ==========================================
-        // PAYMENTS & DELIVERY
-        // ==========================================
         let currentlySearchedOrderId = null;
         
         function searchPayment() {
@@ -1579,9 +1638,6 @@
             }
         }
 
-        // ==========================================
-        // VENDORS, STAFF & SETTINGS MANAGEMENT
-        // ==========================================
         function addMaterialRow() {
             const container = document.getElementById('vm-materials-container');
             const row = document.createElement('div');
@@ -1594,18 +1650,49 @@
         async function saveVendor() {
             const vName = document.getElementById('vm-name').value.trim();
             if(!vName) return alert("Vendor Name required!");
-            let materials = [];
+            
+            let newMaterials = [];
             document.querySelectorAll('.vm-material-row').forEach(row => {
                 let name = row.querySelector('.vm-mat-name').value.trim();
                 let rate = parseFloat(row.querySelector('.vm-mat-rate').value) || 0;
-                if(name && rate > 0) materials.push({ name, rate });
+                if(name && rate > 0) newMaterials.push({ name, rate });
             });
-            const { data, error } = await supabaseClient.from('vendors').insert([{ name: vName, materials }]).select();
-            if(error) return alert("Save Error: " + error.message);
 
-            if(data) appData.vendors.push(data[0]);
-            showToast("Vendor Saved!");
+            if(newMaterials.length === 0) return alert("Please add at least one material with a valid rate.");
+
+            const existingVendorIndex = appData.vendors.findIndex(v => v.name.toLowerCase() === vName.toLowerCase());
+            let finalMaterials = [...newMaterials];
+
+            if (existingVendorIndex !== -1) {
+                let existingMaterials = appData.vendors[existingVendorIndex].materials || [];
+                newMaterials.forEach(nm => {
+                    const idx = existingMaterials.findIndex(em => em.name.toLowerCase() === nm.name.toLowerCase());
+                    if(idx !== -1) { existingMaterials[idx].rate = nm.rate; } 
+                    else { existingMaterials.push(nm); }
+                });
+                finalMaterials = existingMaterials;
+                
+                const { error } = await supabaseClient.from('vendors').update({ materials: finalMaterials }).eq('name', vName);
+                if(error) return alert("Update Error: " + error.message);
+                
+                appData.vendors[existingVendorIndex].materials = finalMaterials;
+                showToast("Existing Vendor Updated Successfully!");
+                
+            } else {
+                const { data, error } = await supabaseClient.from('vendors').insert([{ name: vName, materials: finalMaterials }]).select();
+                if(error) return alert("Save Error: " + error.message);
+                
+                if(data) appData.vendors.push(data[0]);
+                showToast("New Vendor Saved Successfully!");
+            }
+
             document.getElementById('vm-name').value = '';
+            document.getElementById('vm-materials-container').innerHTML = `
+                <div class="form-grid vm-material-row">
+                    <div class="form-group"><label>Material Name</label><input type="text" class="vm-mat-name"></div>
+                    <div class="form-group"><label>Rate (₹)</label><input type="number" class="vm-mat-rate"></div>
+                </div>`;
+            populateBulkVendorDropdown();
         }
 
         async function saveStaff() {
@@ -1681,9 +1768,6 @@
             link.click();
         }
 
-        // ==========================================
-        // DASHBOARD STATS & OVERVIEW ACTIVE CARD HIGHLIGHTS
-        // ==========================================
         let currentDashFilter = 'active';
         let dashSort = { col: null, asc: true };
 
@@ -1739,14 +1823,12 @@
             
             let filtered = Object.values(appData.orders);
             
-            // Pillar Filters
             if (filterType === 'active') filtered = filtered.filter(o => (o.status || 'pending') !== 'delivered');
             if (filterType === 'designing') filtered = filtered.filter(o => (o.status || '') === 'designing');
             if (filterType === 'payments') filtered = filtered.filter(o => (parseFloat(o.balance) || 0) > 0);
             if (filterType === 'staff_pickup') filtered = filtered.filter(o => (o.status || '') === 'vendor_allotted');
             if (filterType === 'delivery') filtered = filtered.filter(o => (o.status || '') === 'ready_for_delivery');
 
-            // Text Filters
             const fId = (document.getElementById('dash-filt-id').value || '').toLowerCase();
             const fClient = (document.getElementById('dash-filt-client').value || '').toLowerCase();
             const fPhone = (document.getElementById('dash-filt-phone').value || '').toLowerCase();
@@ -1811,9 +1893,6 @@
             document.querySelectorAll('.stat-card').forEach(card => card.classList.remove('active-stat'));
         }
 
-        // ==========================================
-        // REPORTS, ALL ORDERS & EXPORT LOGIC
-        // ==========================================
         let aoSort = { col: null, asc: true };
         function sortAllOrders(col) {
             if(aoSort.col === col) aoSort.asc = !aoSort.asc;
@@ -2042,7 +2121,9 @@
             const rec = appData.vendorAllotmentsHistory.find(h => h.id === id);
             if(rec) rec.is_paid = true;
             showToast("Marked as Paid!");
+            calcBulkPending();
             renderVendorReport();
+            renderPRVendor();
         }
 
         function downloadAllOrdersExcel() {
