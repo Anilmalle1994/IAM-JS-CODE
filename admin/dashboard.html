@@ -48,7 +48,7 @@
             z-index: 1000;
             transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        .sidebar-logo img { width: 38px; height: 38px; border-radius: 10px; margin-bottom: 30px; object-fit: cover; box-shadow: 0 4px 10px rgba(242,101,34,0.3); transition: transform 0.2s;}
+        .sidebar-logo img { width: 38px; height: 38px; border-radius: 10px; margin-bottom: 30px; object-fit: cover; box-shadow: 0 4px 10px rgba(242,101,34,0.3); transition: transform 0.2s; cursor: pointer;}
         .sidebar-logo:hover img { transform: scale(1.05); }
         .icon-menu { flex: 1; width: 100%; display: flex; flex-direction: column; align-items: center; gap: 16px; list-style: none; overflow-y: auto; scrollbar-width: none; }
         .icon-menu::-webkit-scrollbar { display: none; }
@@ -217,7 +217,7 @@
             .topbar { padding: 12px 16px; flex-wrap: wrap; background: #fff; position: sticky; top: 0; z-index: 90; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
             
             /* Change top nav to a scrollable row below topbar on mobile instead of hiding */
-            .top-nav { display: flex; width: 100%; max-width: 100%; border-radius: 0; box-shadow: none; padding: 10px 16px; background: #fff; border-top: 1px solid #f1f2f4; overflow-x: auto; }
+            .top-nav { display: flex; width: 100%; max-width: 100%; border-radius: 0; box-shadow: none; padding: 10px 16px; background: #fff; border-top: 1px solid #f1f2f4; overflow-x: auto; margin: 0 !important;}
             .top-nav a { padding: 8px 14px; font-size: 12px; }
             
             .content-area { padding: 15px; overflow: visible; height: auto; }
@@ -230,6 +230,10 @@
             .dashboard-header h1 { font-size: 20px; }
             .profile-chip #user-email { display: none; } /* hide email on very small screens to save space */
             .submenu { left: 10px; right: auto; top: auto; bottom: 60px; width: 220px; position: fixed; } /* adjust submenu for mobile */
+            
+            #bulk-payment-controls { flex-direction: column; align-items: flex-start; gap: 10px; }
+            #bulk-payment-controls > div { width: 100%; }
+            #bulk-custom-pay-amt { width: 100% !important; }
         }
     </style>
 </head>
@@ -261,7 +265,6 @@
                     <li><a href="#" class="nav-btn" data-target="web-content">🌐 Web Content</a></li>
                     <li><a href="#" class="nav-btn" data-target="pending-reports">📑 Pending Reports</a></li>
                     <li><a href="#" class="nav-btn" data-target="vendor-reports">📈 Vendor Reports</a></li>
-                    <li><a href="#" class="nav-btn" data-target="payment-history">💸 Payment History</a></li>
                     <li><a href="#" class="nav-btn" data-target="clients-data">📇 Clients Data</a></li>
                 </ul>
             </li>
@@ -587,64 +590,25 @@
                 </div>
             </div>
 
-            <!-- PAYMENT HISTORY VIEW -->
-            <div id="payment-history" class="view-section admin-view">
-                <div class="admin-card">
-                    <h3>Payment History (Ledger Log)</h3>
-                    <div class="table-responsive-wrapper">
-                        <table class="data-table" id="payment-history-table">
-                            <thead>
-                                <tr>
-                                    <th>Date</th>
-                                    <th>Type</th>
-                                    <th>Client / Vendor Name</th>
-                                    <th>Reference / Order ID</th>
-                                    <th style="text-align: right;">Amount Paid (₹)</th>
-                                </tr>
-                            </thead>
-                            <tbody></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
             <div id="vendors-master" class="view-section admin-view">
-                <!-- ADD OLD BALANCE CARD -->
+                
+                <!-- ADD OLD BALANCE CARD IN VENDOR MASTER -->
                 <div class="admin-card" style="border-left: 4px solid var(--primary);">
-                    <h3>Add Old / Opening Balance for Vendor</h3>
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label>Select Vendor</label>
-                            <select id="old-bal-vendor">
-                                <option value="">Choose Vendor...</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Amount (₹)</label>
-                            <input type="number" id="old-bal-amt" min="0" step="0.01">
-                        </div>
-                        <div class="form-group span-2">
-                            <label>Description / Details</label>
-                            <input type="text" id="old-bal-desc" placeholder="e.g., Previous year pending balance" value="Old Pending Balance">
-                        </div>
-                    </div>
-                    <div class="action-row">
-                        <button type="button" class="btn-primary" onclick="saveOldVendorBalance()">➕ Add Balance</button>
-                    </div>
-                </div>
-
-                <div class="admin-card">
                     <h3>Add New Vendor & Materials</h3>
-                    <div class="form-grid"><div class="form-group"><label>Vendor Name</label><input type="text" id="vm-name"></div></div>
+                    <div class="form-grid">
+                        <div class="form-group"><label>Vendor Name</label><input type="text" id="vm-name"></div>
+                        <div class="form-group"><label>Opening / Old Balance (₹)</label><input type="number" id="vm-old-balance" placeholder="0" min="0"></div>
+                    </div>
                     <div id="vm-materials-container">
-                        <div class="form-grid vm-material-row">
+                        <div class="form-grid vm-material-row" style="margin-top: 12px;">
                             <div class="form-group"><label>Material Name</label><input type="text" class="vm-mat-name"></div>
                             <div class="form-group"><label>Rate (₹)</label><input type="number" class="vm-mat-rate"></div>
                         </div>
                     </div>
                     <button type="button" class="add-row-btn" onclick="addMaterialRow()">+ Add Another Material</button>
-                    <div class="action-row"><button type="button" class="btn-primary" onclick="saveVendor()">Save Configuration</button></div>
+                    <div class="action-row"><button type="button" class="btn-primary" onclick="saveVendor()">Save Vendor Profile</button></div>
                 </div>
+
             </div>
 
             <div id="staff-master" class="view-section admin-view">
@@ -749,10 +713,9 @@
 
             <div id="vendor-reports" class="view-section admin-view">
                 
-                <!-- CUSTOMIZED VENDOR BULK/LUMPSUM PAYMENT SECTION -->
+                <!-- CUSTOMIZED VENDOR BULK PAYMENT SECTION -->
                 <div class="admin-card" style="border-top: 4px solid var(--primary);">
-                    <h3>Vendor Lumpsum / Bulk Payment</h3>
-                    <p style="font-size: 13px; color: var(--gray); margin-bottom: 15px;">Make a generalized payment to a vendor, reducing their total pending balance across all bills.</p>
+                    <h3>Customized Vendor Bulk Payment</h3>
                     <div class="form-grid">
                         <div class="form-group">
                             <label>Select Vendor</label>
@@ -760,17 +723,31 @@
                                 <option value="">Choose Vendor...</option>
                             </select>
                         </div>
-                        <div class="form-group">
-                            <label>Total Outstanding Pending (₹)</label>
-                            <input type="text" id="bulk-vendor-pending" value="0.00" readonly style="font-weight: bold; color: #ef4444; background: #fdf2f2;">
-                        </div>
-                        <div class="form-group">
-                            <label>Amount to Pay Now (₹)</label>
-                            <input type="number" id="bulk-vendor-pay-amt" min="1" placeholder="Enter amount..." style="font-weight: bold; color: #28a745;">
-                        </div>
                     </div>
-                    <div class="action-row">
-                        <button type="button" class="btn-primary" style="background: #28a745;" onclick="processLumpsumVendorPayment()">💳 Process Lumpsum Payment</button>
+                    
+                    <div class="table-responsive-wrapper" id="bulk-vendor-table-wrapper" style="display: none; margin-top: 15px;">
+                        <table class="data-table" id="bulk-vendor-pending-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 50px;"><input type="checkbox" id="bulk-check-all" onchange="toggleAllBulk()"></th>
+                                    <th>Date</th>
+                                    <th>Order ID</th>
+                                    <th>Work</th>
+                                    <th style="text-align: right;">Amount (₹)</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                        
+                        <!-- NEW CUSTOM PAYMENT INPUT & CONTROLS -->
+                        <div id="bulk-payment-controls" style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px; padding: 15px; background: #f9fafb; border-radius: 8px; flex-wrap: wrap; gap: 10px;">
+                            <div style="font-size: 16px;"><b>Total Selected: </b><span style="color: #ef4444; font-weight: bold;">₹<span id="bulk-selected-total">0.00</span></span></div>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <label style="font-weight: 600; font-size: 14px; color: #444;">Pay Amount (₹):</label>
+                                <input type="number" id="bulk-custom-pay-amt" style="padding: 8px 12px; border: 1px solid #ccc; border-radius: 6px; width: 140px; font-weight: bold; color: #28a745; font-size: 15px;" min="1">
+                                <button type="button" class="btn-primary" style="background: #28a745;" onclick="processCustomBulkPayment()">💳 Pay Selected</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -1083,55 +1060,9 @@
     <!-- MAIN SCRIPT -->
     <script>
         // ==========================================
-        // HISTORY / LEDGER LOGGING
-        // ==========================================
-        function logPayment(type, name, orderId, amount) {
-            let paymentsLog = JSON.parse(localStorage.getItem('payments_log')) || [];
-            paymentsLog.push({
-                date: new Date().toISOString(),
-                type: type,
-                name: name,
-                orderId: orderId,
-                amount: amount
-            });
-            localStorage.setItem('payments_log', JSON.stringify(paymentsLog));
-            renderPaymentHistory();
-        }
-
-        function renderPaymentHistory() {
-            const tbody = document.querySelector('#payment-history-table tbody');
-            if(!tbody) return;
-            tbody.innerHTML = '';
-            
-            let paymentsLog = JSON.parse(localStorage.getItem('payments_log')) || [];
-            
-            if(paymentsLog.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 20px;">No payments logged yet.</td></tr>`;
-                return;
-            }
-
-            paymentsLog.sort((a,b) => new Date(b.date) - new Date(a.date)); // newest first
-
-            paymentsLog.forEach(log => {
-                const color = log.type === 'Client' ? 'green' : 'red';
-                const sign = log.type === 'Client' ? '+' : '-';
-                tbody.innerHTML += `
-                    <tr>
-                        <td>${new Date(log.date).toLocaleString()}</td>
-                        <td><strong>${log.type}</strong></td>
-                        <td>${log.name}</td>
-                        <td>${log.orderId}</td>
-                        <td style="text-align: right; color: ${color}; font-weight: bold;">${sign} ₹${parseFloat(log.amount).toFixed(2)}</td>
-                    </tr>
-                `;
-            });
-        }
-
-        // ==========================================
-        // VENDOR BULK / LUMPSUM PAYMENT LOGIC
+        // VENDOR BULK PAYMENT LOGIC (Customized with Partial Pay)
         // ==========================================
         function updateAllVendorDropdowns() {
-            const oldBalSelect = document.getElementById('old-bal-vendor');
             const bulkSelect = document.getElementById('bulk-vendor-select');
             
             let optionsHtml = '<option value="">Choose Vendor...</option>';
@@ -1139,98 +1070,143 @@
                 if (v && v.name) optionsHtml += `<option value="${v.name}">${v.name}</option>`;
             });
 
-            if (oldBalSelect) oldBalSelect.innerHTML = optionsHtml;
             if (bulkSelect) bulkSelect.innerHTML = optionsHtml;
         }
 
         function loadBulkVendorPending() {
             const vendor = document.getElementById('bulk-vendor-select').value;
-            const pendingInput = document.getElementById('bulk-vendor-pending');
+            const wrapper = document.getElementById('bulk-vendor-table-wrapper');
+            const tbody = document.querySelector('#bulk-vendor-pending-table tbody');
+            const totalSpan = document.getElementById('bulk-selected-total');
+            const customPayInput = document.getElementById('bulk-custom-pay-amt');
+            
+            document.getElementById('bulk-check-all').checked = false;
             
             if (!vendor) {
-                pendingInput.value = '0.00';
+                wrapper.style.display = 'none';
                 return;
             }
 
-            let totalPending = 0;
-            appData.vendorAllotmentsHistory.forEach(h => {
-                if (h.vendor === vendor) {
-                    if (!h.is_paid && parseFloat(h.amount) > 0) {
-                        totalPending += parseFloat(h.amount);
-                    } else if (parseFloat(h.amount) < 0) {
-                        totalPending += parseFloat(h.amount); // negative amounts reduce pending
-                    }
-                }
-            });
-            pendingInput.value = Math.max(0, totalPending).toFixed(2);
-        }
-
-        async function processLumpsumVendorPayment() {
-            const vendor = document.getElementById('bulk-vendor-select').value;
-            const payAmt = parseFloat(document.getElementById('bulk-vendor-pay-amt').value);
+            let pendingItems = appData.vendorAllotmentsHistory.filter(h => h.vendor === vendor && !h.is_paid);
             
-            if(!vendor) return alert("Select a vendor first.");
-            if(isNaN(payAmt) || payAmt <= 0) return alert("Enter a valid amount greater than 0.");
-            
-            const currentPending = parseFloat(document.getElementById('bulk-vendor-pending').value);
-            
-            if (!confirm(`Are you sure you want to process a lumpsum payment of ₹${payAmt} for ${vendor}?`)) return;
-
-            const entry = {
-                date: new Date().toISOString(),
-                orderId: 'LUMP-' + Date.now().toString().slice(-4),
-                vendor: vendor,
-                work: 'Lumpsum Bulk Payment',
-                amount: -payAmt, // Negative amount reduces the ledger
-                is_paid: true
-            };
-
-            const { data, error } = await supabaseClient.from('vendor_allotments_history').insert([entry]).select();
-            if(error) return alert("Error processing payment: " + error.message);
-
-            if(data) appData.vendorAllotmentsHistory.push(data[0]);
-            
-            logPayment('Vendor', vendor, entry.orderId, payAmt);
-
-            showToast(`Lumpsum payment of ₹${payAmt} processed for ${vendor}!`);
-            document.getElementById('bulk-vendor-pay-amt').value = '';
-            
-            loadBulkVendorPending();
-            renderVendorReport();
-            renderPRVendor();
-        }
-
-        async function saveOldVendorBalance() {
-            const vendorName = document.getElementById('old-bal-vendor').value;
-            const amt = parseFloat(document.getElementById('old-bal-amt').value) || 0;
-            const desc = document.getElementById('old-bal-desc').value.trim() || 'Old Pending Balance';
-            
-            if(!vendorName || amt <= 0) return alert("Please select a vendor and enter a valid amount greater than 0.");
-
-            const historyEntry = { 
-                date: new Date().toISOString(), 
-                orderId: 'OLD-BAL-' + Date.now().toString().slice(-4), 
-                vendor: vendorName, 
-                work: desc, 
-                amount: amt, 
-                is_paid: false 
-            };
-
-            const { data, error } = await supabaseClient.from('vendor_allotments_history').insert([historyEntry]).select();
-            if(error) return alert("Error saving old balance: " + error.message);
-
-            if(data) appData.vendorAllotmentsHistory.push(...data);
-
-            showToast(`Old balance of ₹${amt} added for ${vendorName}!`);
-            document.getElementById('old-bal-amt').value = '';
-            document.getElementById('old-bal-desc').value = 'Old Pending Balance';
-            
-            renderPRVendor();
-            renderVendorReport();
-            
-            if(document.getElementById('bulk-vendor-select').value === vendorName) {
-                loadBulkVendorPending();
+            if (pendingItems.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:15px;">No pending payments for this vendor.</td></tr>';
+                totalSpan.innerText = '0.00';
+                customPayInput.value = '';
+            } else {
+                tbody.innerHTML = '';
+                pendingItems.forEach(h => {
+                    const dateStr = h.date ? new Date(h.date).toLocaleDateString() : 'N/A';
+                    tbody.innerHTML += `
+                        <tr>
+                            <td><input type="checkbox" class="bulk-item-check" value="${h.id}" data-amt="${h.amount}" data-orderid="${h.orderId}" data-work="${h.work}" onchange="calcBulkSelectedTotal()"></td>
+                            <td>${dateStr}</td>
+                            <td>${h.orderId}</td>
+                            <td>${h.work}</td>
+                            <td style="text-align: right; font-weight: bold;">₹${h.amount}</td>
+                        </tr>
+                    `;
+                });
             }
+            wrapper.style.display = 'block';
+            calcBulkSelectedTotal();
+        }
+
+        function toggleAllBulk() {
+            const isChecked = document.getElementById('bulk-check-all').checked;
+            document.querySelectorAll('.bulk-item-check').forEach(cb => {
+                cb.checked = isChecked;
+            });
+            calcBulkSelectedTotal();
+        }
+
+        function calcBulkSelectedTotal() {
+            let total = 0;
+            document.querySelectorAll('.bulk-item-check:checked').forEach(cb => {
+                total += parseFloat(cb.dataset.amt) || 0;
+            });
+            const totalFixed = total.toFixed(2);
+            document.getElementById('bulk-selected-total').innerText = totalFixed;
+            document.getElementById('bulk-custom-pay-amt').value = total > 0 ? totalFixed : '';
+        }
+
+        async function processCustomBulkPayment() {
+            const vendor = document.getElementById('bulk-vendor-select').value;
+            const checkboxes = document.querySelectorAll('.bulk-item-check:checked');
+            
+            if (checkboxes.length === 0) return alert("Please select at least one record to pay.");
+            
+            let totalSelected = 0;
+            let selectedItems = [];
+            checkboxes.forEach(cb => {
+                const amt = parseFloat(cb.dataset.amt) || 0;
+                totalSelected += amt;
+                selectedItems.push({ id: parseInt(cb.value), amount: amt, originalWork: cb.dataset.work, orderId: cb.dataset.orderid });
+            });
+
+            const payAmtInput = document.getElementById('bulk-custom-pay-amt').value;
+            const payAmt = parseFloat(payAmtInput);
+
+            if(isNaN(payAmt) || payAmt <= 0) return alert("Enter a valid payment amount.");
+            if(payAmt > totalSelected) return alert("Payment amount cannot exceed the selected total. Please select more bills if you wish to pay a higher amount.");
+
+            if (!confirm(`Are you sure you want to process a payment of ₹${payAmt} against the selected bills for ${vendor}?`)) return;
+
+            let remainingPay = payAmt;
+            let idsToMarkPaid = [];
+            let itemsToUpdate = [];
+            let newSplitItems = [];
+
+            // Distribute payment across selected items (FIFO)
+            for(let item of selectedItems) {
+                if(remainingPay >= item.amount) {
+                    idsToMarkPaid.push(item.id);
+                    remainingPay -= item.amount;
+                } else if(remainingPay > 0) {
+                    const unpaidBalance = item.amount - remainingPay;
+                    
+                    // 1. Mark original item as paid with the reduced paid amount
+                    itemsToUpdate.push({ id: item.id, newAmount: remainingPay, is_paid: true, newWork: item.originalWork + " (Partial Payment)" });
+                    
+                    // 2. Create a new pending item for the unpaid balance
+                    newSplitItems.push({
+                        date: new Date().toISOString(),
+                        orderId: item.orderId,
+                        vendor: vendor,
+                        work: item.originalWork + " (Remaining Balance)",
+                        amount: unpaidBalance,
+                        is_paid: false
+                    });
+
+                    remainingPay = 0;
+                } else {
+                    break;
+                }
+            }
+
+            // Execute DB Updates
+            if(idsToMarkPaid.length > 0) {
+                const { error } = await supabaseClient.from('vendor_allotments_history').update({ is_paid: true }).in('id', idsToMarkPaid);
+                if (error) return alert("Update Error (Full): " + error.message);
+            }
+
+            for(let up of itemsToUpdate) {
+                const { error } = await supabaseClient.from('vendor_allotments_history').update({ amount: up.newAmount, is_paid: true, work: up.newWork }).eq('id', up.id);
+                if (error) return alert("Update Error (Partial): " + error.message);
+            }
+
+            if(newSplitItems.length > 0) {
+                const { error } = await supabaseClient.from('vendor_allotments_history').insert(newSplitItems);
+                if (error) return alert("Insert Error (Split): " + error.message);
+            }
+
+            showToast(`Custom payment of ₹${payAmt} successful for ${vendor}!`);
+            
+            // Reload from server to catch new split items
+            await loadAppData(); 
+            
+            document.getElementById('bulk-vendor-select').value = vendor;
+            loadBulkVendorPending();
         }
 
         // ==========================================
@@ -1323,11 +1299,10 @@
                 if(targetId === 'new-order') initNewOrder();
                 if(targetId === 'staff-master') renderStaffTable();
                 if(targetId === 'pending-reports') { renderPRClient(); renderPRVendor(); }
-                if(targetId === 'vendor-reports') { renderVendorReport(); loadBulkVendorPending(); }
+                if(targetId === 'vendor-reports') { renderVendorReport(); updateAllVendorDropdowns(); }
                 if(targetId === 'all-orders') renderAllOrders();
                 if(targetId === 'gst-dashboard') loadLedger();
                 if(targetId === 'gst-sale') initSaleForm();
-                if(targetId === 'payment-history') renderPaymentHistory();
 
                 if(window.innerWidth <= 768) {
                     sidebar.classList.remove('open'); 
@@ -1423,7 +1398,6 @@
                 renderVendorReport();
                 renderStaffTable();
                 updateAllVendorDropdowns();
-                renderPaymentHistory();
             } catch (err) {
                 console.error("Supabase Load Error:", err.message);
                 showToast("Error loading cloud data!");
@@ -1753,9 +1727,6 @@
                 if(error) return alert("Payment Error: " + error.message);
 
                 order.advance = newAdvance; order.balance = newBalance;
-                
-                logPayment('Client', order.client, order.orderId, amt);
-
                 showToast(`Payment applied.`);
                 closePaymentModal(); searchPayment(); updateDashboardStats();
                 renderAllOrders();
@@ -1802,6 +1773,7 @@
 
         async function saveVendor() {
             const vName = document.getElementById('vm-name').value.trim();
+            const oldBal = parseFloat(document.getElementById('vm-old-balance').value) || 0;
             if(!vName) return alert("Vendor Name required!");
             
             let newMaterials = [];
@@ -1811,7 +1783,7 @@
                 if(name && rate > 0) newMaterials.push({ name, rate });
             });
 
-            if(newMaterials.length === 0) return alert("Please add at least one material with a valid rate.");
+            if(newMaterials.length === 0 && oldBal === 0) return alert("Please add at least one material or an old balance.");
 
             const existingVendorIndex = appData.vendors.findIndex(v => v.name.toLowerCase() === vName.toLowerCase());
             let finalMaterials = [...newMaterials];
@@ -1839,13 +1811,29 @@
                 showToast("New Vendor Saved Successfully!");
             }
 
+            if(oldBal > 0) {
+                const historyEntry = { 
+                    date: new Date().toISOString(), 
+                    orderId: 'OLD-BAL-' + Date.now().toString().slice(-4), 
+                    vendor: vName, 
+                    work: 'Opening / Old Pending Balance', 
+                    amount: oldBal, 
+                    is_paid: false 
+                };
+                const { error: histErr } = await supabaseClient.from('vendor_allotments_history').insert([historyEntry]);
+                if(!histErr) appData.vendorAllotmentsHistory.push(historyEntry);
+            }
+
             document.getElementById('vm-name').value = '';
+            document.getElementById('vm-old-balance').value = '';
             document.getElementById('vm-materials-container').innerHTML = `
                 <div class="form-grid vm-material-row">
                     <div class="form-group"><label>Material Name</label><input type="text" class="vm-mat-name"></div>
                     <div class="form-group"><label>Rate (₹)</label><input type="number" class="vm-mat-rate"></div>
                 </div>`;
             updateAllVendorDropdowns();
+            renderPRVendor();
+            renderVendorReport();
         }
 
         async function saveStaff() {
