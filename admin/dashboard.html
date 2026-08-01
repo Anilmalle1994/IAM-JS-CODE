@@ -48,7 +48,8 @@
             z-index: 100;
             transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        .sidebar-logo img { width: 38px; height: 38px; border-radius: 10px; margin-bottom: 30px; object-fit: cover; box-shadow: 0 4px 10px rgba(242,101,34,0.3);}
+        .sidebar-logo img { width: 38px; height: 38px; border-radius: 10px; margin-bottom: 30px; object-fit: cover; box-shadow: 0 4px 10px rgba(242,101,34,0.3); transition: transform 0.2s;}
+        .sidebar-logo:hover img { transform: scale(1.05); }
         .icon-menu { flex: 1; width: 100%; display: flex; flex-direction: column; align-items: center; gap: 16px; list-style: none; }
         
         .side-icon-btn {
@@ -239,7 +240,8 @@
 
     <!-- Floating Icon Sidebar -->
     <aside class="icon-sidebar" id="sidebar">
-        <div class="sidebar-logo">
+        <!-- Home Button Logo -->
+        <div class="sidebar-logo" style="cursor: pointer;" onclick="document.querySelector('[data-target=\'dashboard\']').click();" title="Home">
             <img src="../LOGO.jpg.jpeg" alt="Logo" onerror="this.src='https://ui-avatars.com/api/?name=ID&background=f26522&color=fff'">
         </div>
         
@@ -475,7 +477,13 @@
                         <p style="margin-bottom: 6px;"><strong>Work Type:</strong> <span id="pick-work"></span></p>
                         <p style="color: var(--primary);"><strong>Vendor Allotted:</strong> <span id="pick-vendor"></span></p>
                     </div>
-                    <div class="action-row"><button type="button" class="btn-whatsapp" onclick="markStaffPickupReady()">🔔 Message Staff via WhatsApp</button></div>
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label>Select Staff for Pickup</label>
+                        <select id="pickup-staff-select" style="max-width: 300px;">
+                            <option value="">Choose Staff...</option>
+                        </select>
+                    </div>
+                    <div class="action-row"><button type="button" class="btn-whatsapp" onclick="markStaffPickupReady()">🔔 Assign & Message Staff</button></div>
                 </div>
             </div>
 
@@ -691,23 +699,35 @@
             </div>
 
             <div id="vendor-reports" class="view-section admin-view">
-                <!-- VENDOR BULK PAYMENT SECTION (New Feature) -->
+                <!-- CUSTOMIZED VENDOR BULK PAYMENT SECTION -->
                 <div class="admin-card">
-                    <h3>Vendor Bulk Payment (Settle Pending)</h3>
+                    <h3>Customized Vendor Bulk Payment</h3>
                     <div class="form-grid">
                         <div class="form-group">
                             <label>Select Vendor</label>
-                            <select id="bulk-vendor-select" onchange="calcBulkPending()">
+                            <select id="bulk-vendor-select" onchange="loadBulkVendorPending()">
                                 <option value="">Choose Vendor...</option>
                             </select>
                         </div>
-                        <div class="form-group">
-                            <label>Total Pending Amount (₹)</label>
-                            <input type="text" id="bulk-vendor-pending" value="0.00" readonly style="font-weight: bold; color: #ef4444; background: #fdf2f2;">
-                        </div>
                     </div>
-                    <div class="action-row">
-                        <button type="button" class="btn-primary" style="background: #28a745;" onclick="processBulkVendorPayment()">💳 Settle All Pending</button>
+                    
+                    <div class="table-responsive-wrapper" id="bulk-vendor-table-wrapper" style="display: none; margin-top: 15px;">
+                        <table class="data-table" id="bulk-vendor-pending-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 50px;"><input type="checkbox" id="bulk-check-all" onchange="toggleAllBulk()"></th>
+                                    <th>Date</th>
+                                    <th>Order ID</th>
+                                    <th>Work</th>
+                                    <th style="text-align: right;">Amount (₹)</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px; padding: 15px; background: #f9fafb; border-radius: 8px;">
+                            <div style="font-size: 16px;"><b>Total Selected: </b><span style="color: #ef4444; font-weight: bold;">₹<span id="bulk-selected-total">0.00</span></span></div>
+                            <button type="button" class="btn-primary" style="background: #28a745;" onclick="processCustomBulkPayment()">💳 Pay Selected</button>
+                        </div>
                     </div>
                 </div>
 
@@ -1020,7 +1040,7 @@
     <!-- MAIN SCRIPT -->
     <script>
         // ==========================================
-        // VENDOR BULK PAYMENT LOGIC (Added Feature)
+        // VENDOR BULK PAYMENT LOGIC (Customized)
         // ==========================================
         function populateBulkVendorDropdown() {
             const select = document.getElementById('bulk-vendor-select');
@@ -1032,47 +1052,83 @@
             });
         }
 
-        function calcBulkPending() {
+        function loadBulkVendorPending() {
             const vendor = document.getElementById('bulk-vendor-select').value;
-            const pendingInput = document.getElementById('bulk-vendor-pending');
+            const wrapper = document.getElementById('bulk-vendor-table-wrapper');
+            const tbody = document.querySelector('#bulk-vendor-pending-table tbody');
+            const totalSpan = document.getElementById('bulk-selected-total');
+            document.getElementById('bulk-check-all').checked = false;
+            
             if (!vendor) {
-                pendingInput.value = '0.00';
+                wrapper.style.display = 'none';
                 return;
             }
-            let total = 0;
-            appData.vendorAllotmentsHistory.forEach(h => {
-                if (h.vendor === vendor && !h.is_paid) {
-                    total += parseFloat(h.amount) || 0;
-                }
-            });
-            pendingInput.value = total.toFixed(2);
+
+            let pendingItems = appData.vendorAllotmentsHistory.filter(h => h.vendor === vendor && !h.is_paid);
+            
+            if (pendingItems.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:15px;">No pending payments for this vendor.</td></tr>';
+                totalSpan.innerText = '0.00';
+            } else {
+                tbody.innerHTML = '';
+                pendingItems.forEach(h => {
+                    const dateStr = h.date ? new Date(h.date).toLocaleDateString() : 'N/A';
+                    tbody.innerHTML += `
+                        <tr>
+                            <td><input type="checkbox" class="bulk-item-check" value="${h.id}" data-amt="${h.amount}" onchange="calcBulkSelectedTotal()"></td>
+                            <td>${dateStr}</td>
+                            <td>${h.orderId}</td>
+                            <td>${h.work}</td>
+                            <td style="text-align: right; font-weight: bold;">₹${h.amount}</td>
+                        </tr>
+                    `;
+                });
+            }
+            wrapper.style.display = 'block';
+            calcBulkSelectedTotal();
         }
 
-        async function processBulkVendorPayment() {
-            const vendor = document.getElementById('bulk-vendor-select').value;
-            if (!vendor) return alert('Select a vendor first.');
-            
-            const totalPending = parseFloat(document.getElementById('bulk-vendor-pending').value);
-            if (totalPending <= 0) return alert('No pending payments for this vendor.');
+        function toggleAllBulk() {
+            const isChecked = document.getElementById('bulk-check-all').checked;
+            document.querySelectorAll('.bulk-item-check').forEach(cb => {
+                cb.checked = isChecked;
+            });
+            calcBulkSelectedTotal();
+        }
 
-            if (!confirm(`Are you sure you want to mark all pending payments (₹${totalPending}) as PAID for ${vendor}?`)) return;
+        function calcBulkSelectedTotal() {
+            let total = 0;
+            document.querySelectorAll('.bulk-item-check:checked').forEach(cb => {
+                total += parseFloat(cb.dataset.amt) || 0;
+            });
+            document.getElementById('bulk-selected-total').innerText = total.toFixed(2);
+        }
+
+        async function processCustomBulkPayment() {
+            const vendor = document.getElementById('bulk-vendor-select').value;
+            const checkboxes = document.querySelectorAll('.bulk-item-check:checked');
+            if (checkboxes.length === 0) return alert("Please select at least one record to pay.");
+            
+            const totalToPay = document.getElementById('bulk-selected-total').innerText;
+            if (!confirm(`Are you sure you want to mark ${checkboxes.length} records totaling ₹${totalToPay} as PAID for ${vendor}?`)) return;
+
+            const idsToUpdate = Array.from(checkboxes).map(cb => parseInt(cb.value));
 
             const { error } = await supabaseClient
                 .from('vendor_allotments_history')
                 .update({ is_paid: true })
-                .eq('vendor', vendor)
-                .eq('is_paid', false);
+                .in('id', idsToUpdate);
 
             if (error) return alert("Error processing bulk payment: " + error.message);
 
             appData.vendorAllotmentsHistory.forEach(h => {
-                if (h.vendor === vendor && !h.is_paid) {
+                if (idsToUpdate.includes(h.id)) {
                     h.is_paid = true;
                 }
             });
 
-            showToast(`Bulk payment of ₹${totalPending} successful for ${vendor}!`);
-            calcBulkPending();
+            showToast(`Custom bulk payment of ₹${totalToPay} successful for ${vendor}!`);
+            loadBulkVendorPending();
             renderVendorReport();
             renderPRVendor();
         }
@@ -1204,26 +1260,6 @@
             window.location.replace('index.html'); 
         }
 
-        if (performance.getEntriesByType("navigation").length > 0 && performance.getEntriesByType("navigation")[0].type === "reload") {
-            logout();
-        } else if (performance.navigation && performance.navigation.type === 1) {
-            logout();
-        }
-
-        let idleTimer;
-        function resetIdleTimer() {
-            clearTimeout(idleTimer);
-            idleTimer = setTimeout(() => {
-                logout();
-            }, 3 * 60 * 1000);
-        }
-
-        window.addEventListener('mousemove', resetIdleTimer);
-        window.addEventListener('keypress', resetIdleTimer);
-        window.addEventListener('click', resetIdleTimer);
-        window.addEventListener('scroll', resetIdleTimer);
-        window.addEventListener('touchstart', resetIdleTimer);
-
         async function checkAuth() {
             const { data: { session }, error } = await supabaseClient.auth.getSession();
             if (!session || error) {
@@ -1257,7 +1293,6 @@
         }
 
         checkAuth();
-        resetIdleTimer();
 
         let appData = { vendors: [], orders: {}, vendorAllotmentsHistory: [], staff: [] };
 
@@ -1552,6 +1587,13 @@
                 document.getElementById('pick-client').innerText = order.client || 'N/A';
                 document.getElementById('pick-work').innerText = order.work || 'N/A';
                 document.getElementById('pick-vendor').innerText = order.vendorName || 'Not Allotted';
+                
+                const staffSelect = document.getElementById('pickup-staff-select');
+                staffSelect.innerHTML = '<option value="">Choose Staff...</option>';
+                appData.staff.forEach(s => {
+                    staffSelect.innerHTML += `<option value="${s.phone}">${s.name}</option>`;
+                });
+                
                 document.getElementById('pickup-result-card').style.display = 'block';
             } else alert("Order Not Found");
         }
@@ -1559,15 +1601,20 @@
         async function markStaffPickupReady() {
             const order = appData.orders[currentlySearchedOrderId];
             if(!order) return;
+            
+            const staffPhone = document.getElementById('pickup-staff-select').value;
+            if(!staffPhone) return alert("Please select a staff member to notify.");
+            
             const { error } = await supabaseClient.from('orders').update({ status: 'ready_for_delivery' }).eq('orderId', order.orderId);
             if(error) return alert("Error updating status: " + error.message);
 
             order.status = 'ready_for_delivery';
-            let msg = `Hello Team,\nPlease pick up the following order:\n*Order ID:* ${order.orderId}\n*Vendor:* ${order.vendorName}\n*Work Details:* ${order.work}`;
-            window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+            let msg = `Hello,\nPlease pick up the following order:\n*Order ID:* ${order.orderId}\n*Vendor:* ${order.vendorName}\n*Work Details:* ${order.work}`;
+            window.open(getWhatsAppLink(staffPhone, msg), '_blank');
             showToast(`Pickup Ready Notification Sent`);
             document.getElementById('pickup-result-card').style.display = 'none';
             updateDashboardStats();
+            renderDashboardTable(currentDashFilter);
         }
 
         let currentlySearchedOrderId = null;
@@ -2121,9 +2168,8 @@
             const rec = appData.vendorAllotmentsHistory.find(h => h.id === id);
             if(rec) rec.is_paid = true;
             showToast("Marked as Paid!");
-            calcBulkPending();
             renderVendorReport();
-            renderPRVendor();
+            loadBulkVendorPending();
         }
 
         function downloadAllOrdersExcel() {
