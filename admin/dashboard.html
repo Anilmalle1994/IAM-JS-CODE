@@ -47,7 +47,7 @@
             position: fixed;
             z-index: 1000;
             transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            overflow: visible; /* Fixed to allow dropdown menus to pop out */
+            overflow: visible; 
         }
         .sidebar-logo img { width: 38px; height: 38px; border-radius: 10px; margin-bottom: 30px; object-fit: cover; box-shadow: 0 4px 10px rgba(242,101,34,0.3); transition: transform 0.2s; cursor: pointer;}
         .sidebar-logo:hover img { transform: scale(1.05); }
@@ -78,7 +78,7 @@
         .topbar-left { display: flex; align-items: center; gap: 12px; }
         .menu-toggle { display: none; background: var(--white); border: none; font-size: 20px; color: var(--dark); cursor: pointer; width: 42px; height: 42px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); align-items: center; justify-content: center;}
         
-        /* Pill Navigation (Horizontally scrollable on mobile) */
+        /* Pill Navigation */
         .top-nav { background: var(--white); padding: 5px; border-radius: 40px; display: flex; gap: 4px; box-shadow: 0 4px 20px rgba(0,0,0,0.02); overflow-x: auto; max-width: 60vw; -webkit-overflow-scrolling: touch; scrollbar-width: none;}
         .top-nav::-webkit-scrollbar { display: none; }
         .top-nav a { text-decoration: none; color: var(--gray); padding: 8px 16px; font-size: 13px; font-weight: 500; border-radius: 30px; transition: all 0.3s ease; white-space: nowrap; flex-shrink: 0; }
@@ -218,7 +218,6 @@
             
             .mobile-logo-top { display: block !important; }
             
-            /* Top nav horizontally scrollable row on mobile */
             .top-nav { display: flex; width: 100%; max-width: 100%; border-radius: 0; box-shadow: none; padding: 10px 16px; background: #fff; border-top: 1px solid #f1f2f4; overflow-x: auto; margin: 0 !important;}
             .top-nav a { padding: 8px 14px; font-size: 12px; }
             
@@ -253,7 +252,6 @@
         </div>
         
         <ul class="icon-menu">
-            <!-- Mobile Only Close Btn inside Sidebar -->
             <li class="settings-wrapper" style="display: none;" id="mobile-close-li">
                 <button class="side-icon-btn" id="sidebar-close-btn">✖</button>
             </li>
@@ -290,11 +288,9 @@
 
     <!-- Main Content -->
     <main class="main-content">
-        <!-- Top Navigation Area -->
         <header class="topbar">
             <div class="topbar-left">
                 <button id="mobile-menu-btn" class="menu-toggle" aria-label="Menu">☰</button>
-                <!-- Home Logo inside topbar for mobile -->
                 <img src="../LOGO.jpg.jpeg" alt="Logo" style="width:35px; border-radius:8px; display:none; cursor: pointer;" class="mobile-logo-top" onclick="document.querySelector('[data-target=\'dashboard\']').click();">
             </div>
             
@@ -308,9 +304,7 @@
             </div>
         </header>
 
-        <!-- Pill Navigation moved out of topbar for better mobile scroll -->
         <nav class="top-nav" id="main-top-nav" style="margin: 0 30px 10px 0;">
-            <!-- Admin Navigation items -->
             <a href="#" class="nav-btn active admin-nav-item" data-target="dashboard">Overview</a>
             <a href="#" class="nav-btn admin-nav-item" data-target="designing">Designing</a>
             <a href="#" class="nav-btn admin-nav-item" data-target="new-order">New Order</a>
@@ -322,7 +316,7 @@
 
         <div class="content-area">
             
-            <!-- Dashboard Home (Admin Only) -->
+            <!-- Dashboard Home -->
             <div id="dashboard" class="view-section active admin-view">
                 <div class="dashboard-header" id="dashboard-welcome">
                     <h1 id="greeting-text">Good Morning, Anil Malle</h1>
@@ -595,7 +589,6 @@
 
             <div id="vendors-master" class="view-section admin-view">
                 
-                <!-- ADD OLD BALANCE CARD IN VENDOR MASTER -->
                 <div class="admin-card" style="border-left: 4px solid var(--primary);">
                     <h3>Add Old / Opening Balance for Vendor</h3>
                     <div class="form-grid">
@@ -1757,7 +1750,76 @@
                 closePaymentModal(); searchPayment(); updateDashboardStats();
                 renderAllOrders();
                 renderPRClient();
+
+                // Automatic PDF and WhatsApp if balance reaches zero
+                if (parseFloat(newBalance) <= 0) {
+                    generateAndDownloadOrderPDF(order);
+                    
+                    let msg = `Dear ${order.client},\nYour payment for Order ${order.orderId} has been fully received. Your pending balance is ₹0.00.\n\nThank you for choosing iam des!gns!`;
+                    window.open(getWhatsAppLink(order.phone, msg), '_blank');
+                }
             }
+        }
+
+        // Function to automatically generate and download a receipt PDF
+        function generateAndDownloadOrderPDF(order) {
+            const receiptDiv = document.createElement('div');
+            receiptDiv.style.padding = '40px';
+            receiptDiv.style.fontFamily = "'Montserrat', sans-serif";
+            receiptDiv.style.color = '#111';
+            receiptDiv.style.background = '#fff';
+            receiptDiv.style.width = '800px';
+
+            const totalAmt = parseFloat(order.amount) || parseFloat(order.advance) || 0;
+
+            receiptDiv.innerHTML = `
+                <div style="border-bottom: 2px solid #f26522; padding-bottom: 20px; margin-bottom: 20px; text-align: center;">
+                    <h1 style="color: #f26522; margin: 0; font-size: 28px; font-weight: 800;">iam des!gns</h1>
+                    <p style="margin: 5px 0 0 0; font-size: 14px; color: #666;">Payment Receipt / Zero Balance Confirmation</p>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 30px;">
+                    <div>
+                        <p style="margin: 0 0 5px 0;"><strong>Order ID:</strong> ${order.orderId}</p>
+                        <p style="margin: 0;"><strong>Date:</strong> ${new Date().toLocaleDateString()}</p>
+                    </div>
+                    <div style="text-align: right;">
+                        <p style="margin: 0 0 5px 0;"><strong>Client:</strong> ${order.client}</p>
+                        <p style="margin: 0;"><strong>Contact:</strong> ${order.phone}</p>
+                    </div>
+                </div>
+                <div style="background: #f7f8fa; padding: 20px; border-radius: 12px; border: 1px solid #eee;">
+                    <p style="margin: 0 0 10px 0; font-size: 15px;"><strong>Work Details:</strong> ${order.work || 'Design / Printing Work'}</p>
+                    <hr style="border: none; border-top: 1px dashed #ccc; margin: 15px 0;">
+                    <p style="margin: 0 0 10px 0; font-size: 15px; display: flex; justify-content: space-between;">
+                        <span>Total Amount:</span> <strong>₹${totalAmt.toFixed(2)}</strong>
+                    </p>
+                    <p style="margin: 0 0 10px 0; font-size: 15px; display: flex; justify-content: space-between;">
+                        <span>Total Paid (Advance + Current):</span> <strong style="color: #22c55e;">₹${(parseFloat(order.advance) || 0).toFixed(2)}</strong>
+                    </p>
+                    <div style="margin-top: 20px; padding-top: 15px; border-top: 2px solid #111; display: flex; justify-content: space-between; font-size: 18px;">
+                        <strong>Balance Due:</strong> <strong style="color: #22c55e;">₹0.00</strong>
+                    </div>
+                </div>
+                <div style="text-align: center; margin-top: 40px; font-size: 13px; color: #777;">
+                    <p>This is a computer-generated receipt.</p>
+                    <p style="font-weight: bold; color: #111;">Thanks For Your Business!</p>
+                </div>
+            `;
+
+            // Temporarily append to body to allow html2pdf to process it, then remove it
+            receiptDiv.style.position = 'absolute';
+            receiptDiv.style.left = '-9999px';
+            document.body.appendChild(receiptDiv);
+
+            html2pdf().from(receiptDiv).set({
+                margin: 0,
+                filename: `Receipt_${order.orderId}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+            }).save().then(() => {
+                document.body.removeChild(receiptDiv);
+            });
         }
 
         function searchDelivery() {
@@ -1962,15 +2024,11 @@
         // Function to handle moving an order to the next workflow stage
         function handleNextStep(orderId, status, balance) {
             if (status === 'designing') {
-                // Route to New Order (as it needs pricing/details to become a real order)
-                document.querySelector('[data-target="new-order"]').click();
-                
-                // Auto-fill client and phone if they exist in appData
-                if (appData.orders[orderId]) {
-                    document.getElementById('nw-client').value = appData.orders[orderId].client || '';
-                    document.getElementById('nw-phone').value = appData.orders[orderId].phone || '';
-                }
-                showToast("Fill details to confirm order and move to Processing");
+                // Route directly to Payment for Design Delivery
+                document.querySelector('[data-target="payment"]').click();
+                document.getElementById('pay-search-input').value = orderId;
+                searchPayment(); // Auto-fetch
+                showToast("Routed to Payment for Design Delivery");
                 
             } else if (status === 'processing') {
                 // Route to Vendor Allotment
@@ -2056,18 +2114,16 @@
             filtered.forEach(o => {
                 const tr = document.createElement('tr');
                 
-                // Determine the contextual "Next" button text and action
                 let nextBtnText = "";
                 let currentStatus = o.status || 'pending';
                 let bal = parseFloat(o.balance) || 0;
                 
-                if (currentStatus === 'designing') nextBtnText = "Process";
+                if (currentStatus === 'designing') nextBtnText = "Design Deliver";
                 else if (currentStatus === 'processing') nextBtnText = "Allot Vendor";
                 else if (currentStatus === 'vendor_allotted') nextBtnText = "Pickup";
                 else if (currentStatus === 'ready_for_delivery') nextBtnText = "Deliver";
                 else if (currentStatus === 'delivered' && bal > 0) nextBtnText = "Pay Dues";
                 
-                // Build the HTML for the Next button if a next step exists
                 let nextButtonHtml = nextBtnText !== "" 
                     ? `<button class="btn-primary" style="padding: 6px 12px; font-size: 11px; margin-right: 6px; background: #22c55e;" onclick="handleNextStep('${o.orderId}', '${currentStatus}', ${bal})">${nextBtnText} ➔</button>` 
                     : '';
