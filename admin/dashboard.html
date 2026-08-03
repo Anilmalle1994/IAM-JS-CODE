@@ -241,6 +241,9 @@
 </head>
 <body>
 
+    <!-- Datalist for Client Auto-Complete -->
+    <datalist id="client-list"></datalist>
+
     <!-- Mobile Sidebar Overlay -->
     <div id="sidebar-overlay" class="sidebar-overlay"></div>
 
@@ -379,8 +382,14 @@
                     <h3>Design Request Intake</h3>
                     <form id="designing-form">
                         <div class="form-grid">
-                            <div class="form-group"><label>Client Name</label><input type="text" id="des-client" required></div>
-                            <div class="form-group"><label>Contact Number</label><input type="tel" id="des-phone" placeholder="e.g. +91 9876..." required></div>
+                            <div class="form-group">
+                                <label>Client Name</label>
+                                <input type="text" id="des-client" list="client-list" required oninput="autoFillPhone('des-client', 'des-phone')">
+                            </div>
+                            <div class="form-group">
+                                <label>Contact Number</label>
+                                <input type="tel" id="des-phone" placeholder="e.g. +91 9876..." required>
+                            </div>
                         </div>
                         <div id="des-works-container">
                             <div class="form-grid des-work-row">
@@ -405,8 +414,14 @@
                         <div class="form-grid">
                             <div class="form-group"><label>Date</label><input type="text" id="nw-date" readonly></div>
                             <div class="form-group"><label>Order ID</label><input type="text" id="nw-orderid" readonly></div>
-                            <div class="form-group"><label>Client Name</label><input type="text" id="nw-client" required></div>
-                            <div class="form-group"><label>Contact</label><input type="tel" id="nw-phone" placeholder="e.g. +91 9876..." required></div>
+                            <div class="form-group">
+                                <label>Client Name</label>
+                                <input type="text" id="nw-client" list="client-list" required oninput="autoFillPhone('nw-client', 'nw-phone')">
+                            </div>
+                            <div class="form-group">
+                                <label>Contact</label>
+                                <input type="tel" id="nw-phone" placeholder="e.g. +91 9876..." required>
+                            </div>
                         </div>
                         
                         <div id="nw-works-container" style="margin-top: 12px;">
@@ -842,7 +857,6 @@
                     </div>
 
                     <div class="filter-bar">
-                        <!-- NEW: Month & Year Selector -->
                         <div class="filter-group">
                             <label for="ledgerMonth">Filter By Month</label>
                             <input type="month" id="ledgerMonth" onchange="loadLedger()" style="padding: 8px 10px; border: 1px solid #ccc; border-radius: 6px; font-family: inherit; font-weight: 600; outline: none; background: #fafafa; font-size: 13px;">
@@ -862,7 +876,6 @@
                                 <option value="oldest">Oldest First</option>
                             </select>
                         </div>
-                        <!-- NEW: Download Button -->
                         <div class="filter-group" style="align-items: flex-end; justify-content: flex-end;">
                             <button type="button" class="btn-secondary" onclick="downloadLedgerPDF()" style="height: 37px; width: 100%; margin: 0; display: flex; align-items: center; justify-content: center; gap: 6px;">📄 Download PDF</button>
                         </div>
@@ -1079,6 +1092,42 @@
 
     <!-- MAIN SCRIPT -->
     <script>
+        // ==========================================
+        // AUTO FILL CLIENT PHONE FEATURE
+        // ==========================================
+        function populateClientDatalist() {
+            const datalist = document.getElementById('client-list');
+            if(!datalist) return;
+            datalist.innerHTML = '';
+            
+            const uniqueClients = new Set();
+            Object.values(appData.orders).forEach(o => {
+                if (o.client) uniqueClients.add(o.client.trim());
+            });
+
+            uniqueClients.forEach(client => {
+                const option = document.createElement('option');
+                option.value = client;
+                datalist.appendChild(option);
+            });
+        }
+
+        function autoFillPhone(nameInputId, phoneInputId) {
+            const nameVal = document.getElementById(nameInputId).value.trim().toLowerCase();
+            const phoneInput = document.getElementById(phoneInputId);
+
+            if (!nameVal) return;
+
+            // Search through orders (newest first) to find a matching client name
+            const matchedOrder = Object.values(appData.orders)
+                .sort((a, b) => new Date(b.date) - new Date(a.date))
+                .find(o => o.client && o.client.trim().toLowerCase() === nameVal);
+
+            if (matchedOrder && matchedOrder.phone) {
+                phoneInput.value = matchedOrder.phone;
+            }
+        }
+
         function updateAllVendorDropdowns() {
             const oldBalSelect = document.getElementById('old-bal-vendor');
             const bulkSelect = document.getElementById('bulk-vendor-select');
@@ -1409,6 +1458,7 @@
                 renderVendorReport();
                 renderStaffTable();
                 updateAllVendorDropdowns();
+                populateClientDatalist();
             } catch (err) {
                 console.error("Supabase Load Error:", err.message);
                 showToast("Error loading cloud data!");
@@ -1454,6 +1504,7 @@
             document.getElementById('designing-form').reset();
             updateDashboardStats();
             renderAllOrders();
+            populateClientDatalist();
         }
 
         function generateOrderId() {
@@ -1547,6 +1598,7 @@
             initNewOrder(); 
             updateDashboardStats();
             renderAllOrders();
+            populateClientDatalist();
         }
 
         function findOrder(query) {
@@ -1743,7 +1795,6 @@
                 renderAllOrders();
                 renderPRClient();
 
-                // Automatic PDF and WhatsApp if balance reaches zero
                 if (parseFloat(newBalance) <= 0) {
                     generateAndDownloadOrderPDF(order);
                     
@@ -1753,7 +1804,6 @@
             }
         }
 
-        // Function to automatically generate and download a receipt PDF
         function generateAndDownloadOrderPDF(order) {
             const receiptDiv = document.createElement('div');
             receiptDiv.style.padding = '40px';
@@ -1798,7 +1848,6 @@
                 </div>
             `;
 
-            // Temporarily append to body to allow html2pdf to process it, then remove it
             receiptDiv.style.position = 'absolute';
             receiptDiv.style.left = '-9999px';
             document.body.appendChild(receiptDiv);
@@ -2013,38 +2062,32 @@
             return `<span class="status-badge status-${s.replace(/_/g, '-')}">${cleanStatus}</span>`;
         }
 
-        // Function to handle moving an order to the next workflow stage
         function handleNextStep(orderId, status, balance) {
             if (status === 'designing') {
-                // Route directly to Payment for Design Delivery
                 document.querySelector('[data-target="payment"]').click();
                 document.getElementById('pay-search-input').value = orderId;
-                searchPayment(); // Auto-fetch
+                searchPayment(); 
                 showToast("Routed to Payment for Design Delivery");
                 
             } else if (status === 'processing') {
-                // Route to Vendor Allotment
                 document.querySelector('[data-target="vendor-allotment"]').click();
                 document.getElementById('va-orderid').value = orderId;
-                fetchOrderForAllotment(); // Auto-fetch
+                fetchOrderForAllotment(); 
                 
             } else if (status === 'vendor_allotted') {
-                // Route to Staff Pickup
                 document.querySelector('[data-target="staff-pickup"]').click();
                 document.getElementById('pickup-search-input').value = orderId;
-                searchPickup(); // Auto-fetch
+                searchPickup(); 
                 
             } else if (status === 'ready_for_delivery') {
-                // Route to Delivery
                 document.querySelector('[data-target="delivery"]').click();
                 document.getElementById('del-search-input').value = orderId;
-                searchDelivery(); // Auto-fetch
+                searchDelivery(); 
                 
             } else if (status === 'delivered' && parseFloat(balance) > 0) {
-                // Route to Payments if delivered but money is still owed
                 document.querySelector('[data-target="payment"]').click();
                 document.getElementById('pay-search-input').value = orderId;
-                searchPayment(); // Auto-fetch
+                searchPayment(); 
                 
             } else {
                 showToast("Order is fully complete and paid!");
@@ -2408,9 +2451,6 @@
             XLSX.writeFile(wb, `Vendor_Reports_${Date.now()}.xlsx`);
         }
 
-        // ==========================================
-        // GST LEDGER & BILLING SYSTEM LOGIC (Surya Creations)
-        // ==========================================
         function getData(key) { return JSON.parse(localStorage.getItem(key)) || []; }
         function saveData(key, data) { localStorage.setItem(key, JSON.stringify(data)); }
 
