@@ -728,7 +728,6 @@
 
             <div id="vendor-reports" class="view-section admin-view">
                 
-                <!-- CUSTOMIZED VENDOR BULK PAYMENT SECTION -->
                 <div class="admin-card" style="border-top: 4px solid var(--primary);">
                     <h3>Customized Vendor Bulk Payment</h3>
                     <div class="form-grid">
@@ -754,7 +753,6 @@
                             <tbody></tbody>
                         </table>
                         
-                        <!-- NEW CUSTOM PAYMENT INPUT & CONTROLS -->
                         <div class="bulk-payment-wrap" style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px; padding: 15px; background: #f9fafb; border-radius: 8px; flex-wrap: wrap; gap: 15px;">
                             <div style="font-size: 18px;">
                                 <b>Total Selected: </b><span style="color: #ef4444; font-weight: bold;">₹<span id="bulk-selected-total">0.00</span></span>
@@ -833,7 +831,6 @@
                  GST BILLING & LEDGER SECTIONS (Surya Creations)
                  ========================================== -->
             
-            <!-- 1. GST Ledger & Overview -->
             <div id="gst-dashboard" class="view-section">
                 <div class="admin-card">
                     <h3 style="font-size: 20px; margin-bottom: 20px;">Financial Ledger & GST Overview</h3>
@@ -845,6 +842,11 @@
                     </div>
 
                     <div class="filter-bar">
+                        <!-- NEW: Month & Year Selector -->
+                        <div class="filter-group">
+                            <label for="ledgerMonth">Filter By Month</label>
+                            <input type="month" id="ledgerMonth" onchange="loadLedger()" style="padding: 8px 10px; border: 1px solid #ccc; border-radius: 6px; font-family: inherit; font-weight: 600; outline: none; background: #fafafa; font-size: 13px;">
+                        </div>
                         <div class="filter-group">
                             <label for="filterType">Filter By Type</label>
                             <select id="filterType" onchange="loadLedger()">
@@ -859,6 +861,10 @@
                                 <option value="newest">Newest First</option>
                                 <option value="oldest">Oldest First</option>
                             </select>
+                        </div>
+                        <!-- NEW: Download Button -->
+                        <div class="filter-group" style="align-items: flex-end; justify-content: flex-end;">
+                            <button type="button" class="btn-secondary" onclick="downloadLedgerPDF()" style="height: 37px; width: 100%; margin: 0; display: flex; align-items: center; justify-content: center; gap: 6px;">📄 Download PDF</button>
                         </div>
                     </div>
 
@@ -881,7 +887,6 @@
                 </div>
             </div>
 
-            <!-- 2. Generate Sale Bill -->
             <div id="gst-sale" class="view-section">
                 <div class="admin-card">
                     <h3 style="font-size: 20px; margin-bottom: 20px;">Create New Sale Invoice</h3>
@@ -947,7 +952,6 @@
                 </div>
             </div>
 
-            <!-- 3. Input Vendor Bill -->
             <div id="gst-vendor" class="view-section">
                 <div class="admin-card">
                     <h3 style="font-size: 20px; margin-bottom: 20px;">Input Vendor GST Bill</h3>
@@ -1075,9 +1079,6 @@
 
     <!-- MAIN SCRIPT -->
     <script>
-        // ==========================================
-        // VENDOR BULK PAYMENT LOGIC (Customized with Partial Pay)
-        // ==========================================
         function updateAllVendorDropdowns() {
             const oldBalSelect = document.getElementById('old-bal-vendor');
             const bulkSelect = document.getElementById('bulk-vendor-select');
@@ -1175,7 +1176,6 @@
             let itemsToUpdate = [];
             let newSplitItems = [];
 
-            // Distribute payment across selected items (FIFO)
             for(let item of selectedItems) {
                 if(remainingPay >= item.amount) {
                     idsToMarkPaid.push(item.id);
@@ -1183,10 +1183,8 @@
                 } else if(remainingPay > 0) {
                     const unpaidBalance = item.amount - remainingPay;
                     
-                    // 1. Mark original item as paid with the reduced paid amount
                     itemsToUpdate.push({ id: item.id, newAmount: remainingPay, is_paid: true, newWork: item.originalWork + " (Partial Payment)" });
                     
-                    // 2. Create a new pending item for the unpaid balance
                     newSplitItems.push({
                         date: new Date().toISOString(),
                         orderId: item.orderId,
@@ -1202,7 +1200,6 @@
                 }
             }
 
-            // Execute DB Updates
             if(idsToMarkPaid.length > 0) {
                 const { error } = await supabaseClient.from('vendor_allotments_history').update({ is_paid: true }).in('id', idsToMarkPaid);
                 if (error) return alert("Update Error (Full): " + error.message);
@@ -1220,16 +1217,12 @@
 
             showToast(`Custom payment of ₹${payAmt} successful for ${vendor}!`);
             
-            // Reload from server to catch new split items
             await loadAppData(); 
             
             document.getElementById('bulk-vendor-select').value = vendor;
             loadBulkVendorPending();
         }
 
-        // ==========================================
-        // UI & NAVIGATION LOGIC
-        // ==========================================
         const sidebar = document.getElementById('sidebar');
         const overlay = document.getElementById('sidebar-overlay');
         const topNav = document.getElementById('main-top-nav');
@@ -1282,7 +1275,6 @@
             });
         }
 
-        // Close submenus when clicking outside of them
         document.addEventListener('click', function(e) {
             const sub1 = document.getElementById('settings-submenu');
             const sub2 = document.getElementById('gst-submenu');
@@ -2451,6 +2443,12 @@
             sales.forEach(s => ledger.push({ date: s.date, gst: s.gst || '-', inv: s.inv, name: s.client, credit: parseFloat(s.total), debit: 0 }));
             vendors.forEach(v => ledger.push({ date: v.date, gst: v.gst || '-', inv: v.inv, name: v.name, credit: 0, debit: parseFloat(v.total) }));
 
+            const monthFilterElem = document.getElementById('ledgerMonth');
+            const monthFilter = monthFilterElem ? monthFilterElem.value : '';
+            if (monthFilter) {
+                ledger = ledger.filter(entry => entry.date && entry.date.startsWith(monthFilter));
+            }
+
             let totalSales = 0, totalExp = 0, runningBalance = 0;
             ledger.sort((a, b) => new Date(a.date) - new Date(b.date));
             
@@ -2495,11 +2493,101 @@
             });
 
             if (ledger.length === 0) {
-                tbody = `<tr><td colspan="7" style="text-align:center; padding:20px;">No transactions found.</td></tr>`;
+                tbody = `<tr><td colspan="7" style="text-align:center; padding:20px;">No transactions found for this period.</td></tr>`;
             }
 
             const ledgerTbody = document.querySelector('#ledgerTable tbody');
             if(ledgerTbody) ledgerTbody.innerHTML = tbody;
+        }
+
+        function downloadLedgerPDF() {
+            const monthVal = document.getElementById('ledgerMonth').value;
+            const monthText = monthVal ? new Date(monthVal + '-01').toLocaleString('default', { month: 'long', year: 'numeric' }) : 'All Time History';
+            
+            const pdfDiv = document.createElement('div');
+            pdfDiv.style.padding = '20px';
+            pdfDiv.style.fontFamily = "'Montserrat', sans-serif";
+            pdfDiv.style.color = '#111';
+            pdfDiv.style.background = '#fff';
+            pdfDiv.style.width = '800px';
+
+            const sales = document.getElementById('dash_sales').innerText;
+            const expenses = document.getElementById('dash_expenses').innerText;
+            const net = document.getElementById('dash_balance').innerText;
+
+            let rowsHtml = '';
+            document.querySelectorAll('#ledgerTable tbody tr').forEach(row => {
+                let cells = row.querySelectorAll('td');
+                if(cells.length === 1) { 
+                    rowsHtml += `<tr><td colspan="7" style="text-align:center; padding: 10px; border: 1px solid #eee;">${cells[0].innerText}</td></tr>`;
+                } else {
+                    rowsHtml += `<tr>
+                        <td style="padding: 8px; border: 1px solid #eee; font-size: 11px;">${cells[0].innerText}</td>
+                        <td style="padding: 8px; border: 1px solid #eee; font-size: 11px; text-align:center;">${cells[1].innerText}</td>
+                        <td style="padding: 8px; border: 1px solid #eee; font-size: 11px;">${cells[2].innerText}</td>
+                        <td style="padding: 8px; border: 1px solid #eee; font-size: 11px;">${cells[3].innerText}</td>
+                        <td style="padding: 8px; border: 1px solid #eee; font-size: 11px; text-align:right; color:#27ae60;">${cells[4].innerText}</td>
+                        <td style="padding: 8px; border: 1px solid #eee; font-size: 11px; text-align:right; color:#c0392b;">${cells[5].innerText}</td>
+                        <td style="padding: 8px; border: 1px solid #eee; font-size: 11px; text-align:right; font-weight:bold;">${cells[6].innerText}</td>
+                    </tr>`;
+                }
+            });
+
+            pdfDiv.innerHTML = `
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <h2 style="color: #f26522; margin-bottom: 5px; font-size: 24px;">GST Financial Ledger</h2>
+                    <p style="color: #666; margin-top: 0; font-size: 14px;">Period: ${monthText}</p>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 20px; background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #eee;">
+                    <div style="text-align: center; flex: 1;">
+                        <strong style="color: #666; font-size: 12px; text-transform: uppercase;">Total Income</strong><br>
+                        <span style="color: #27ae60; font-size: 18px; font-weight: bold;">${sales}</span>
+                    </div>
+                    <div style="text-align: center; flex: 1; border-left: 1px solid #ddd; border-right: 1px solid #ddd;">
+                        <strong style="color: #666; font-size: 12px; text-transform: uppercase;">Total Expenses</strong><br>
+                        <span style="color: #c0392b; font-size: 18px; font-weight: bold;">${expenses}</span>
+                    </div>
+                    <div style="text-align: center; flex: 1;">
+                        <strong style="color: #666; font-size: 12px; text-transform: uppercase;">Net Balance</strong><br>
+                        <span style="color: #2980b9; font-size: 18px; font-weight: bold;">${net}</span>
+                    </div>
+                </div>
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="background: #333; color: #fff;">
+                            <th style="padding: 10px; border: 1px solid #333; font-size: 12px; text-align:left;">Date</th>
+                            <th style="padding: 10px; border: 1px solid #333; font-size: 12px; text-align:center;">GST %</th>
+                            <th style="padding: 10px; border: 1px solid #333; font-size: 12px; text-align:left;">Inv No</th>
+                            <th style="padding: 10px; border: 1px solid #333; font-size: 12px; text-align:left;">Particulars</th>
+                            <th style="padding: 10px; border: 1px solid #333; font-size: 12px; text-align:right;">Credit (In)</th>
+                            <th style="padding: 10px; border: 1px solid #333; font-size: 12px; text-align:right;">Debit (Out)</th>
+                            <th style="padding: 10px; border: 1px solid #333; font-size: 12px; text-align:right;">Balance</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${rowsHtml}
+                    </tbody>
+                </table>
+                <div style="margin-top: 20px; font-size: 10px; color: #888; text-align: center;">
+                    Generated on ${new Date().toLocaleString()}
+                </div>
+            `;
+
+            pdfDiv.style.position = 'absolute';
+            pdfDiv.style.left = '-9999px';
+            document.body.appendChild(pdfDiv);
+
+            showToast("Generating PDF...");
+
+            html2pdf().from(pdfDiv).set({
+                margin: 0.5,
+                filename: `GST_Ledger_${monthVal || 'All_Time'}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+            }).save().then(() => {
+                document.body.removeChild(pdfDiv);
+            });
         }
 
         function initSaleForm() {
