@@ -47,11 +47,11 @@
             position: fixed;
             z-index: 1000;
             transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: visible; /* Fixed to allow dropdown menus to pop out */
         }
         .sidebar-logo img { width: 38px; height: 38px; border-radius: 10px; margin-bottom: 30px; object-fit: cover; box-shadow: 0 4px 10px rgba(242,101,34,0.3); transition: transform 0.2s; cursor: pointer;}
         .sidebar-logo:hover img { transform: scale(1.05); }
-        .icon-menu { flex: 1; width: 100%; display: flex; flex-direction: column; align-items: center; gap: 16px; list-style: none; overflow-y: auto; scrollbar-width: none; }
-        .icon-menu::-webkit-scrollbar { display: none; }
+        .icon-menu { flex: 1; width: 100%; display: flex; flex-direction: column; align-items: center; gap: 16px; list-style: none; overflow: visible; }
         
         .side-icon-btn {
             width: 44px; height: 44px; border-radius: 12px; border: none; background: transparent; color: var(--gray);
@@ -61,7 +61,7 @@
         .side-icon-btn:hover, .side-icon-btn.active { background: #f0f2f5; color: var(--dark); }
         
         /* Floating Dropdown Menus */
-        .settings-wrapper { position: relative; width: 100%; display: flex; justify-content: center;}
+        .settings-wrapper { position: relative; width: 100%; display: flex; justify-content: center; overflow: visible;}
         .submenu { position: absolute; left: 65px; top: 0; background: var(--white); width: 220px; border-radius: var(--radius-md); box-shadow: 0 15px 35px rgba(0,0,0,0.1); list-style: none; padding: 8px; display: none; z-index: 2000; border: 1px solid #f0f0f0;}
         .submenu.open { display: block; animation: slideIn 0.2s ease; }
         @keyframes slideIn { from{ opacity:0; transform: translateX(-10px); } to { opacity:1; transform: translateX(0); } }
@@ -78,7 +78,7 @@
         .topbar-left { display: flex; align-items: center; gap: 12px; }
         .menu-toggle { display: none; background: var(--white); border: none; font-size: 20px; color: var(--dark); cursor: pointer; width: 42px; height: 42px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); align-items: center; justify-content: center;}
         
-        /* Pill Navigation */
+        /* Pill Navigation (Horizontally scrollable on mobile) */
         .top-nav { background: var(--white); padding: 5px; border-radius: 40px; display: flex; gap: 4px; box-shadow: 0 4px 20px rgba(0,0,0,0.02); overflow-x: auto; max-width: 60vw; -webkit-overflow-scrolling: touch; scrollbar-width: none;}
         .top-nav::-webkit-scrollbar { display: none; }
         .top-nav a { text-decoration: none; color: var(--gray); padding: 8px 16px; font-size: 13px; font-weight: 500; border-radius: 30px; transition: all 0.3s ease; white-space: nowrap; flex-shrink: 0; }
@@ -127,7 +127,7 @@
         .stat-card.active-stat h4 { color: rgba(255,255,255,0.9); }
         .stat-card.active-stat p { color: white; }
         
-        /* Tables (Responsive) */
+        /* Tables */
         .table-responsive-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; width: 100%; padding-bottom: 8px; border-radius: 8px;}
         .data-table { width: 100%; border-collapse: collapse; margin-top: 4px; font-size: 13px; min-width: 700px; }
         .data-table th, .data-table td { padding: 14px 12px; text-align: left; border-bottom: 1px solid #f1f2f4; }
@@ -210,13 +210,15 @@
         @media (max-width: 768px) {
             body { overflow-y: auto; height: auto; display: block; }
             .menu-toggle { display: flex; }
-            .icon-sidebar { transform: translateX(-120%); transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); margin: 0; height: 100vh; border-radius: 0 20px 20px 0; top: 0; left: 0; z-index: 1000; padding-top: 15px; }
+            .icon-sidebar { transform: translateX(-120%); margin: 0; height: 100vh; border-radius: 0 20px 20px 0; top: 0; left: 0; z-index: 1000; padding-top: 15px; }
             .icon-sidebar.open { transform: translateX(0); }
             
             .main-content { margin-left: 0 !important; width: 100% !important; height: auto; overflow: visible; display: block;}
             .topbar { padding: 12px 16px; flex-wrap: wrap; background: #fff; position: sticky; top: 0; z-index: 90; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
             
-            /* Change top nav to a scrollable row below topbar on mobile instead of hiding */
+            .mobile-logo-top { display: block !important; }
+            
+            /* Top nav horizontally scrollable row on mobile */
             .top-nav { display: flex; width: 100%; max-width: 100%; border-radius: 0; box-shadow: none; padding: 10px 16px; background: #fff; border-top: 1px solid #f1f2f4; overflow-x: auto; margin: 0 !important;}
             .top-nav a { padding: 8px 14px; font-size: 12px; }
             
@@ -228,12 +230,13 @@
             .action-row button { width: 100%; justify-content: center; }
             .admin-card { padding: 16px; border-radius: 16px; }
             .dashboard-header h1 { font-size: 20px; }
-            .profile-chip #user-email { display: none; } /* hide email on very small screens to save space */
-            .submenu { left: 10px; right: auto; top: auto; bottom: 60px; width: 220px; position: fixed; } /* adjust submenu for mobile */
+            .profile-chip #user-email { display: none; }
+            .submenu { left: 10px; right: auto; top: auto; bottom: 60px; width: 220px; position: fixed; } 
             
-            #bulk-payment-controls { flex-direction: column; align-items: flex-start; gap: 10px; }
-            #bulk-payment-controls > div { width: 100%; }
+            .bulk-payment-wrap { flex-direction: column; align-items: flex-start !important; gap: 15px; }
+            .bulk-payment-wrap > div { width: 100%; }
             #bulk-custom-pay-amt { width: 100% !important; }
+            .btn-bulk-pay { width: 100%; justify-content: center; }
         }
     </style>
 </head>
@@ -292,7 +295,7 @@
             <div class="topbar-left">
                 <button id="mobile-menu-btn" class="menu-toggle" aria-label="Menu">☰</button>
                 <!-- Home Logo inside topbar for mobile -->
-                <img src="../LOGO.jpg.jpeg" alt="Logo" style="width:35px; border-radius:8px; display:none;" class="mobile-logo-top" onclick="document.querySelector('[data-target=\'dashboard\']').click();">
+                <img src="../LOGO.jpg.jpeg" alt="Logo" style="width:35px; border-radius:8px; display:none; cursor: pointer;" class="mobile-logo-top" onclick="document.querySelector('[data-target=\'dashboard\']').click();">
             </div>
             
             <div class="admin-profile">
@@ -594,21 +597,40 @@
                 
                 <!-- ADD OLD BALANCE CARD IN VENDOR MASTER -->
                 <div class="admin-card" style="border-left: 4px solid var(--primary);">
-                    <h3>Add New Vendor & Materials</h3>
+                    <h3>Add Old / Opening Balance for Vendor</h3>
                     <div class="form-grid">
-                        <div class="form-group"><label>Vendor Name</label><input type="text" id="vm-name"></div>
-                        <div class="form-group"><label>Opening / Old Balance (₹)</label><input type="number" id="vm-old-balance" placeholder="0" min="0"></div>
+                        <div class="form-group">
+                            <label>Select Vendor</label>
+                            <select id="old-bal-vendor">
+                                <option value="">Choose Vendor...</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Amount (₹)</label>
+                            <input type="number" id="old-bal-amt" min="0" step="0.01">
+                        </div>
+                        <div class="form-group span-2">
+                            <label>Description / Details</label>
+                            <input type="text" id="old-bal-desc" placeholder="e.g., Previous year pending balance" value="Old Pending Balance">
+                        </div>
                     </div>
+                    <div class="action-row">
+                        <button type="button" class="btn-primary" onclick="saveOldVendorBalance()">➕ Add Balance</button>
+                    </div>
+                </div>
+
+                <div class="admin-card">
+                    <h3>Add New Vendor & Materials</h3>
+                    <div class="form-grid"><div class="form-group"><label>Vendor Name</label><input type="text" id="vm-name"></div></div>
                     <div id="vm-materials-container">
-                        <div class="form-grid vm-material-row" style="margin-top: 12px;">
+                        <div class="form-grid vm-material-row">
                             <div class="form-group"><label>Material Name</label><input type="text" class="vm-mat-name"></div>
                             <div class="form-group"><label>Rate (₹)</label><input type="number" class="vm-mat-rate"></div>
                         </div>
                     </div>
                     <button type="button" class="add-row-btn" onclick="addMaterialRow()">+ Add Another Material</button>
-                    <div class="action-row"><button type="button" class="btn-primary" onclick="saveVendor()">Save Vendor Profile</button></div>
+                    <div class="action-row"><button type="button" class="btn-primary" onclick="saveVendor()">Save Configuration</button></div>
                 </div>
-
             </div>
 
             <div id="staff-master" class="view-section admin-view">
@@ -740,12 +762,13 @@
                         </table>
                         
                         <!-- NEW CUSTOM PAYMENT INPUT & CONTROLS -->
-                        <div id="bulk-payment-controls" style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px; padding: 15px; background: #f9fafb; border-radius: 8px; flex-wrap: wrap; gap: 10px;">
-                            <div style="font-size: 16px;"><b>Total Selected: </b><span style="color: #ef4444; font-weight: bold;">₹<span id="bulk-selected-total">0.00</span></span></div>
+                        <div class="bulk-payment-wrap" style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px; padding: 15px; background: #f9fafb; border-radius: 8px; flex-wrap: wrap; gap: 15px;">
+                            <div style="font-size: 18px;">
+                                <b>Total Selected: </b><span style="color: #ef4444; font-weight: bold;">₹<span id="bulk-selected-total">0.00</span></span>
+                            </div>
                             <div style="display: flex; align-items: center; gap: 10px;">
-                                <label style="font-weight: 600; font-size: 14px; color: #444;">Pay Amount (₹):</label>
-                                <input type="number" id="bulk-custom-pay-amt" style="padding: 8px 12px; border: 1px solid #ccc; border-radius: 6px; width: 140px; font-weight: bold; color: #28a745; font-size: 15px;" min="1">
-                                <button type="button" class="btn-primary" style="background: #28a745;" onclick="processCustomBulkPayment()">💳 Pay Selected</button>
+                                <input type="number" id="bulk-custom-pay-amt" placeholder="Enter Custom Amount..." style="padding: 10px 15px; border: 2px solid #fb8c00; border-radius: 8px; width: 200px; font-weight: bold; font-size: 16px; color: #28a745;" min="1">
+                                <button type="button" class="btn-primary btn-bulk-pay" style="background: #28a745; padding: 12px 25px; font-size: 15px;" onclick="processCustomBulkPayment()">💳 Pay Selected</button>
                             </div>
                         </div>
                     </div>
@@ -1063,6 +1086,7 @@
         // VENDOR BULK PAYMENT LOGIC (Customized with Partial Pay)
         // ==========================================
         function updateAllVendorDropdowns() {
+            const oldBalSelect = document.getElementById('old-bal-vendor');
             const bulkSelect = document.getElementById('bulk-vendor-select');
             
             let optionsHtml = '<option value="">Choose Vendor...</option>';
@@ -1070,6 +1094,7 @@
                 if (v && v.name) optionsHtml += `<option value="${v.name}">${v.name}</option>`;
             });
 
+            if (oldBalSelect) oldBalSelect.innerHTML = optionsHtml;
             if (bulkSelect) bulkSelect.innerHTML = optionsHtml;
         }
 
@@ -1264,16 +1289,17 @@
             });
         }
 
+        // Close submenus when clicking outside of them
         document.addEventListener('click', function(e) {
             const sub1 = document.getElementById('settings-submenu');
             const sub2 = document.getElementById('gst-submenu');
             const tog1 = document.getElementById('settings-menu-toggle');
             const tog2 = document.getElementById('gst-menu-toggle');
             
-            if(sub1 && sub1.classList.contains('open') && !sub1.contains(e.target) && e.target !== tog1) {
+            if(sub1 && sub1.classList.contains('open') && !sub1.contains(e.target) && (!tog1 || !tog1.contains(e.target))) {
                 sub1.classList.remove('open');
             }
-            if(sub2 && sub2.classList.contains('open') && !sub2.contains(e.target) && e.target !== tog2) {
+            if(sub2 && sub2.classList.contains('open') && !sub2.contains(e.target) && (!tog2 || !tog2.contains(e.target))) {
                 sub2.classList.remove('open');
             }
         });
@@ -1773,7 +1799,6 @@
 
         async function saveVendor() {
             const vName = document.getElementById('vm-name').value.trim();
-            const oldBal = parseFloat(document.getElementById('vm-old-balance').value) || 0;
             if(!vName) return alert("Vendor Name required!");
             
             let newMaterials = [];
@@ -1783,7 +1808,7 @@
                 if(name && rate > 0) newMaterials.push({ name, rate });
             });
 
-            if(newMaterials.length === 0 && oldBal === 0) return alert("Please add at least one material or an old balance.");
+            if(newMaterials.length === 0) return alert("Please add at least one material with a valid rate.");
 
             const existingVendorIndex = appData.vendors.findIndex(v => v.name.toLowerCase() === vName.toLowerCase());
             let finalMaterials = [...newMaterials];
@@ -1811,29 +1836,13 @@
                 showToast("New Vendor Saved Successfully!");
             }
 
-            if(oldBal > 0) {
-                const historyEntry = { 
-                    date: new Date().toISOString(), 
-                    orderId: 'OLD-BAL-' + Date.now().toString().slice(-4), 
-                    vendor: vName, 
-                    work: 'Opening / Old Pending Balance', 
-                    amount: oldBal, 
-                    is_paid: false 
-                };
-                const { error: histErr } = await supabaseClient.from('vendor_allotments_history').insert([historyEntry]);
-                if(!histErr) appData.vendorAllotmentsHistory.push(historyEntry);
-            }
-
             document.getElementById('vm-name').value = '';
-            document.getElementById('vm-old-balance').value = '';
             document.getElementById('vm-materials-container').innerHTML = `
                 <div class="form-grid vm-material-row">
                     <div class="form-group"><label>Material Name</label><input type="text" class="vm-mat-name"></div>
                     <div class="form-group"><label>Rate (₹)</label><input type="number" class="vm-mat-rate"></div>
                 </div>`;
             updateAllVendorDropdowns();
-            renderPRVendor();
-            renderVendorReport();
         }
 
         async function saveStaff() {
@@ -1950,6 +1959,48 @@
             return `<span class="status-badge status-${s.replace(/_/g, '-')}">${cleanStatus}</span>`;
         }
 
+        // Function to handle moving an order to the next workflow stage
+        function handleNextStep(orderId, status, balance) {
+            if (status === 'designing') {
+                // Route to New Order (as it needs pricing/details to become a real order)
+                document.querySelector('[data-target="new-order"]').click();
+                
+                // Auto-fill client and phone if they exist in appData
+                if (appData.orders[orderId]) {
+                    document.getElementById('nw-client').value = appData.orders[orderId].client || '';
+                    document.getElementById('nw-phone').value = appData.orders[orderId].phone || '';
+                }
+                showToast("Fill details to confirm order and move to Processing");
+                
+            } else if (status === 'processing') {
+                // Route to Vendor Allotment
+                document.querySelector('[data-target="vendor-allotment"]').click();
+                document.getElementById('va-orderid').value = orderId;
+                fetchOrderForAllotment(); // Auto-fetch
+                
+            } else if (status === 'vendor_allotted') {
+                // Route to Staff Pickup
+                document.querySelector('[data-target="staff-pickup"]').click();
+                document.getElementById('pickup-search-input').value = orderId;
+                searchPickup(); // Auto-fetch
+                
+            } else if (status === 'ready_for_delivery') {
+                // Route to Delivery
+                document.querySelector('[data-target="delivery"]').click();
+                document.getElementById('del-search-input').value = orderId;
+                searchDelivery(); // Auto-fetch
+                
+            } else if (status === 'delivered' && parseFloat(balance) > 0) {
+                // Route to Payments if delivered but money is still owed
+                document.querySelector('[data-target="payment"]').click();
+                document.getElementById('pay-search-input').value = orderId;
+                searchPayment(); // Auto-fetch
+                
+            } else {
+                showToast("Order is fully complete and paid!");
+            }
+        }
+
         function renderDashboardTable(filterType = currentDashFilter) {
             currentDashFilter = filterType;
             setActiveCard(filterType);
@@ -2004,6 +2055,23 @@
 
             filtered.forEach(o => {
                 const tr = document.createElement('tr');
+                
+                // Determine the contextual "Next" button text and action
+                let nextBtnText = "";
+                let currentStatus = o.status || 'pending';
+                let bal = parseFloat(o.balance) || 0;
+                
+                if (currentStatus === 'designing') nextBtnText = "Process";
+                else if (currentStatus === 'processing') nextBtnText = "Allot Vendor";
+                else if (currentStatus === 'vendor_allotted') nextBtnText = "Pickup";
+                else if (currentStatus === 'ready_for_delivery') nextBtnText = "Deliver";
+                else if (currentStatus === 'delivered' && bal > 0) nextBtnText = "Pay Dues";
+                
+                // Build the HTML for the Next button if a next step exists
+                let nextButtonHtml = nextBtnText !== "" 
+                    ? `<button class="btn-primary" style="padding: 6px 12px; font-size: 11px; margin-right: 6px; background: #22c55e;" onclick="handleNextStep('${o.orderId}', '${currentStatus}', ${bal})">${nextBtnText} ➔</button>` 
+                    : '';
+
                 tr.innerHTML = `
                     <td><strong>${o.orderId || 'N/A'}</strong></td>
                     <td>${o.client || 'N/A'}</td>
@@ -2011,7 +2079,10 @@
                     <td>${o.work || 'N/A'}</td>
                     <td style="color:red; font-weight:bold;">₹${o.balance || 0}</td>
                     <td>${formatStatusBadge(o.status)}</td>
-                    <td><button class="btn-primary" style="padding: 6px 12px; font-size: 11px; background: #ef4444;" onclick="deleteOrder('${o.orderId}')">Delete</button></td>
+                    <td style="white-space: nowrap;">
+                        ${nextButtonHtml}
+                        <button class="btn-primary" style="padding: 6px 12px; font-size: 11px; background: #ef4444;" onclick="deleteOrder('${o.orderId}')">Delete</button>
+                    </td>
                 `;
                 tbody.appendChild(tr);
             });
@@ -2405,6 +2476,19 @@
             `;
             if(tbody) tbody.appendChild(tr);
             updateRowNumbers();
+        }
+
+        function updateRowNumbers() {
+            const rows = document.querySelectorAll('#saleItems tbody tr');
+            rows.forEach((row, index) => {
+                row.querySelector('.sl-number').innerText = index + 1;
+            });
+        }
+        
+        function removeRow(btn) {
+            btn.closest('tr').remove();
+            updateRowNumbers();
+            calcSale();
         }
 
         function calcSale() {
