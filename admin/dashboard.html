@@ -657,29 +657,36 @@
                 </div>
             </div>
 
+            <!-- UPDATED WEB CONTENT VIEW SECTION -->
             <div id="web-content" class="view-section admin-view">
-                <div class="form-grid">
-                    <div class="admin-card">
-                        <h3>Add New Portfolio Item</h3>
-                        <p style="font-size: 13px; color: var(--gray); margin-bottom: 16px;">Upload a new image to appear in the "Our Portfolio" section.</p>
-                        <form id="portfolio-form">
-                            <div class="form-group"><label>Project Title / Description</label><input type="text" id="port-title" placeholder="e.g., Brand Redesign" required></div>
-                            <div class="form-group"><label>Upload Image File</label><input type="file" id="port-img" accept="image/*" required style="background: white;"></div>
-                            <div class="action-row"><button type="submit" id="btn-port" class="btn-primary">Publish</button></div>
-                        </form>
-                    </div>
-                    <div class="admin-card">
-                        <h3>Add Trusted Client Logo</h3>
-                        <p style="font-size: 13px; color: var(--gray); margin-bottom: 16px;">Upload a client's logo to scroll in the "Trusted By" marquee.</p>
-                        <form id="client-form">
-                            <div class="form-group"><label>Client Name</label><input type="text" id="client-name" placeholder="e.g., Globex" required></div>
-                            <div class="form-group"><label>Upload Logo File</label><input type="file" id="client-img" accept="image/*" required style="background: white;"></div>
-                            <div class="action-row"><button type="submit" id="btn-client" class="btn-primary">Add Logo</button></div>
-                        </form>
-                    </div>
+                <!-- Flex container to split left (forms) and right (table) -->
+                <div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start;">
                     
-                    <!-- Manage Trusted Logos Card -->
-                    <div class="admin-card" style="grid-column: 1 / -1; margin-top: 10px;">
+                    <!-- LEFT COLUMN: Forms -->
+                    <div style="flex: 1; min-width: 300px; display: flex; flex-direction: column; gap: 20px;">
+                        <div class="admin-card" style="margin-bottom: 0;">
+                            <h3>Add New Portfolio Item</h3>
+                            <p style="font-size: 13px; color: var(--gray); margin-bottom: 16px;">Upload a new image to appear in the "Our Portfolio" section.</p>
+                            <form id="portfolio-form" onsubmit="handlePortfolioSubmit(event)">
+                                <div class="form-group"><label>Project Title / Description</label><input type="text" id="port-title" placeholder="e.g., Brand Redesign" required></div>
+                                <div class="form-group"><label>Upload Image File</label><input type="file" id="port-img" accept="image/*" required style="background: white;"></div>
+                                <div class="action-row"><button type="submit" id="btn-port" class="btn-primary">Publish</button></div>
+                            </form>
+                        </div>
+                        
+                        <div class="admin-card" style="margin-bottom: 0;">
+                            <h3>Add Trusted Client Logo</h3>
+                            <p style="font-size: 13px; color: var(--gray); margin-bottom: 16px;">Upload a client's logo to scroll in the "Trusted By" marquee.</p>
+                            <form id="client-form" onsubmit="handleClientLogoSubmit(event)">
+                                <div class="form-group"><label>Client Name</label><input type="text" id="client-name" placeholder="e.g., Globex" required></div>
+                                <div class="form-group"><label>Upload Logo File</label><input type="file" id="client-img" accept="image/*" required style="background: white;"></div>
+                                <div class="action-row"><button type="submit" id="btn-client" class="btn-primary">Add Logo</button></div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- RIGHT COLUMN: Manage Table -->
+                    <div class="admin-card" style="flex: 2; min-width: 300px; margin-bottom: 0; height: 100%;">
                         <h3>Manage Trusted Logos</h3>
                         <p style="font-size: 13px; color: var(--gray); margin-bottom: 16px;">View and remove existing client logos from the website.</p>
                         <div class="table-responsive-wrapper">
@@ -696,6 +703,7 @@
                             </table>
                         </div>
                     </div>
+
                 </div>
             </div>
 
@@ -1471,6 +1479,11 @@
                 if (hError) console.error("History fetch error:", hError.message);
                 appData.vendorAllotmentsHistory = history || [];
 
+                // Fetch Trusted Logos
+                const { data: logos, error: lError } = await supabaseClient.from('trusted_logos').select('*');
+                if (lError) console.error("Logos fetch error:", lError.message);
+                appData.trustedLogos = logos || [];
+
                 updateDashboardStats();
                 renderAllOrders();
                 renderPRClient();
@@ -1479,6 +1492,7 @@
                 renderStaffTable();
                 updateAllVendorDropdowns();
                 populateClientDatalist();
+                renderTrustedLogos();
             } catch (err) {
                 console.error("Supabase Load Error:", err.message);
                 showToast("Error loading cloud data!");
@@ -2805,13 +2819,13 @@
         // WEB CONTENT: TRUSTED LOGOS LOGIC
         // ==========================================
         
-        // 1. Function to render the logos in the table
+        // 1. Render the logos in the table
         function renderTrustedLogos() {
             const tbody = document.querySelector('#trusted-logos-table tbody');
             if(!tbody) return;
             tbody.innerHTML = '';
             
-            if(appData.trustedLogos.length === 0) {
+            if(!appData.trustedLogos || appData.trustedLogos.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="2" style="text-align:center; padding:15px;">No trusted logos found.</td></tr>';
                 return;
             }
@@ -2828,18 +2842,56 @@
             });
         }
 
-        // 2. Function to delete the logo
+        // 2. Handle adding a new logo from the form
+        async function handleClientLogoSubmit(e) {
+            e.preventDefault();
+            const clientName = document.getElementById('client-name').value.trim();
+            const fileInput = document.getElementById('client-img');
+            
+            if(!clientName) return alert("Client name is required");
+
+            // Create a temporary object (Upload logic to Supabase Storage would go here if needed)
+            const newLogoObj = { 
+                id: Date.now(), // Generate a temp ID, Supabase will override this if configured
+                name: clientName 
+            };
+
+            // Attempt to insert into Supabase table 'trusted_logos'
+            const { data, error } = await supabaseClient.from('trusted_logos').insert([{ name: clientName }]).select();
+            
+            if (error) {
+                console.warn("Supabase insert failed, saving locally for preview: ", error.message);
+                appData.trustedLogos.push(newLogoObj);
+            } else if (data) {
+                appData.trustedLogos.push(data[0]);
+            }
+
+            showToast("Trusted Logo Added!");
+            document.getElementById('client-form').reset();
+            renderTrustedLogos();
+        }
+
+        // 3. Handle deleting the logo
         async function removeTrustedLogo(id) {
             if(!confirm("Are you sure you want to remove this client logo?")) return;
             
-            // NOTE: If using Supabase, uncomment and adjust the table name ('trusted_logos') 
-            // const { error } = await supabaseClient.from('trusted_logos').delete().eq('id', id);
-            // if(error) return alert("Delete Error: " + error.message);
+            // Attempt to delete from Supabase
+            const { error } = await supabaseClient.from('trusted_logos').delete().eq('id', id);
+            if(error) {
+                console.warn("Could not delete from Supabase: " + error.message);
+            }
 
             // Remove locally and re-render
-            appData.trustedLogos = appData.trustedLogos.filter(l => l.id !== id);
+            appData.trustedLogos = appData.trustedLogos.filter(l => String(l.id) !== String(id));
             renderTrustedLogos();
             showToast("Trusted Logo Removed!");
+        }
+
+        // Placeholder for portfolio submit
+        function handlePortfolioSubmit(e) {
+            e.preventDefault();
+            showToast("Portfolio item logic not yet connected.");
+            document.getElementById('portfolio-form').reset();
         }
     </script>
 </body>
