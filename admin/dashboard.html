@@ -718,16 +718,20 @@
                         <table class="data-table" id="pr-client-table">
                             <thead>
                                 <tr>
+                                    <th onclick="sortPRClient('date')">Date <span class="sort-icon">⇅</span></th>
                                     <th onclick="sortPRClient('orderId')">Order ID <span class="sort-icon">⇅</span></th>
                                     <th onclick="sortPRClient('client')">Client Name <span class="sort-icon">⇅</span></th>
                                     <th onclick="sortPRClient('phone')">Contact <span class="sort-icon">⇅</span></th>
+                                    <th onclick="sortPRClient('work')">Work <span class="sort-icon">⇅</span></th>
                                     <th onclick="sortPRClient('balance')">Balance Due (₹) <span class="sort-icon">⇅</span></th>
                                     <th>Action</th>
                                 </tr>
                                 <tr class="table-filter-row">
+                                    <th><input type="text" id="prc-filt-date" onkeyup="renderPRClient()" placeholder="Filter Date..."></th>
                                     <th><input type="text" id="prc-filt-id" onkeyup="renderPRClient()" placeholder="Filter ID..."></th>
                                     <th><input type="text" id="prc-filt-client" onkeyup="renderPRClient()" placeholder="Filter Client..."></th>
                                     <th><input type="text" id="prc-filt-phone" onkeyup="renderPRClient()" placeholder="Filter Phone..."></th>
+                                    <th><input type="text" id="prc-filt-work" onkeyup="renderPRClient()" placeholder="Filter Work..."></th>
                                     <th><input type="number" id="prc-filt-bal" onkeyup="renderPRClient()" placeholder="Max Balance..."></th>
                                     <th></th>
                                 </tr>
@@ -2300,15 +2304,20 @@
             
             let filtered = Object.values(appData.orders).filter(o => (parseFloat(o.balance) || 0) > 0);
             
+            const fDate = (document.getElementById('prc-filt-date').value || '').toLowerCase();
             const fId = (document.getElementById('prc-filt-id').value || '').toLowerCase();
             const fClient = (document.getElementById('prc-filt-client').value || '').toLowerCase();
             const fPhone = (document.getElementById('prc-filt-phone').value || '').toLowerCase();
+            const fWork = (document.getElementById('prc-filt-work').value || '').toLowerCase();
             const fBal = parseFloat(document.getElementById('prc-filt-bal').value);
 
             filtered = filtered.filter(o => {
+                const dateStr = o.date ? new Date(o.date).toLocaleDateString().toLowerCase() : '';
+                if(fDate && !dateStr.includes(fDate)) return false;
                 if(fId && !(o.orderId || '').toLowerCase().includes(fId)) return false;
                 if(fClient && !(o.client || '').toLowerCase().includes(fClient)) return false;
                 if(fPhone && !(o.phone || '').toLowerCase().includes(fPhone)) return false;
+                if(fWork && !(o.work || '').toLowerCase().includes(fWork)) return false;
                 if(!isNaN(fBal) && (parseFloat(o.balance) || 0) > fBal) return false;
                 return true;
             });
@@ -2317,6 +2326,7 @@
                 filtered.sort((a, b) => {
                     let valA = a[prClientSort.col] || ''; let valB = b[prClientSort.col] || '';
                     if(prClientSort.col === 'balance') { valA = parseFloat(valA) || 0; valB = parseFloat(valB) || 0; }
+                    if(prClientSort.col === 'date') { valA = new Date(valA).getTime(); valB = new Date(valB).getTime(); }
                     if(valA < valB) return prClientSort.asc ? -1 : 1;
                     if(valA > valB) return prClientSort.asc ? 1 : -1;
                     return 0;
@@ -2324,15 +2334,38 @@
             }
 
             if(filtered.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 15px;">No pending client dues matching filter.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding: 15px;">No pending client dues matching filter.</td></tr>`;
                 return;
             }
 
+            let grandTotal = 0;
+
             filtered.forEach(o => {
-                const msg = `Dear ${o.client || 'Customer'}, gentle reminder that a balance of ₹${o.balance || 0} is due for order ${o.orderId}. Thank you!`;
+                const bal = parseFloat(o.balance) || 0;
+                grandTotal += bal;
+                const dateStr = o.date ? new Date(o.date).toLocaleDateString() : 'N/A';
+                const msg = `Dear ${o.client || 'Customer'}, gentle reminder that a balance of ₹${bal} is due for order ${o.orderId}. Thank you!`;
                 const wa = getWhatsAppLink(o.phone || '', msg);
-                tbody.innerHTML += `<tr><td><strong>${o.orderId || 'N/A'}</strong></td><td>${o.client || 'N/A'}</td><td>${o.phone || 'N/A'}</td><td style="color:red; font-weight:bold;">₹${o.balance || 0}</td><td><button class="btn-whatsapp" style="padding: 6px 12px; font-size: 11px;" onclick="window.open('${wa}', '_blank')">🔔 Remind</button></td></tr>`;
+                
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${dateStr}</td>
+                        <td><strong>${o.orderId || 'N/A'}</strong></td>
+                        <td>${o.client || 'N/A'}</td>
+                        <td>${o.phone || 'N/A'}</td>
+                        <td>${o.work || 'N/A'}</td>
+                        <td style="color:red; font-weight:bold;">₹${bal.toFixed(2)}</td>
+                        <td><button class="btn-whatsapp" style="padding: 6px 12px; font-size: 11px;" onclick="window.open('${wa}', '_blank')">🔔 Remind</button></td>
+                    </tr>`;
             });
+
+            // Append the Grand Total Row at the bottom
+            tbody.innerHTML += `
+                <tr style="background-color: #fcfcfd;">
+                    <td colspan="5" style="text-align: right; font-weight: 800; padding: 15px 12px; color: var(--dark);">GRAND TOTAL PENDING:</td>
+                    <td colspan="2" style="color: #ef4444; font-weight: 900; padding: 15px 12px; font-size: 15px;">₹${grandTotal.toFixed(2)}</td>
+                </tr>
+            `;
         }
 
         let prVendorSort = { col: null, asc: true };
@@ -2468,8 +2501,39 @@
         function downloadAllOrdersPDF() { html2pdf().from(document.getElementById('all-orders-table')).save(); }
         function downloadPRClientPDF() { html2pdf().from(document.getElementById('pr-client-table')).save(); }
         function downloadPRClientExcel() {
-            let data = Object.values(appData.orders).filter(o => parseFloat(o.balance) > 0).map(o => ({ "Order ID": o.orderId, "Client": o.client, "Contact": o.phone, "Balance": o.balance }));
-            let ws = XLSX.utils.json_to_sheet(data); let wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Client Dues");
+            let pendingOrders = Object.values(appData.orders).filter(o => parseFloat(o.balance) > 0);
+            
+            let data = [];
+            let grandTotal = 0;
+            
+            pendingOrders.forEach(o => {
+                let bal = parseFloat(o.balance) || 0;
+                grandTotal += bal;
+                
+                data.push({
+                    "Date": o.date ? new Date(o.date).toLocaleDateString() : 'N/A',
+                    "Order ID": o.orderId, 
+                    "Client Name": o.client, 
+                    "Contact": o.phone, 
+                    "Work": o.work,
+                    "Balance (₹)": bal
+                });
+            });
+
+            // Add a blank row then the Grand Total
+            data.push({});
+            data.push({
+                "Date": "",
+                "Order ID": "",
+                "Client Name": "",
+                "Contact": "",
+                "Work": "GRAND TOTAL PENDING:",
+                "Balance (₹)": grandTotal
+            });
+
+            let ws = XLSX.utils.json_to_sheet(data); 
+            let wb = XLSX.utils.book_new(); 
+            XLSX.utils.book_append_sheet(wb, ws, "Client Dues");
             XLSX.writeFile(wb, `Client_Dues_${Date.now()}.xlsx`);
         }
         function downloadPRVendorPDF() { html2pdf().from(document.getElementById('pr-vendor-table')).save(); }
