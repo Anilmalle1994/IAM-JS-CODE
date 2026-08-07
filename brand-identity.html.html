@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brand Identity & Logo - Anil Malle</title>
+
+    <link rel="icon" href="LOGO.jpg.jpeg" type="image/jpeg">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            /* Brand palette */
+            --primary: #f26522;
+            --primary-light: #ff8b54;
+            --primary-glow: rgba(242, 101, 34, 0.4);
+            --dark: #232323;
+            --gray: #666666;
+            --light-gray: #f9f9f9;
+            --white: #ffffff;
+            
+            /* Futuristic Glass Effects */
+            --glass-bg: rgba(255, 255, 255, 0.75);
+            --glass-border: rgba(255, 255, 255, 0.5);
+            
+            /* Hairlines & shadows */
+            --line: rgba(35, 35, 35, 0.09);
+            --line-soft: rgba(35, 35, 35, 0.05);
+            --shadow-lift: 0 40px 90px rgba(35, 35, 35, 0.12);
+            --shadow-neon: 0 0 20px var(--primary-glow);
+
+            --ease: cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        html { scroll-behavior: smooth; }
+        body { color: var(--dark); background: var(--white); overflow-x: hidden; -webkit-font-smoothing: antialiased; }
+
+        ::selection { background: var(--primary); color: #fff; }
+
+        .tag { font-size: 11px; font-weight: 700; letter-spacing: 3.5px; text-transform: uppercase; color: var(--primary); margin-bottom: 15px; display: inline-block; text-shadow: 0 0 10px rgba(242,101,34,0.2); }
+
+        /* Cursor */
+        .cursor { position: fixed; top: 0; left: 0; width: 34px; height: 34px; border: 1.5px solid var(--primary); border-radius: 50%; pointer-events: none; z-index: 9000; transform: translate(-50%, -50%); transition: width .35s var(--ease), height .35s var(--ease), background .35s, opacity .3s, box-shadow .35s; opacity: 0; }
+        .cursor.on { opacity: 1; }
+        .cursor.grow { width: 62px; height: 62px; background: rgba(242, 101, 34, .1); box-shadow: 0 0 15px rgba(242, 101, 34, 0.3); }
+
+        /* Navigation Bar */
+        .top-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 950; padding: 15px 5%; background: rgba(255,255,255,0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-bottom: 1px solid var(--glass-border); display: flex; align-items: center; justify-content: space-between; box-shadow: 0 4px 20px rgba(0,0,0,0.03); }
+        .back-btn { display: inline-flex; align-items: center; gap: 8px; color: var(--dark); text-decoration: none; font-weight: 600; font-size: 15px; transition: color .3s, transform .3s var(--ease); }
+        .back-btn:hover { color: var(--primary); transform: translateX(-4px); text-shadow: 0 0 10px rgba(242,101,34,0.2); }
+        .nav-logo { width: 40px; height: 40px; border-radius: 10px; object-fit: cover; }
+
+        /* Page Header Background */
+        .grid-field { position: absolute; inset: 0; pointer-events: none; z-index: 0;
+            background-image: linear-gradient(var(--line-soft) 1px, transparent 1px), linear-gradient(90deg, var(--line-soft) 1px, transparent 1px);
+            background-size: 64px 64px;
+            mask-image: linear-gradient(to bottom, #000 20%, transparent 100%);
+            -webkit-mask-image: linear-gradient(to bottom, #000 20%, transparent 100%); }
+        .hero-glow { position: absolute; width: 600px; height: 600px; border-radius: 50%; background: radial-gradient(circle, rgba(242,101,34,.15), transparent 68%); top: -100px; left: 50%; transform: translateX(-50%); filter: blur(30px); pointer-events: none; z-index: 0; }
+
+        /* Page Header */
+        .page-header { position: relative; padding: 180px 5% 100px; text-align: center; border-bottom: 1px solid var(--line); }
+        .page-header > * { position: relative; z-index: 2; }
+        .page-title { font-size: clamp(40px, 6vw, 72px); font-weight: 800; line-height: 1; letter-spacing: -2.5px; color: var(--dark); margin-bottom: 20px; }
+        .page-desc { color: var(--gray); font-size: 18px; max-width: 600px; margin: 0 auto; line-height: 1.8; }
+
+        /* Content Layout */
+        .content-section { padding: 120px 8%; position: relative; }
+        
+        .process-step { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; margin-bottom: 100px; }
+        
+        .step-text h2 { font-size: clamp(32px, 4vw, 48px); font-weight: 700; letter-spacing: -1.5px; line-height: 1.1; margin-bottom: 24px; color: var(--dark); }
+        .step-text p { color: var(--gray); font-size: 17px; line-height: 1.9; margin-bottom: 20px; }
+        
+        /* Glassmorphism Image Frame */
+        .image-frame { position: relative; padding: 24px; border: 1px solid var(--glass-border); border-radius: 24px; background: rgba(255,255,255,0.4); backdrop-filter: blur(15px); box-shadow: var(--shadow-lift); overflow: hidden; }
+        .image-frame::after { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 2px; background: var(--primary); box-shadow: 0 0 15px 3px var(--primary); opacity: 0.5; animation: scanner 6s linear infinite; z-index: 5; pointer-events: none; }
+        @keyframes scanner { 0% { top: -10px; opacity: 0; } 10% { opacity: 0.5; } 90% { opacity: 0.5; } 100% { top: 100%; opacity: 0; } }
+
+        .image-frame img { width: 100%; display: block; border-radius: 12px; filter: drop-shadow(0 15px 25px rgba(35,35,35,.1)); position: relative; z-index: 2; transition: transform 0.5s var(--ease); }
+        .image-frame:hover img { transform: scale(1.02); }
+        
+        .corner { position: absolute; width: 20px; height: 20px; border: 2px solid var(--primary); z-index: 3; box-shadow: 0 0 10px var(--primary-glow); }
+        .corner.tl { top: -1px; left: -1px; border-right: 0; border-bottom: 0; border-top-left-radius: 12px; }
+        .corner.tr { top: -1px; right: -1px; border-left: 0; border-bottom: 0; border-top-right-radius: 12px; }
+        .corner.bl { bottom: -1px; left: -1px; border-right: 0; border-top: 0; border-bottom-left-radius: 12px; }
+        .corner.br { bottom: -1px; right: -1px; border-left: 0; border-top: 0; border-bottom-right-radius: 12px; }
+
+        /* Footer */
+        footer { background: var(--white); border-top: 1px solid var(--line); color: var(--gray); padding: 44px 8%; text-align: center; font-size: 14px; }
+
+        /* Motion Primitives */
+        .rv { opacity: 0; transform: translateY(30px); transition: opacity 0.8s var(--ease), transform 0.8s var(--ease); }
+        .rv.in { opacity: 1; transform: none; }
+
+        /* Responsive */
+        @media (max-width: 960px) {
+            .process-step { grid-template-columns: 1fr; gap: 50px; }
+            .content-section { padding: 80px 5%; }
+            .image-frame { max-width: 600px; margin: 0 auto; }
+        }
+        
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { animation: none !important; transition-duration: .01ms !important; }
+            .rv { opacity: 1 !important; transform: none !important; }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="cursor" id="cursor"></div>
+
+    <!-- Navigation -->
+    <nav class="top-nav">
+        <a href="index.html" class="back-btn">← Back to Overview</a>
+        <img src="LOGO.jpg.jpeg" alt="iam designs" class="nav-logo" onerror="this.src='https://via.placeholder.com/40?text=iam'">
+    </nav>
+
+    <!-- Header -->
+    <header class="page-header">
+        <div class="grid-field"></div>
+        <div class="hero-glow"></div>
+        <div class="tag rv">Capability Deep Dive</div>
+        <h1 class="page-title rv" style="transition-delay: 100ms;">Brand Identity & Logo</h1>
+        <p class="page-desc rv" style="transition-delay: 200ms;">Your logo is the face of your business. We craft visual identities that are memorable, scalable, and perfectly aligned with your core values.</p>
+    </header>
+
+    <!-- Main Content -->
+    <main class="content-section">
+        
+        <!-- Step 1: Sketching -->
+        <section class="process-step">
+            <div class="step-text rv">
+                <div class="tag">Phase 01</div>
+                <h2>First: Sketching a logo</h2>
+                <p>Every great brand begins with a simple idea. Before touching any digital software, the creative process starts with pencil and paper. Sketching allows for rapid, unfiltered exploration of concepts, shapes, and typography.</p>
+                <p>It is in this raw form of brainstorming where the true foundation of your brand is born. We map out visual metaphors, experiment with geometry, and test the weight of letters to ensure the core concept is strong before moving to the digital canvas.</p>
+            </div>
+            
+            <div class="image-frame rv" style="transition-delay: 150ms;">
+                <span class="corner tl"></span><span class="corner tr"></span>
+                <span class="corner bl"></span><span class="corner br"></span>
+                <!-- Replace src with your actual sketching image -->
+                <img src="https://images.unsplash.com/photo-1561070791-2526d30994b5?q=80&w=1000&auto=format&fit=crop" alt="Sketching a logo on paper" onerror="this.src='https://via.placeholder.com/800x600?text=Logo+Sketching'">
+            </div>
+        </section>
+
+    </main>
+
+    <footer>
+        <p>&copy; 2026 anilmalle.in. All rights reserved.</p>
+    </footer>
+
+    <script>
+        /* Scroll Reveals */
+        const obs = new IntersectionObserver((entries) => {
+            entries.forEach(e => {
+                if (e.isIntersecting) { e.target.classList.add('in'); obs.unobserve(e.target); }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.rv').forEach(el => obs.observe(el));
+
+        /* Cursor Tracker */
+        (function () {
+            if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || window.matchMedia('(hover: none)').matches) return;
+            const dot = document.getElementById('cursor');
+            let x = 0, y = 0, tx = 0, ty = 0;
+            document.addEventListener('mousemove', e => {
+                tx = e.clientX; ty = e.clientY; dot.classList.add('on');
+            });
+            const loop = () => {
+                x += (tx - x) * 0.18; y += (ty - y) * 0.18;
+                dot.style.transform = `translate(${x}px, ${y}px) translate(-50%, -50%)`;
+                requestAnimationFrame(loop);
+            };
+            loop();
+            document.querySelectorAll('a, .image-frame').forEach(el => {
+                el.addEventListener('mouseenter', () => dot.classList.add('grow'));
+                el.addEventListener('mouseleave', () => dot.classList.remove('grow'));
+            });
+        })();
+    </script>
+</body>
+
+</html>
