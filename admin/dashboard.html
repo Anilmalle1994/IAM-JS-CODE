@@ -424,22 +424,8 @@
                             </div>
                         </div>
                         
-                        <div id="nw-works-container" style="margin-top: 12px;">
-                            <div class="form-grid nw-work-row" style="border-bottom: 1px dashed #e5e7eb; padding-bottom: 12px;">
-                                <div class="form-group">
-                                    <label>Work Type</label>
-                                    <select class="nw-work-type" onchange="handleWorkTypeChange(this)">
-                                        <option value="Flex">Flex</option>
-                                        <option value="Digital Printing">Digital Printing</option>
-                                        <option value="Offset Printing">Offset Printing</option>
-                                        <option value="Special Work">Special Work</option>
-                                        <option value="Others">Others</option>
-                                    </select>
-                                    <input type="text" class="nw-work-others-input" placeholder="Type custom work..." style="display: none; margin-top: 6px;">
-                                </div>
-                                <div class="form-group"><label>Description / Details</label><input type="text" class="nw-work-desc" placeholder="e.g. Dimensions or extra details"></div>
-                            </div>
-                        </div>
+                        <!-- Work rows are rendered by nwWorkRowHTML() so the bill can read Size / Copies / Rate -->
+                        <div id="nw-works-container" style="margin-top: 12px;"></div>
                         
                         <button type="button" class="add-row-btn" onclick="addNewWorkRow()">+ Add Another Work</button>
 
@@ -530,6 +516,7 @@
                     </div>
                     <div class="action-row">
                         <button type="button" id="receive-payment-btn" class="btn-primary" onclick="openPaymentModal(currentlySearchedOrderId)">💳 Receive Payment</button>
+                        <button type="button" class="btn-secondary" onclick="printIamBill(currentlySearchedOrderId)">🧾 Print Bill</button>
                     </div>
                 </div>
             </div>
@@ -580,6 +567,7 @@
                                     <th onclick="sortAllOrders('work')">Work <span class="sort-icon">⇅</span></th>
                                     <th onclick="sortAllOrders('amount')">Amount (₹) <span class="sort-icon">⇅</span></th>
                                     <th onclick="sortAllOrders('balance')">Payment Status <span class="sort-icon">⇅</span></th>
+                                    <th>Bill</th>
                                 </tr>
                                 <tr class="table-filter-row">
                                     <th><input type="text" id="ao-filt-date" onkeyup="renderAllOrders()" placeholder="MM/DD/YYYY"></th>
@@ -594,6 +582,7 @@
                                             <option value="pending">Pending</option>
                                         </select>
                                     </th>
+                                    <th></th>
                                 </tr>
                             </thead>
                             <tbody></tbody>
@@ -1565,14 +1554,41 @@
             return `${datePrefix}${String(maxSeq + 1).padStart(3, '0')}`;
         }
 
-        function initNewOrder() {
-            const today = new Date();
-            document.getElementById('nw-date').value = `${String(today.getDate()).padStart(2, '0')}/${String(today.getMonth() + 1).padStart(2, '0')}/${today.getFullYear()}`;
-            
-            const newId = generateOrderId();
-            document.getElementById('nw-orderid').value = newId;
-            document.getElementById('qrcode').innerHTML = ""; 
-            new QRCode(document.getElementById("qrcode"), { text: newId, width: 80, height: 80, colorDark : "#111111", colorLight : "#f7f8fa" });
+        // ==========================================
+        // NEW ORDER WORK ROWS (with Size / Copies / Rate for the bill)
+        // ==========================================
+        function nwWorkRowHTML() {
+            return `
+            <div class="form-grid nw-work-row" style="border-bottom: 1px dashed #e5e7eb; padding-bottom: 12px; margin-bottom: 12px;">
+                <div class="form-group">
+                    <label>Work Type</label>
+                    <select class="nw-work-type" onchange="handleWorkTypeChange(this)">
+                        <option value="Flex">Flex</option>
+                        <option value="Digital Printing">Digital Printing</option>
+                        <option value="Offset Printing">Offset Printing</option>
+                        <option value="Special Work">Special Work</option>
+                        <option value="Others">Others</option>
+                    </select>
+                    <input type="text" class="nw-work-others-input" placeholder="Type custom work..." style="display: none; margin-top: 6px;">
+                </div>
+                <div class="form-group"><label>Description / Details</label><input type="text" class="nw-work-desc" placeholder="e.g. Vinyl Shop Banner"></div>
+                <div class="form-group"><label>Size</label><input type="text" class="nw-work-size" placeholder="e.g. 6 x 4 ft"></div>
+                <div class="form-group"><label>Copies / Qty</label><input type="number" class="nw-work-qty" value="1" min="0" oninput="calcOrderItems()"></div>
+                <div class="form-group"><label>Rate (₹)</label><input type="number" class="nw-work-rate" value="0" min="0" oninput="calcOrderItems()"></div>
+                <div class="form-group"><label>Amount (₹)</label><input type="number" class="nw-work-amt" readonly></div>
+            </div>`;
+        }
+
+        function resetWorkRows() {
+            const c = document.getElementById('nw-works-container');
+            if (!c) return;
+            c.innerHTML = nwWorkRowHTML();
+            calcOrderItems();
+        }
+
+        function addNewWorkRow() {
+            const c = document.getElementById('nw-works-container');
+            if (c) c.insertAdjacentHTML('beforeend', nwWorkRowHTML());
         }
 
         function handleWorkTypeChange(selectElement) {
@@ -1581,15 +1597,55 @@
             othersInput.style.display = selectElement.value === 'Others' ? 'block' : 'none';
         }
 
-        function addNewWorkRow() {
-            const container = document.getElementById('nw-works-container');
-            const row = document.createElement('div');
-            row.className = 'form-grid nw-work-row';
-            row.style.marginTop = '12px';
-            row.style.borderTop = '1px dashed #e5e7eb';
-            row.style.paddingTop = '12px';
-            row.innerHTML = `<div class="form-group"><label>Work Type</label><select class="nw-work-type" onchange="handleWorkTypeChange(this)"><option value="Flex">Flex</option><option value="Digital Printing">Digital Printing</option><option value="Offset Printing">Offset Printing</option><option value="Special Work">Special Work</option><option value="Others">Others</option></select><input type="text" class="nw-work-others-input" placeholder="Type custom work..." style="display: none; margin-top: 6px;"></div><div class="form-group"><label>Description / Details</label><input type="text" class="nw-work-desc" placeholder="e.g. Dimensions or extra details"></div>`;
-            container.appendChild(row);
+        function calcOrderItems() {
+            let sum = 0, hasRate = false;
+            document.querySelectorAll('.nw-work-row').forEach(row => {
+                const qEl = row.querySelector('.nw-work-qty');
+                const rEl = row.querySelector('.nw-work-rate');
+                const aEl = row.querySelector('.nw-work-amt');
+                if (!qEl || !rEl) return;
+                const q = parseFloat(qEl.value) || 0;
+                const r = parseFloat(rEl.value) || 0;
+                const amt = q * r;
+                if (r > 0) hasRate = true;
+                if (aEl) aEl.value = amt ? amt.toFixed(2) : '';
+                sum += amt;
+            });
+            const amtField = document.getElementById('nw-amount');
+            if (hasRate && amtField) amtField.value = sum.toFixed(2);
+            calcBalance();
+        }
+
+        function collectOrderItems() {
+            const items = [];
+            document.querySelectorAll('.nw-work-row').forEach(row => {
+                let type = row.querySelector('.nw-work-type').value;
+                if (type === 'Others') type = (row.querySelector('.nw-work-others-input').value || '').trim() || 'Other Work';
+                const desc = (row.querySelector('.nw-work-desc') ? row.querySelector('.nw-work-desc').value : '').trim();
+                const size = (row.querySelector('.nw-work-size') ? row.querySelector('.nw-work-size').value : '').trim();
+                const qty  = parseFloat(row.querySelector('.nw-work-qty') ? row.querySelector('.nw-work-qty').value : 0) || 0;
+                const rate = parseFloat(row.querySelector('.nw-work-rate') ? row.querySelector('.nw-work-rate').value : 0) || 0;
+                items.push({
+                    desc: desc ? `${type} - ${desc}` : type,
+                    size: size,
+                    qty: qty,
+                    rate: rate,
+                    amount: +(qty * rate).toFixed(2)
+                });
+            });
+            return items;
+        }
+
+        function initNewOrder() {
+            const today = new Date();
+            document.getElementById('nw-date').value = `${String(today.getDate()).padStart(2, '0')}/${String(today.getMonth() + 1).padStart(2, '0')}/${today.getFullYear()}`;
+            
+            const newId = generateOrderId();
+            document.getElementById('nw-orderid').value = newId;
+            document.getElementById('qrcode').innerHTML = ""; 
+            new QRCode(document.getElementById("qrcode"), { text: newId, width: 80, height: 80, colorDark : "#111111", colorLight : "#f7f8fa" });
+
+            resetWorkRows();
         }
 
         function calcBalance() {
@@ -1605,31 +1661,34 @@
             
             if(!client || phone.length < 7) return alert("Valid client and phone number required.");
 
-            let workTypesArray = [];
-            document.querySelectorAll('.nw-work-row').forEach(row => {
-                let type = row.querySelector('.nw-work-type').value;
-                if(type === 'Others') type = row.querySelector('.nw-work-others-input').value.trim() || 'Other Work';
-                const desc = row.querySelector('.nw-work-desc').value.trim();
-                workTypesArray.push(desc ? `${type} - ${desc}` : type);
-            });
+            const items = collectOrderItems();
+            const workString = items.map(i => i.desc).join(", ");
 
-            const newOrderObj = {
+            let payload = {
                 orderId, client, phone,
                 date: new Date().toISOString(),
-                work: workTypesArray.join(", "),
+                work: workString,
                 amount: parseFloat(document.getElementById('nw-amount').value) || 0,
                 advance: parseFloat(document.getElementById('nw-advance').value) || 0,
                 balance: parseFloat(document.getElementById('nw-balance').value) || 0,
-                status: 'processing'
+                status: 'processing',
+                items: JSON.stringify(items)
             };
 
-            const { error } = await supabaseClient.from('orders').insert([newOrderObj]);
+            let { error } = await supabaseClient.from('orders').insert([payload]);
+
+            // If the "items" column does not exist yet, save without it
+            if (error && /items/i.test(error.message || '')) {
+                const fallback = Object.assign({}, payload);
+                delete fallback.items;
+                ({ error } = await supabaseClient.from('orders').insert([fallback]));
+            }
             if (error) return alert("Failed to save order: " + error.message);
 
-            appData.orders[orderId] = newOrderObj;
+            appData.orders[orderId] = payload;
             showToast("Order Saved to Cloud!");
 
-            let msg = `Hello ${client},\nYour order ${orderId} has been successfully placed with iam des!gns.\n\nWork : ${newOrderObj.work}\nTotal Amount: ₹${newOrderObj.amount}\nPaid: ₹${newOrderObj.advance}\nBalance Due: ₹${newOrderObj.balance}\n\nWe will notify you when it is ready!`;
+            let msg = `Hello ${client},\nYour order ${orderId} has been successfully placed with iam des!gns.\n\nWork : ${workString}\nTotal Amount: ₹${payload.amount}\nPaid: ₹${payload.advance}\nBalance Due: ₹${payload.balance}\n\nWe will notify you when it is ready!`;
             window.open(getWhatsAppLink(phone, msg), '_blank');
 
             document.getElementById('new-order-form').reset();
@@ -1834,6 +1893,7 @@
                 renderPRClient();
 
                 if (parseFloat(newBalance) <= 0) {
+                    // AUTOMATIC BILL — generated the moment the balance hits zero
                     generateAndDownloadOrderPDF(order);
                     
                     let msg = `Dear ${order.client},\nYour payment for Order ${order.orderId} has been fully received. Your pending balance is ₹0.00.\n\nThank you for choosing iam des!gns!`;
@@ -1842,63 +1902,179 @@
             }
         }
 
+        // ==========================================
+        // AUTOMATIC BILL (iam des!gns printed format)
+        // ==========================================
+        function getIamBillNo(orderId) {
+            let map = {};
+            try { map = JSON.parse(localStorage.getItem('iam_bill_numbers') || '{}'); } catch (e) { map = {}; }
+            if (map[orderId]) return map[orderId];
+
+            const d = new Date();
+            const fy = d.getMonth() < 3 ? d.getFullYear() - 1 : d.getFullYear();
+            const prefix = String(fy).slice(-2) + '-' + String(fy + 1).slice(-2);
+            const key = 'iam_bill_counter_' + prefix;
+            const counter = parseInt(localStorage.getItem(key)) || 1;
+
+            const billNo = `${prefix}/${String(counter).padStart(3, '0')}`;
+            localStorage.setItem(key, counter + 1);
+            map[orderId] = billNo;
+            localStorage.setItem('iam_bill_numbers', JSON.stringify(map));
+            return billNo;
+        }
+
+        function iamEsc(s) {
+            return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        }
+
+        function getIamBillItems(order) {
+            let raw = order.items;
+            if (typeof raw === 'string') { try { raw = JSON.parse(raw); } catch (e) { raw = null; } }
+
+            if (Array.isArray(raw) && raw.length) {
+                return raw.map(it => ({
+                    desc: it.desc || it.work || '',
+                    size: it.size || '',
+                    qty: (it.qty || it.qty === 0) ? it.qty : '',
+                    amount: (it.amount || it.amount === 0) ? parseFloat(it.amount) : ''
+                }));
+            }
+
+            // Older orders: rebuild lines from the saved work text
+            const total = parseFloat(order.amount) || parseFloat(order.advance) || 0;
+            const parts = (order.work || 'Design / Printing Work').split(', ').filter(Boolean);
+            return parts.map(p => {
+                const seg = p.split(' - ');
+                return {
+                    desc: seg[0].trim(),
+                    size: seg.slice(1).join(' - ').trim(),
+                    qty: '',
+                    amount: parts.length === 1 ? total : ''
+                };
+            });
+        }
+
+        function buildIamBillHTML(order, billNo) {
+            const items = getIamBillItems(order);
+            const summed = items.reduce((t, i) => t + (parseFloat(i.amount) || 0), 0);
+            const grand = parseFloat(order.amount) || summed || parseFloat(order.advance) || 0;
+            const dateStr = new Date().toLocaleDateString('en-GB');
+
+            const cellL = "background:#e6e6e6;padding:12px 14px;font-size:13px;font-weight:600;color:#333;";
+            const cellC = cellL + "text-align:center;";
+            const cellR = cellL + "text-align:right;";
+            const head  = "background:#555555;color:#ffffff;font-size:14px;font-weight:600;padding:13px 14px;";
+
+            let rows = '';
+            items.forEach(it => {
+                rows += `<tr>
+                    <td style="${cellL}">${iamEsc(it.desc)}</td>
+                    <td style="${cellC}">${iamEsc(it.size)}</td>
+                    <td style="${cellC}">${it.qty === '' ? '' : iamEsc(it.qty)}</td>
+                    <td style="${cellR}">${(it.amount === '' || isNaN(parseFloat(it.amount))) ? '' : '₹' + parseFloat(it.amount).toFixed(2)}</td>
+                </tr>`;
+            });
+            for (let i = items.length; i < 2; i++) {
+                rows += `<tr><td style="${cellL}">&nbsp;</td><td style="${cellC}">&nbsp;</td><td style="${cellC}">&nbsp;</td><td style="${cellR}">&nbsp;</td></tr>`;
+            }
+            rows += `<tr>
+                <td style="background:#ffffff;"></td>
+                <td style="background:#ffffff;"></td>
+                <td style="${cellC}font-weight:800;">Total</td>
+                <td style="${cellR}font-weight:800;">₹${grand.toFixed(2)}</td>
+            </tr>`;
+
+            const icon = "display:inline-block;width:22px;height:22px;border-radius:50%;background:#f26522;color:#fff;font-size:12px;line-height:22px;text-align:center;margin-right:12px;vertical-align:top;font-family:Arial,sans-serif;";
+
+            return `
+            <div style="width:800px;min-height:1120px;background:#ffffff;color:#333333;font-family:'Montserrat','Poppins',Arial,sans-serif;position:relative;display:flex;flex-direction:column;">
+
+                <div style="height:38px;background:#e3e3e3;"></div>
+
+                <div style="position:absolute;top:0;right:64px;width:172px;">
+                    <div style="background:#f26522;padding:20px 0 16px 0;text-align:center;">
+                        <div style="color:#ffffff;font-size:56px;font-weight:800;line-height:1;letter-spacing:-1px;">iam</div>
+                        <div style="display:inline-block;border:2px solid #ffffff;padding:2px 10px;margin-top:8px;color:#ffffff;font-size:22px;font-weight:700;letter-spacing:1px;">des!gns</div>
+                    </div>
+                    <div style="height:13px;background:#4a4a4a;"></div>
+                    <div style="padding:14px 0 0 14px;">
+                        <div style="font-size:15px;font-weight:800;color:#f26522;">BILL : <span style="color:#333333;">${iamEsc(billNo)}</span></div>
+                        <div style="font-size:14px;font-weight:800;color:#333333;margin-top:6px;">DATE : ${dateStr}</div>
+                    </div>
+                </div>
+
+                <div style="padding:46px 64px 0 64px;">
+                    <div style="width:62%;background:#ececec;border-left:4px solid #f26522;padding:20px 24px;min-height:120px;">
+                        <div style="font-size:15px;font-weight:700;color:#333333;">Bill to</div>
+                        <div style="font-size:25px;font-weight:800;color:#f26522;margin:8px 0 6px 0;">${iamEsc(order.client || 'Client Name')}</div>
+                        <div style="font-size:15px;font-weight:600;color:#333333;">${iamEsc(order.phone || '')}</div>
+                        <div style="font-size:13px;font-weight:600;color:#777777;margin-top:10px;">Order ID : ${iamEsc(order.orderId || '')}</div>
+                    </div>
+                </div>
+
+                <div style="padding:36px 64px 0 64px;">
+                    <table style="width:100%;border-collapse:separate;border-spacing:3px;">
+                        <thead>
+                            <tr>
+                                <th style="${head}text-align:left;width:52%;">Description</th>
+                                <th style="${head}text-align:center;width:16%;">Size</th>
+                                <th style="${head}text-align:center;width:16%;">Copies</th>
+                                <th style="${head}text-align:center;width:16%;">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>${rows}</tbody>
+                    </table>
+                    <div style="margin-top:18px;font-size:13px;font-weight:700;color:#22a06b;">Paid in full — balance ₹0.00. Thank you!</div>
+                </div>
+
+                <div style="flex:1;"></div>
+
+                <div style="padding:0 64px;text-align:right;">
+                    <div style="font-size:21px;font-weight:800;color:#333333;"><span style="color:#f26522;">A</span>nil <span style="color:#f26522;">M</span>alle</div>
+                </div>
+
+                <div style="padding:70px 64px 26px 64px;font-size:14px;font-weight:600;color:#333333;line-height:1.5;">
+                    <div style="margin-bottom:12px;"><span style="${icon}">&#8962;</span><span style="display:inline-block;">Shop No. F-4,5, Majestic Complex,<br>Cinema Road, KAKINADA.</span></div>
+                    <div style="margin-bottom:12px;"><span style="${icon}">&#9742;</span>+91 92999 99564</div>
+                    <div><span style="${icon}">&#9993;</span>iamdesign81@gmail.com</div>
+                </div>
+
+                <div style="height:38px;background:#e3e3e3;"></div>
+            </div>`;
+        }
+
         function generateAndDownloadOrderPDF(order) {
-            const receiptDiv = document.createElement('div');
-            receiptDiv.style.padding = '40px';
-            receiptDiv.style.fontFamily = "'Montserrat', sans-serif";
-            receiptDiv.style.color = '#111';
-            receiptDiv.style.background = '#fff';
-            receiptDiv.style.width = '800px';
+            if (!order) return;
+            const billNo = getIamBillNo(order.orderId);
 
-            const totalAmt = parseFloat(order.amount) || parseFloat(order.advance) || 0;
+            const wrap = document.createElement('div');
+            wrap.innerHTML = buildIamBillHTML(order, billNo);
+            wrap.style.position = 'absolute';
+            wrap.style.left = '-9999px';
+            wrap.style.top = '0';
+            document.body.appendChild(wrap);
 
-            receiptDiv.innerHTML = `
-                <div style="border-bottom: 2px solid #f26522; padding-bottom: 20px; margin-bottom: 20px; text-align: center;">
-                    <h1 style="color: #f26522; margin: 0; font-size: 28px; font-weight: 800;">iam des!gns</h1>
-                    <p style="margin: 5px 0 0 0; font-size: 14px; color: #666;">Payment Receipt / Zero Balance Confirmation</p>
-                </div>
-                <div style="display: flex; justify-content: space-between; margin-bottom: 30px;">
-                    <div>
-                        <p style="margin: 0 0 5px 0;"><strong>Order ID:</strong> ${order.orderId}</p>
-                        <p style="margin: 0;"><strong>Date:</strong> ${new Date().toLocaleDateString()}</p>
-                    </div>
-                    <div style="text-align: right;">
-                        <p style="margin: 0 0 5px 0;"><strong>Client:</strong> ${order.client}</p>
-                        <p style="margin: 0;"><strong>Contact:</strong> ${order.phone}</p>
-                    </div>
-                </div>
-                <div style="background: #f7f8fa; padding: 20px; border-radius: 12px; border: 1px solid #eee;">
-                    <p style="margin: 0 0 10px 0; font-size: 15px;"><strong>Work Details:</strong> ${order.work || 'Design / Printing Work'}</p>
-                    <hr style="border: none; border-top: 1px dashed #ccc; margin: 15px 0;">
-                    <p style="margin: 0 0 10px 0; font-size: 15px; display: flex; justify-content: space-between;">
-                        <span>Total Amount:</span> <strong>₹${totalAmt.toFixed(2)}</strong>
-                    </p>
-                    <p style="margin: 0 0 10px 0; font-size: 15px; display: flex; justify-content: space-between;">
-                        <span>Total Paid (Advance + Current):</span> <strong style="color: #22c55e;">₹${(parseFloat(order.advance) || 0).toFixed(2)}</strong>
-                    </p>
-                    <div style="margin-top: 20px; padding-top: 15px; border-top: 2px solid #111; display: flex; justify-content: space-between; font-size: 18px;">
-                        <strong>Balance Due:</strong> <strong style="color: #22c55e;">₹0.00</strong>
-                    </div>
-                </div>
-                <div style="text-align: center; margin-top: 40px; font-size: 13px; color: #777;">
-                    <p>This is a computer-generated receipt.</p>
-                    <p style="font-weight: bold; color: #111;">Thanks For Your Business!</p>
-                </div>
-            `;
+            showToast("Generating bill " + billNo + "...");
 
-            receiptDiv.style.position = 'absolute';
-            receiptDiv.style.left = '-9999px';
-            document.body.appendChild(receiptDiv);
-
-            html2pdf().from(receiptDiv).set({
+            html2pdf().from(wrap.firstElementChild).set({
                 margin: 0,
-                filename: `Receipt_${order.orderId}.pdf`,
-                image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2 },
+                filename: `Bill_${billNo.replace(/\//g, '-')}_${order.client || ''}.pdf`.replace(/\s+/g, '_'),
+                image: { type: 'jpeg', quality: 1.0 },
+                html2canvas: { scale: 3, useCORS: true, letterRendering: true, backgroundColor: '#ffffff' },
                 jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
             }).save().then(() => {
-                document.body.removeChild(receiptDiv);
+                document.body.removeChild(wrap);
+            }).catch(() => {
+                document.body.removeChild(wrap);
+                alert("Could not generate the bill PDF.");
             });
+        }
+
+        // Reprint a bill any time (same bill number is reused)
+        function printIamBill(orderId) {
+            const o = appData.orders[orderId];
+            if (!o) return alert("Order not found.");
+            generateAndDownloadOrderPDF(o);
         }
 
         function searchDelivery() {
@@ -1984,6 +2160,25 @@
                     <div class="form-group"><label>Rate (₹)</label><input type="number" class="vm-mat-rate"></div>
                 </div>`;
             updateAllVendorDropdowns();
+        }
+
+        async function saveOldVendorBalance() {
+            const vendor = document.getElementById('old-bal-vendor').value;
+            const amt = parseFloat(document.getElementById('old-bal-amt').value) || 0;
+            const desc = document.getElementById('old-bal-desc').value.trim() || 'Old Pending Balance';
+
+            if(!vendor) return alert("Please choose a vendor.");
+            if(amt <= 0) return alert("Enter a valid amount.");
+
+            const entry = { date: new Date().toISOString(), orderId: 'OPENING', vendor: vendor, work: desc, amount: amt, is_paid: false };
+            const { data, error } = await supabaseClient.from('vendor_allotments_history').insert([entry]).select();
+            if(error) return alert("Save Error: " + error.message);
+
+            if(data) appData.vendorAllotmentsHistory.push(data[0]);
+            document.getElementById('old-bal-amt').value = '';
+            showToast("Opening balance added for " + vendor);
+            renderPRVendor();
+            renderVendorReport();
         }
 
         async function saveStaff() {
@@ -2279,14 +2474,14 @@
             }
 
             if(filtered.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding: 20px;">No matching orders.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding: 20px;">No matching orders.</td></tr>`;
                 return;
             }
 
             filtered.forEach(o => {
                 const isPaid = (parseFloat(o.balance) || 0) <= 0;
                 const dateStr = o.date ? new Date(o.date).toLocaleDateString() : 'N/A';
-                tbody.innerHTML += `<tr><td>${dateStr}</td><td><strong>${o.orderId || 'N/A'}</strong></td><td>${o.client || 'N/A'}</td><td>${o.work || 'N/A'}</td><td style="font-weight:bold;">₹${o.amount || 0}</td><td>${isPaid ? '<span class="status-badge status-ready-for-delivery">Paid</span>' : `<span class="status-badge status-designing">Pending (₹${o.balance})</span>`}</td></tr>`;
+                tbody.innerHTML += `<tr><td>${dateStr}</td><td><strong>${o.orderId || 'N/A'}</strong></td><td>${o.client || 'N/A'}</td><td>${o.work || 'N/A'}</td><td style="font-weight:bold;">₹${o.amount || 0}</td><td>${isPaid ? '<span class="status-badge status-ready-for-delivery">Paid</span>' : `<span class="status-badge status-designing">Pending (₹${o.balance})</span>`}</td><td><button class="btn-secondary" style="padding: 6px 12px; font-size: 11px;" onclick="printIamBill('${o.orderId}')">🧾 Bill</button></td></tr>`;
             });
         }
 
@@ -2536,7 +2731,7 @@
                 if (row.cells.length > 0) {
                     // Check if this is the Grand Total row (which has a colspan of 5)
                     if (row.cells.length === 2 && row.cells[0].colSpan === 5) {
-                        // Adjust the final colspan so it fits the new 6-column layout (spans Date, ID, Client, Contact, Work)
+                        // Adjust the final colspan so it fits the new 6-column layout
                         row.cells[1].colSpan = 1;
                     } else {
                         // Delete the last cell (the "Action" column with the WhatsApp button)
@@ -2574,13 +2769,12 @@
 
             // Generate PDF with high resolution (scale: 3) mapped perfectly to A4
             html2pdf().from(pdfDiv).set({
-                margin: [0.5, 0.5, 0.5, 0.5], // Half-inch margins all around
+                margin: [0.5, 0.5, 0.5, 0.5],
                 filename: `Pending_Client_Dues_${Date.now()}.pdf`,
                 image: { type: 'jpeg', quality: 1.0 },
-                html2canvas: { scale: 3, useCORS: true, letterRendering: true }, // Scale 3 ensures crisp, non-blurry text
+                html2canvas: { scale: 3, useCORS: true, letterRendering: true },
                 jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
             }).save().then(() => {
-                // Clean up the temporary div after saving
                 document.body.removeChild(pdfDiv);
             });
         }
@@ -2968,7 +3162,6 @@
         // WEB CONTENT: TRUSTED LOGOS LOGIC
         // ==========================================
         
-        // 1. Render the logos in the table
         function renderTrustedLogos() {
             const tbody = document.querySelector('#trusted-logos-table tbody');
             if(!tbody) return;
@@ -2991,21 +3184,14 @@
             });
         }
 
-        // 2. Handle adding a new logo from the form
         async function handleClientLogoSubmit(e) {
             e.preventDefault();
             const clientName = document.getElementById('client-name').value.trim();
-            const fileInput = document.getElementById('client-img');
             
             if(!clientName) return alert("Client name is required");
 
-            // Create a temporary object (Upload logic to Supabase Storage would go here if needed)
-            const newLogoObj = { 
-                id: Date.now(), // Generate a temp ID, Supabase will override this if configured
-                name: clientName 
-            };
+            const newLogoObj = { id: Date.now(), name: clientName };
 
-            // Attempt to insert into Supabase table 'trusted_logos'
             const { data, error } = await supabaseClient.from('trusted_logos').insert([{ name: clientName }]).select();
             
             if (error) {
@@ -3020,28 +3206,27 @@
             renderTrustedLogos();
         }
 
-        // 3. Handle deleting the logo
         async function removeTrustedLogo(id) {
             if(!confirm("Are you sure you want to remove this client logo?")) return;
             
-            // Attempt to delete from Supabase
             const { error } = await supabaseClient.from('trusted_logos').delete().eq('id', id);
             if(error) {
                 console.warn("Could not delete from Supabase: " + error.message);
             }
 
-            // Remove locally and re-render
             appData.trustedLogos = appData.trustedLogos.filter(l => String(l.id) !== String(id));
             renderTrustedLogos();
             showToast("Trusted Logo Removed!");
         }
 
-        // Placeholder for portfolio submit
         function handlePortfolioSubmit(e) {
             e.preventDefault();
             showToast("Portfolio item logic not yet connected.");
             document.getElementById('portfolio-form').reset();
         }
+
+        // Draw the first New Order work row on load
+        resetWorkRows();
     </script>
 </body>
 </html>
