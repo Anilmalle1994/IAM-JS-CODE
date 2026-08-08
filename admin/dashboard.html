@@ -1688,6 +1688,11 @@
             appData.orders[orderId] = payload;
             showToast("Order Saved to Cloud!");
 
+            // Paid in full at the counter — no balance ever pending, so bill it right away
+            if ((parseFloat(payload.amount) || 0) > 0 && (parseFloat(payload.balance) || 0) <= 0) {
+                await autoIssueBill(payload);
+            }
+
             let msg = `Hello ${client},\nYour order ${orderId} has been successfully placed with iam des!gns.\n\nWork : ${workString}\nTotal Amount: ₹${payload.amount}\nPaid: ₹${payload.advance}\nBalance Due: ₹${payload.balance}\n\nWe will notify you when it is ready!`;
             window.open(getWhatsAppLink(phone, msg), '_blank');
 
@@ -1893,8 +1898,9 @@
                 renderPRClient();
 
                 if (parseFloat(newBalance) <= 0) {
-                    // AUTOMATIC BILL — generated the moment the balance hits zero
-                    generateAndDownloadOrderPDF(order);
+                    // AUTOMATIC BILL — generated the moment the balance hits zero.
+                    // Awaited first: opening WhatsApp straight away can cancel the download.
+                    await autoIssueBill(order);
                     
                     let msg = `Dear ${order.client},\nYour payment for Order ${order.orderId} has been fully received. Your pending balance is ₹0.00.\n\nThank you for choosing iam des!gns!`;
                     window.open(getWhatsAppLink(order.phone, msg), '_blank');
@@ -2043,8 +2049,23 @@
             </div>`;
         }
 
-        function generateAndDownloadOrderPDF(order) {
+        // Fires the bill once, automatically, the first time an order reaches zero balance.
+        async function autoIssueBill(order) {
             if (!order) return;
+            if ((parseFloat(order.balance) || 0) > 0) return;
+
+            let issued = {};
+            try { issued = JSON.parse(localStorage.getItem('iam_bills_issued') || '{}'); } catch (e) { issued = {}; }
+            if (issued[order.orderId]) return;   // already issued — use the Print Bill button to reprint
+
+            issued[order.orderId] = new Date().toISOString();
+            localStorage.setItem('iam_bills_issued', JSON.stringify(issued));
+
+            await generateAndDownloadOrderPDF(order);
+        }
+
+        function generateAndDownloadOrderPDF(order) {
+            if (!order) return Promise.resolve();
             const billNo = getIamBillNo(order.orderId);
 
             const wrap = document.createElement('div');
@@ -2056,7 +2077,7 @@
 
             showToast("Generating bill " + billNo + "...");
 
-            html2pdf().from(wrap.firstElementChild).set({
+            return html2pdf().from(wrap.firstElementChild).set({
                 margin: 0,
                 filename: `Bill_${billNo.replace(/\//g, '-')}_${order.client || ''}.pdf`.replace(/\s+/g, '_'),
                 image: { type: 'jpeg', quality: 1.0 },
