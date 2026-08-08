@@ -192,7 +192,6 @@
         /* EXPERTISE */
         .spec { border-top: 1px solid var(--line); }
         
-        /* Fixed robust grid layout for capability rows */
         .spec-row { position: relative; display: grid; grid-template-columns: 74px 1.1fr 1.3fr 44px; align-items: center; gap: 32px; padding: 38px 0; border-bottom: 1px solid var(--line); width: 100%; }
         
         .spec-row::before { content: ''; position: absolute; left: -8%; right: -8%; top: 0; bottom: 0; background: linear-gradient(90deg, rgba(242,101,34,.09), rgba(242,101,34,0) 72%); opacity: 0; transform: translateX(-28px); transition: opacity .55s var(--ease), transform .55s var(--ease); }
@@ -247,19 +246,8 @@
         .client-logo { height: 56px; max-width: 150px; object-fit: contain; flex-shrink: 0; filter: grayscale(1); opacity: .55; transition: transform .5s var(--ease), opacity .4s, filter .4s, drop-shadow .4s; }
         .client-logo:hover { transform: scale(1.14); opacity: 1; filter: grayscale(0); drop-shadow: 0 10px 15px rgba(0,0,0,0.1); }
 
-        /* GOOGLE REVIEWS */
-        .review-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
-        .review-card { padding: 32px; border: 1px solid var(--glass-border); border-radius: 20px; background: rgba(255,255,255,0.6); backdrop-filter: blur(10px); box-shadow: var(--shadow-soft); transition: transform .5s var(--ease), box-shadow .5s var(--ease); display: flex; flex-direction: column; gap: 16px; }
-        .review-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-lift); border-color: var(--primary-glow); }
-        .review-stars { color: #f59e0b; font-size: 18px; letter-spacing: 2px; }
-        .review-text { font-size: 15px; line-height: 1.8; color: var(--gray); flex-grow: 1; font-style: italic; }
-        .review-author { display: flex; align-items: center; gap: 12px; margin-top: 10px; border-top: 1px solid var(--line); padding-top: 16px; }
-        .review-avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--primary-glow); color: var(--primary); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 16px; }
-        .review-name { font-weight: 600; font-size: 14px; color: var(--dark); }
-        .review-date { font-size: 11px; color: var(--gray); }
-
         /* ============================================================
-           10. CONTACT & IMPROVED FILE ATTACHMENT
+           10. CONTACT, MAP & IMPROVED FILE ATTACHMENT
            ============================================================ */
         .transmit { display: grid; grid-template-columns: .85fr 1.15fr; gap: 70px; }
         .channel { display: flex; flex-direction: column; padding: 26px 0; border-bottom: 1px solid var(--line); }
@@ -267,6 +255,12 @@
         .channel span { color: var(--primary); margin-bottom: 11px; }
         .channel a, .channel p { color: var(--dark); font-size: 19px; font-weight: 600; text-decoration: none; line-height: 1.65; transition: color .3s, transform .4s var(--ease), text-shadow .3s; }
         .channel a:hover { color: var(--primary); transform: translateX(4px); text-shadow: 0 0 10px rgba(242,101,34,0.2); }
+
+        /* Map styling */
+        .map-wrap { margin-top: 24px; width: 100%; height: 220px; border-radius: 16px; overflow: hidden; border: 1px solid var(--glass-border); box-shadow: var(--shadow-soft); position: relative; z-index: 1; transition: box-shadow .4s var(--ease), transform .4s var(--ease); }
+        .map-wrap:hover { box-shadow: var(--shadow-lift); transform: translateY(-4px); }
+        .map-wrap iframe { width: 100%; height: 100%; border: none; filter: grayscale(0.5) contrast(1.1); transition: filter 0.5s var(--ease); }
+        .map-wrap:hover iframe { filter: grayscale(0) contrast(1); }
 
         .form { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
         .field { position: relative; }
@@ -276,13 +270,11 @@
         .form textarea { height: 175px; resize: none; }
         .form input:focus, .form textarea:focus { outline: none; border-color: var(--primary); background: var(--white); box-shadow: 0 12px 30px rgba(242,101,34,.12), inset 0 0 0 1px var(--primary); transform: translateY(-2px); }
         
-        /* FIX FOR OVERLAPPING BUTTON: ONLY target text inputs, NOT the file drop zone */
         .field > label:not(.file-drop) { position: absolute; left: 21px; top: 22px; color: var(--gray); font-size: 15px; pointer-events: none; transition: all .32s var(--ease); }
         
         .form input:focus + label:not(.file-drop), .form textarea:focus + label:not(.file-drop),
         .form input:not(:placeholder-shown) + label:not(.file-drop), .form textarea:not(:placeholder-shown) + label:not(.file-drop) { top: 10px; font-size: 10px; letter-spacing: 2.5px; text-transform: uppercase; color: var(--primary); font-weight: 700; text-shadow: 0 0 8px rgba(242,101,34,0.3); }
 
-        /* File Drop Area */
         .file-drop { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; padding: 30px 22px; border: 2px dashed rgba(35,35,35,.20); border-radius: 14px; background: rgba(249, 249, 249, 0.5); color: var(--gray); cursor: pointer; text-align: center; font-weight: 600; font-size: 15px; transition: all .4s var(--ease); min-height: 100px; position: relative; overflow: hidden; margin-bottom: 10px; }
         .file-drop::before { content: ''; position: absolute; inset: 0; background: var(--primary); opacity: 0; transition: opacity .4s; z-index: 0; }
         .file-drop:hover { border-color: var(--primary); color: var(--primary); transform: translateY(-2px); box-shadow: 0 10px 25px rgba(242,101,34,.1); }
@@ -292,7 +284,6 @@
         .file-drop.has-file { border-style: solid; border-color: #22c55e; color: #166534; background: rgba(34, 197, 94, 0.05); box-shadow: 0 10px 25px rgba(34, 197, 94, 0.15); }
         .file-drop.has-file:hover { border-color: #16a34a; }
         
-        /* Preview container for image uploads */
         #file-preview-container { margin-bottom: 15px; border-radius: 8px; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.1); display: none; background: #fff; padding: 4px; border: 1px solid var(--line); }
         #file-preview { display: block; max-height: 120px; max-width: 100%; object-fit: contain; border-radius: 4px; }
         
@@ -334,13 +325,9 @@
             .archive-plate { position: static; max-width: 100%; text-align: center; margin-bottom: 40px; }
             .archive-plate img { margin: 0 auto; }
             
-            /* Bento Grid fix for tablet */
             .bento { grid-template-columns: repeat(2, 1fr); grid-auto-rows: 220px; }
             .bento-item:nth-child(n) { grid-column: span 1; grid-row: span 1; }
             .bento-item:nth-child(4n+1), .bento-item:nth-child(4n+4) { grid-column: span 2; }
-
-            /* Review Grid */
-            .review-grid { grid-template-columns: repeat(2, 1fr); }
         }
 
         @media (max-width: 860px) {
@@ -374,21 +361,16 @@
         }
         
         @media (max-width: 600px) {
-            /* Full mobile optimization */
             .hero-title { font-size: 42px; line-height: 1; letter-spacing: -2px; }
             .hero-actions { flex-direction: column; width: 100%; }
             .btn { width: 100%; }
             
-            /* Single column grid on small phones */
             .bento { grid-template-columns: 1fr; grid-auto-rows: 240px; }
             .bento-item:nth-child(n) { grid-column: span 1; grid-row: span 1; }
             
             .readout { grid-template-columns: 1fr; }
             .readout-cell:nth-child(2n) { border-right: 1px solid var(--line); }
             .readout-cell, .readout-cell:first-child, .readout-cell:nth-child(2n) { padding: 24px 15px; text-align: center; border-right: 0; }
-
-            /* Review Grid */
-            .review-grid { grid-template-columns: 1fr; }
         }
 
         @media (prefers-reduced-motion: reduce) {
@@ -652,7 +634,7 @@
         </div>
     </section>
 
-    <!-- ===== GOOGLE REVIEWS ===== -->
+    <!-- ===== GOOGLE REVIEWS (ELFSIGHT) ===== -->
     <section id="reviews" class="band">
         <div class="band-head">
             <div>
@@ -662,9 +644,10 @@
             <p class="band-note rv" style="--d:200ms">What people are saying about us on Google.</p>
         </div>
 
-        <!-- The reviews will load inside this container -->
-        <div class="review-grid rv" style="--d:240ms" id="google-reviews-grid">
-            <!-- WIDGET CODE CAN BE PASTED HERE, OR THE SCRIPT BELOW WILL FILL IT WITH MOCK DATA -->
+        <!-- Elfsight Google Reviews Widget -->
+        <div class="rv" style="--d:240ms; width: 100%;">
+            <script src="https://elfsightcdn.com/platform.js" async></script>
+            <div class="elfsight-app-0264327e-db72-45f3-8bff-3c61ee5b280d" data-elfsight-app-lazy></div>
         </div>
     </section>
 
@@ -682,7 +665,18 @@
             <div class="channels rv">
                 <div class="channel"><span class="tag">Email</span><a href="mailto:iamdesign81@gmail.com">iamdesign81@gmail.com</a></div>
                 <div class="channel"><span class="tag">Phone</span><a href="tel:+919299999564">+91 92999 99564</a></div>
-                <div class="channel"><span class="tag">Work Station</span><p>Majestic Complex, Cinema Road,<br>Kakinada, Andhra Pradesh, India</p></div>
+                
+                <!-- Updated Location with Clickable Link and Map -->
+                <div class="channel">
+                    <span class="tag">Work Station</span>
+                    <a href="https://share.google/tCZVD6L8lSbEDVqmV" target="_blank" rel="noopener noreferrer" title="View on Google Maps">
+                        Majestic Complex, Cinema Road,<br>Kakinada, Andhra Pradesh, India ↗
+                    </a>
+                    
+                    <div class="map-wrap">
+                        <iframe src="https://maps.google.com/maps?q=Majestic+Complex,+Cinema+Road,+Kakinada&t=&z=15&ie=UTF8&iwloc=&output=embed" allowfullscreen loading="lazy"></iframe>
+                    </div>
+                </div>
             </div>
 
             <form class="form rv" id="contact-form" style="--d:120ms">
@@ -703,11 +697,9 @@
                     <label for="contact-message">Tell us about your project...</label>
                 </div>
 
-                <!-- FILE UPLOAD WITH CSS FIX SO BUTTON DOES NOT OVERLAP -->
                 <div class="field full" style="position: relative;">
                     <input type="file" id="contact-file" style="display:none" accept="image/*, .pdf, .doc, .docx">
                     <label for="contact-file" class="file-drop" id="contact-file-label">
-                        <!-- Image Preview Holder -->
                         <div id="file-preview-container">
                             <img id="file-preview" alt="File Preview" />
                         </div>
@@ -833,7 +825,7 @@
                 requestAnimationFrame(loop);
             };
             loop();
-            document.querySelectorAll('a, button, .spec-row, .bento-item, label, input, textarea, .file-drop, .review-card').forEach(el => {
+            document.querySelectorAll('a, button, .spec-row, .bento-item, label, input, textarea, .file-drop, .map-wrap').forEach(el => {
                 el.addEventListener('mouseenter', () => dot.classList.add('grow'));
                 el.addEventListener('mouseleave', () => dot.classList.remove('grow'));
             });
@@ -865,7 +857,7 @@
         })();
 
         /* ============================================================
-           SITE LOGIC — Supabase content + Reviews + Contact form
+           SITE LOGIC — Supabase content + Contact form
            ============================================================ */
         document.addEventListener('DOMContentLoaded', () => {
             const SUPABASE_URL = 'https://wrqkrpysvhtjenxyytfp.supabase.co';
@@ -906,43 +898,6 @@
                 }
             }
             loadWebContent();
-
-            /* Load Google Reviews (Simulated/Placeholder for Google API or Supabase) */
-            async function loadReviews() {
-                const grid = document.getElementById('google-reviews-grid');
-                if (!grid) return;
-                
-                // NOTE: If you decide to use Elfsight Widget, simply delete this mock data code
-                // and place the widget <script> tag directly in the HTML.
-                // Otherwise, replace this with a fetch request to your Supabase Edge Function!
-                
-                const mockReviews = [
-                    { author_name: "Rahul K.", rating: 5, text: "Absolutely phenomenal quality! The print materials for our corporate event exceeded all expectations. Anil is amazing to work with.", time_description: "2 weeks ago" },
-                    { author_name: "Sneha Reddy", rating: 5, text: "He perfectly captured our brand identity and the packaging design looks incredibly premium. Highly recommend Sri Annapurna Graphics.", time_description: "1 month ago" },
-                    { author_name: "Vikram S.", rating: 5, text: "Best printing service in Kakinada. Fast turnaround, great communication, and flawless execution for our wedding invites.", time_description: "2 months ago" }
-                ];
-
-                grid.innerHTML = '';
-                mockReviews.forEach((review, i) => {
-                    const initial = review.author_name.charAt(0);
-                    const stars = '★'.repeat(review.rating) + '☆'.repeat(5 - review.rating);
-                    grid.innerHTML += `
-                        <div class="review-card rv" style="--d:${i * 120}ms">
-                            <div class="review-stars">${stars}</div>
-                            <div class="review-text">"${review.text}"</div>
-                            <div class="review-author">
-                                <div class="review-avatar">${initial}</div>
-                                <div>
-                                    <div class="review-name">${review.author_name}</div>
-                                    <div class="review-date">${review.time_description}</div>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                });
-                watch(grid);
-            }
-            loadReviews();
 
             /* Contact Form & Visual File Upload Logic */
             const contactForm = document.getElementById('contact-form');
@@ -989,7 +944,7 @@
                     }
                 });
                 
-                // Handle Remove Button click (prevent opening file dialog)
+                // Handle Remove Button click
                 fileRemoveBtn.addEventListener('click', function(e) {
                     e.preventDefault();
                     resetFileUI();
