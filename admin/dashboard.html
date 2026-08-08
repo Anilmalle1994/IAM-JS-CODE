@@ -1892,6 +1892,15 @@
                 if(error) return alert("Payment Error: " + error.message);
 
                 order.advance = newAdvance; order.balance = newBalance;
+
+                // Remember any discount / round-off so it prints on the bill
+                if (ro > 0) {
+                    let disc = {};
+                    try { disc = JSON.parse(localStorage.getItem('iam_bill_discounts') || '{}'); } catch (e) { disc = {}; }
+                    disc[order.orderId] = (parseFloat(disc[order.orderId]) || 0) + ro;
+                    localStorage.setItem('iam_bill_discounts', JSON.stringify(disc));
+                }
+
                 showToast(`Payment applied.`);
                 closePaymentModal(); searchPayment(); updateDashboardStats();
                 renderAllOrders();
@@ -1960,7 +1969,48 @@
             });
         }
 
-        function buildIamBillHTML(order, billNo) {
+        // ---- Logo used on the printed bill ----
+        // Add or reorder paths here if your logo file sits somewhere else.
+        const IAM_LOGO_PATHS = ['../LOGO.jpg.jpeg', 'LOGO.jpg.jpeg', '../LOGO.jpg', 'LOGO.jpg'];
+        let iamLogoBlockCache = null;
+
+        function getIamLogoBlock() {
+            if (iamLogoBlockCache) return Promise.resolve(iamLogoBlockCache);
+
+            // Drawn fallback, used only if no logo file loads
+            const fallback = `
+                <div style="background:#f26522;padding:20px 0 16px 0;text-align:center;">
+                    <div style="color:#ffffff;font-size:56px;font-weight:800;line-height:1;letter-spacing:-1px;">iam</div>
+                    <div style="display:inline-block;border:2px solid #ffffff;padding:2px 10px;margin-top:8px;color:#ffffff;font-size:22px;font-weight:700;letter-spacing:1px;">des!gns</div>
+                </div>`;
+
+            return new Promise(resolve => {
+                let i = 0;
+                const tryNext = () => {
+                    if (i >= IAM_LOGO_PATHS.length) {
+                        iamLogoBlockCache = fallback;
+                        return resolve(iamLogoBlockCache);
+                    }
+                    const src = IAM_LOGO_PATHS[i++];
+                    const img = new Image();
+                    img.onload = () => {
+                        iamLogoBlockCache = `<div style="background:#f26522;text-align:center;"><img src="${src}" style="width:100%;height:auto;display:block;"></div>`;
+                        resolve(iamLogoBlockCache);
+                    };
+                    img.onerror = tryNext;
+                    img.src = src;
+                };
+                tryNext();
+            });
+        }
+
+        function getIamBillDiscount(orderId) {
+            let disc = {};
+            try { disc = JSON.parse(localStorage.getItem('iam_bill_discounts') || '{}'); } catch (e) { disc = {}; }
+            return parseFloat(disc[orderId]) || 0;
+        }
+
+        function buildIamBillHTML(order, billNo, logoBlock) {
             const items = getIamBillItems(order);
             const summed = items.reduce((t, i) => t + (parseFloat(i.amount) || 0), 0);
             const grand = parseFloat(order.amount) || summed || parseFloat(order.advance) || 0;
@@ -1990,6 +2040,23 @@
                 <td style="${cellR}font-weight:800;">₹${grand.toFixed(2)}</td>
             </tr>`;
 
+            const discount = getIamBillDiscount(order.orderId);
+            if (discount > 0) {
+                const netPaid = Math.max(0, grand - discount);
+                rows += `<tr>
+                    <td style="background:#ffffff;"></td>
+                    <td style="background:#ffffff;"></td>
+                    <td style="${cellC}font-weight:800;">Discount</td>
+                    <td style="${cellR}font-weight:800;color:#c0392b;">- ₹${discount.toFixed(2)}</td>
+                </tr>
+                <tr>
+                    <td style="background:#ffffff;"></td>
+                    <td style="background:#ffffff;"></td>
+                    <td style="${cellC}font-weight:800;">Net Paid</td>
+                    <td style="${cellR}font-weight:800;">₹${netPaid.toFixed(2)}</td>
+                </tr>`;
+            }
+
             const icon = "display:inline-block;width:22px;height:22px;border-radius:50%;background:#f26522;color:#fff;font-size:12px;line-height:22px;text-align:center;margin-right:12px;vertical-align:top;font-family:Arial,sans-serif;";
 
             return `
@@ -1998,10 +2065,7 @@
                 <div style="height:38px;background:#e3e3e3;"></div>
 
                 <div style="position:absolute;top:0;right:64px;width:172px;">
-                    <div style="background:#f26522;padding:20px 0 16px 0;text-align:center;">
-                        <div style="color:#ffffff;font-size:56px;font-weight:800;line-height:1;letter-spacing:-1px;">iam</div>
-                        <div style="display:inline-block;border:2px solid #ffffff;padding:2px 10px;margin-top:8px;color:#ffffff;font-size:22px;font-weight:700;letter-spacing:1px;">des!gns</div>
-                    </div>
+                    ${logoBlock}
                     <div style="height:13px;background:#4a4a4a;"></div>
                     <div style="padding:14px 0 0 14px;">
                         <div style="font-size:15px;font-weight:800;color:#f26522;">BILL : <span style="color:#333333;">${iamEsc(billNo)}</span></div>
@@ -2064,12 +2128,13 @@
             await generateAndDownloadOrderPDF(order);
         }
 
-        function generateAndDownloadOrderPDF(order) {
-            if (!order) return Promise.resolve();
+        async function generateAndDownloadOrderPDF(order) {
+            if (!order) return;
             const billNo = getIamBillNo(order.orderId);
+            const logoBlock = await getIamLogoBlock();
 
             const wrap = document.createElement('div');
-            wrap.innerHTML = buildIamBillHTML(order, billNo);
+            wrap.innerHTML = buildIamBillHTML(order, billNo, logoBlock);
             wrap.style.position = 'absolute';
             wrap.style.left = '-9999px';
             wrap.style.top = '0';
