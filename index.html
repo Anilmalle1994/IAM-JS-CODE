@@ -247,6 +247,17 @@
         .client-logo { height: 56px; max-width: 150px; object-fit: contain; flex-shrink: 0; filter: grayscale(1); opacity: .55; transition: transform .5s var(--ease), opacity .4s, filter .4s, drop-shadow .4s; }
         .client-logo:hover { transform: scale(1.14); opacity: 1; filter: grayscale(0); drop-shadow: 0 10px 15px rgba(0,0,0,0.1); }
 
+        /* GOOGLE REVIEWS */
+        .review-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+        .review-card { padding: 32px; border: 1px solid var(--glass-border); border-radius: 20px; background: rgba(255,255,255,0.6); backdrop-filter: blur(10px); box-shadow: var(--shadow-soft); transition: transform .5s var(--ease), box-shadow .5s var(--ease); display: flex; flex-direction: column; gap: 16px; }
+        .review-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-lift); border-color: var(--primary-glow); }
+        .review-stars { color: #f59e0b; font-size: 18px; letter-spacing: 2px; }
+        .review-text { font-size: 15px; line-height: 1.8; color: var(--gray); flex-grow: 1; font-style: italic; }
+        .review-author { display: flex; align-items: center; gap: 12px; margin-top: 10px; border-top: 1px solid var(--line); padding-top: 16px; }
+        .review-avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--primary-glow); color: var(--primary); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 16px; }
+        .review-name { font-weight: 600; font-size: 14px; color: var(--dark); }
+        .review-date { font-size: 11px; color: var(--gray); }
+
         /* ============================================================
            10. CONTACT & IMPROVED FILE ATTACHMENT
            ============================================================ */
@@ -327,6 +338,9 @@
             .bento { grid-template-columns: repeat(2, 1fr); grid-auto-rows: 220px; }
             .bento-item:nth-child(n) { grid-column: span 1; grid-row: span 1; }
             .bento-item:nth-child(4n+1), .bento-item:nth-child(4n+4) { grid-column: span 2; }
+
+            /* Review Grid */
+            .review-grid { grid-template-columns: repeat(2, 1fr); }
         }
 
         @media (max-width: 860px) {
@@ -372,6 +386,9 @@
             .readout { grid-template-columns: 1fr; }
             .readout-cell:nth-child(2n) { border-right: 1px solid var(--line); }
             .readout-cell, .readout-cell:first-child, .readout-cell:nth-child(2n) { padding: 24px 15px; text-align: center; border-right: 0; }
+
+            /* Review Grid */
+            .review-grid { grid-template-columns: 1fr; }
         }
 
         @media (prefers-reduced-motion: reduce) {
@@ -410,6 +427,7 @@
             <a href="#profile" class="rail-link"><span class="rail-dot"></span><span class="rail-label">Designer</span></a>
             <a href="#showcase" class="rail-link"><span class="rail-dot"></span><span class="rail-label">Showcase</span></a>
             <a href="#clients" class="rail-link"><span class="rail-dot"></span><span class="rail-label">Clients</span></a>
+            <a href="#reviews" class="rail-link"><span class="rail-dot"></span><span class="rail-label">Reviews</span></a>
             <a href="#contact" class="rail-link"><span class="rail-dot"></span><span class="rail-label">Contact</span></a>
         </nav>
 
@@ -428,6 +446,7 @@
         <a href="#profile">Designer</a>
         <a href="#showcase">Showcase</a>
         <a href="#clients">Clients</a>
+        <a href="#reviews">Reviews</a>
         <a href="#contact">Contact</a>
     </nav>
 
@@ -530,7 +549,6 @@
         </div>
 
         <div class="spec">
-            <!-- PROPERLY CLOSED ANCHOR TAG ENTIRE ROW -->
             <a href="brand-identity.html" class="spec-row rv" style="text-decoration: none; color: inherit; display: grid;">
                 <div class="spec-num tag">01</div>
                 <div class="spec-name"><em>✒️</em> Brand Identity &amp; Logo</div>
@@ -538,7 +556,6 @@
                 <div class="spec-arrow">→</div>
             </a>
             
-            <!-- CHANGED TO A TAG AND LINKED TO PRINT-PACKAGING.HTML -->
             <a href="print-packaging.html" class="spec-row rv" style="--d:70ms; text-decoration: none; color: inherit; display: grid;">
                 <div class="spec-num tag">02</div>
                 <div class="spec-name"><em>🖨️</em> Print &amp; Production</div>
@@ -635,11 +652,27 @@
         </div>
     </section>
 
-    <!-- ===== CONTACT ===== -->
-    <section id="contact" class="band">
+    <!-- ===== GOOGLE REVIEWS ===== -->
+    <section id="reviews" class="band">
         <div class="band-head">
             <div>
-                <div class="band-index tag rv">06 — Transmit</div>
+                <div class="band-index tag rv">06 — Testimonials</div>
+                <h2 class="band-title mask" style="--d:120ms"><i>Client Reviews</i></h2>
+            </div>
+            <p class="band-note rv" style="--d:200ms">What people are saying about us on Google.</p>
+        </div>
+
+        <!-- The reviews will load inside this container -->
+        <div class="review-grid rv" style="--d:240ms" id="google-reviews-grid">
+            <!-- WIDGET CODE CAN BE PASTED HERE, OR THE SCRIPT BELOW WILL FILL IT WITH MOCK DATA -->
+        </div>
+    </section>
+
+    <!-- ===== CONTACT ===== -->
+    <section id="contact" class="band band-mist">
+        <div class="band-head">
+            <div>
+                <div class="band-index tag rv">07 — Transmit</div>
                 <h2 class="band-title mask" style="--d:120ms"><i>Let's Connect</i></h2>
             </div>
             <p class="band-note rv" style="--d:200ms">Send the brief. We'll come back with a plan.</p>
@@ -800,7 +833,7 @@
                 requestAnimationFrame(loop);
             };
             loop();
-            document.querySelectorAll('a, button, .spec-row, .bento-item, label, input, textarea, .file-drop').forEach(el => {
+            document.querySelectorAll('a, button, .spec-row, .bento-item, label, input, textarea, .file-drop, .review-card').forEach(el => {
                 el.addEventListener('mouseenter', () => dot.classList.add('grow'));
                 el.addEventListener('mouseleave', () => dot.classList.remove('grow'));
             });
@@ -832,7 +865,7 @@
         })();
 
         /* ============================================================
-           SITE LOGIC — Supabase content + IMPROVED contact form
+           SITE LOGIC — Supabase content + Reviews + Contact form
            ============================================================ */
         document.addEventListener('DOMContentLoaded', () => {
             const SUPABASE_URL = 'https://wrqkrpysvhtjenxyytfp.supabase.co';
@@ -873,6 +906,43 @@
                 }
             }
             loadWebContent();
+
+            /* Load Google Reviews (Simulated/Placeholder for Google API or Supabase) */
+            async function loadReviews() {
+                const grid = document.getElementById('google-reviews-grid');
+                if (!grid) return;
+                
+                // NOTE: If you decide to use Elfsight Widget, simply delete this mock data code
+                // and place the widget <script> tag directly in the HTML.
+                // Otherwise, replace this with a fetch request to your Supabase Edge Function!
+                
+                const mockReviews = [
+                    { author_name: "Rahul K.", rating: 5, text: "Absolutely phenomenal quality! The print materials for our corporate event exceeded all expectations. Anil is amazing to work with.", time_description: "2 weeks ago" },
+                    { author_name: "Sneha Reddy", rating: 5, text: "He perfectly captured our brand identity and the packaging design looks incredibly premium. Highly recommend Sri Annapurna Graphics.", time_description: "1 month ago" },
+                    { author_name: "Vikram S.", rating: 5, text: "Best printing service in Kakinada. Fast turnaround, great communication, and flawless execution for our wedding invites.", time_description: "2 months ago" }
+                ];
+
+                grid.innerHTML = '';
+                mockReviews.forEach((review, i) => {
+                    const initial = review.author_name.charAt(0);
+                    const stars = '★'.repeat(review.rating) + '☆'.repeat(5 - review.rating);
+                    grid.innerHTML += `
+                        <div class="review-card rv" style="--d:${i * 120}ms">
+                            <div class="review-stars">${stars}</div>
+                            <div class="review-text">"${review.text}"</div>
+                            <div class="review-author">
+                                <div class="review-avatar">${initial}</div>
+                                <div>
+                                    <div class="review-name">${review.author_name}</div>
+                                    <div class="review-date">${review.time_description}</div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                watch(grid);
+            }
+            loadReviews();
 
             /* Contact Form & Visual File Upload Logic */
             const contactForm = document.getElementById('contact-form');
