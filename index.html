@@ -244,6 +244,22 @@
         .client-logo:hover { transform: scale(1.14); opacity: 1; filter: grayscale(0); drop-shadow: 0 10px 15px rgba(0,0,0,0.1); }
 
         /* ============================================================
+           MANUAL REVIEWS SYSTEM
+           ============================================================ */
+        .review-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 26px; }
+        .review-card { padding: 32px; border: 1px solid var(--glass-border); border-radius: 20px; background: rgba(255,255,255,0.6); backdrop-filter: blur(10px); box-shadow: var(--shadow-soft); transition: transform .5s var(--ease), box-shadow .5s var(--ease); display: flex; flex-direction: column; gap: 16px; cursor: default; }
+        .review-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-lift); border-color: rgba(242,101,34,.3); }
+        .review-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px; }
+        .review-author { display: flex; align-items: center; gap: 14px; }
+        .review-avatar { width: 46px; height: 46px; border-radius: 50%; background: var(--white); color: var(--primary); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 18px; border: 1px solid var(--line); box-shadow: 0 4px 10px rgba(0,0,0,0.03); }
+        .review-meta { display: flex; flex-direction: column; gap: 2px; }
+        .review-name { font-weight: 700; font-size: 15px; color: var(--dark); letter-spacing: -0.3px; }
+        .review-date { font-size: 12px; color: var(--gray); }
+        .google-icon { width: 22px; height: 22px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1)); }
+        .review-stars { color: #fbbc04; font-size: 19px; letter-spacing: 2.5px; }
+        .review-text { font-size: 15px; line-height: 1.8; color: var(--gray); flex-grow: 1; }
+
+        /* ============================================================
            10. CONTACT, MAP & IMPROVED FILE ATTACHMENT
            ============================================================ */
         .transmit { display: grid; grid-template-columns: .85fr 1.15fr; gap: 70px; }
@@ -377,16 +393,6 @@
             .mask > i { transform: none !important; }
             .wipe { clip-path: none !important; }
             .band-head::after { transform: scaleX(1) !important; }
-        }
-
-        /* ============================================================
-           ELFSIGHT WATERMARK HIDER (CSS FIX)
-           ============================================================ */
-        a[href*="elfsight.com"] {
-            display: none !important;
-            opacity: 0 !important;
-            pointer-events: none !important;
-            visibility: hidden !important;
         }
     </style>
 </head>
@@ -641,7 +647,7 @@
         </div>
     </section>
 
-    <!-- ===== GOOGLE REVIEWS (ELFSIGHT) ===== -->
+    <!-- ===== GOOGLE REVIEWS (MANUAL) ===== -->
     <section id="reviews" class="band">
         <div class="band-head">
             <div>
@@ -651,10 +657,11 @@
             <p class="band-note rv" style="--d:200ms">What people are saying about us on Google.</p>
         </div>
 
-        <!-- Elfsight Google Reviews Widget Container -->
-        <div class="rv" style="--d:240ms; width: 100%; overflow: hidden; max-width: 100%;">
-            <script src="https://elfsightcdn.com/platform.js" async></script>
-            <div class="elfsight-app-0264327e-db72-45f3-8bff-3c61ee5b280d" data-elfsight-app-lazy></div>
+        <!-- Manual Reviews will be injected here by JavaScript -->
+        <div id="google-reviews-grid" class="review-grid"></div>
+        
+        <div class="rv" style="--d:400ms; margin-top: 40px; text-align: center;">
+            <a href="https://maps.app.goo.gl/k33E8gyPUZV8y2Ls8" target="_blank" class="btn btn-ghost" style="font-size: 14px;">Leave a Review on Google</a>
         </div>
     </section>
 
@@ -673,15 +680,14 @@
                 <div class="channel"><span class="tag">Email</span><a href="mailto:iamdesign81@gmail.com">iamdesign81@gmail.com</a></div>
                 <div class="channel"><span class="tag">Phone</span><a href="tel:+919299999564">+91 92999 99564</a></div>
                 
-                <!-- Updated Location with Clickable Link and Map -->
+                <!-- Location with Clickable Link and Map -->
                 <div class="channel">
                     <span class="tag">Work Station</span>
                     <a href="https://maps.app.goo.gl/k33E8gyPUZV8y2Ls8" target="_blank" rel="noopener noreferrer" title="View on Google Maps">
-                        Sri Annapurna Graphics & Printers,<br>Majestic Complex, Cinema Road,<br>Kakinada-533001, AP, India ↗
+                        Sri Annapurna Graphics & Printers,<br>Majestic Complex, Cinema Road,<br>Kakinada, AP, India ↗
                     </a>
                     
                     <div class="map-wrap">
-                        <!-- Updated map iframe to specifically query the exact business pin -->
                         <iframe src="https://maps.google.com/maps?q=Sri+Annapurna+Graphics+%26+Printers,+Kakinada&t=&z=16&ie=UTF8&iwloc=&output=embed" allowfullscreen loading="lazy"></iframe>
                     </div>
                 </div>
@@ -833,7 +839,7 @@
                 requestAnimationFrame(loop);
             };
             loop();
-            document.querySelectorAll('a, button, .spec-row, .bento-item, label, input, textarea, .file-drop, .map-wrap').forEach(el => {
+            document.querySelectorAll('a, button, .spec-row, .bento-item, label, input, textarea, .file-drop, .map-wrap, .review-card').forEach(el => {
                 el.addEventListener('mouseenter', () => dot.classList.add('grow'));
                 el.addEventListener('mouseleave', () => dot.classList.remove('grow'));
             });
@@ -865,9 +871,73 @@
         })();
 
         /* ============================================================
-           SITE LOGIC — Supabase content + Contact form
+           SITE LOGIC — Manual Reviews, Supabase content + Contact form
            ============================================================ */
         document.addEventListener('DOMContentLoaded', () => {
+
+            /* --- MANUAL GOOGLE REVIEWS INJECTION --- */
+            function loadManualReviews() {
+                const grid = document.getElementById('google-reviews-grid');
+                if (!grid) return;
+
+                // 📝 EDIT YOUR REVIEWS HERE! 📝
+                // Simply copy and paste an object below to add more reviews.
+                const manualReviews = [
+                    { 
+                        name: "Genghiss Con", 
+                        date: "9 days ago", 
+                        rating: 5, 
+                        text: "Amazing service! Everything was delivered on time and the print quality is unmatched. I will definitely be coming back." 
+                    },
+                    { 
+                        name: "team- 04b", 
+                        date: "10 days ago", 
+                        rating: 5, 
+                        text: "He perfectly captured our brand identity and the packaging design looks incredibly premium. Highly recommend Sri Annapurna Graphics." 
+                    },
+                    { 
+                        name: "Elisabetta Sepe", 
+                        date: "18 days ago", 
+                        rating: 5, 
+                        text: "Best printing service in Kakinada. Fast turnaround, great communication, and flawless execution." 
+                    }
+                ];
+
+                grid.innerHTML = '';
+                
+                // Google "G" SVG Logo for the review cards
+                const googleIcon = `<svg class="google-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>`;
+
+                manualReviews.forEach((review, i) => {
+                    const initial = review.name.charAt(0).toUpperCase();
+                    const stars = '★'.repeat(review.rating) + '☆'.repeat(5 - review.rating);
+                    
+                    grid.innerHTML += `
+                        <div class="review-card rv" style="--d:${(i * 120) + 240}ms">
+                            <div class="review-header">
+                                <div class="review-author">
+                                    <div class="review-avatar">${initial}</div>
+                                    <div class="review-meta">
+                                        <div class="review-name">${review.name}</div>
+                                        <div class="review-date">${review.date}</div>
+                                    </div>
+                                </div>
+                                ${googleIcon}
+                            </div>
+                            <div class="review-stars">${stars}</div>
+                            <div class="review-text">"${review.text}"</div>
+                        </div>
+                    `;
+                });
+                
+                // Let the scroll watcher know about these new animated elements
+                if (typeof watch === 'function') watch(document.getElementById('reviews'));
+            }
+            // Execute the review loader
+            loadManualReviews();
+            /* -------------------------------------- */
+
+
             const SUPABASE_URL = 'https://wrqkrpysvhtjenxyytfp.supabase.co';
             const SUPABASE_ANON_KEY = 'sb_publishable_-DXwYtZ4x8XSt1DV_sQc-w_wA7Ir0N_';
             const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
