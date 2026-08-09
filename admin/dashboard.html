@@ -653,44 +653,78 @@
                     
                     <!-- LEFT COLUMN: Forms -->
                     <div style="flex: 1; min-width: 300px; display: flex; flex-direction: column; gap: 20px;">
+                        
                         <div class="admin-card" style="margin-bottom: 0;">
-                            <h3>Add New Portfolio Item</h3>
-                            <p style="font-size: 13px; color: var(--gray); margin-bottom: 16px;">Upload a new image to appear in the "Our Portfolio" section.</p>
+                            <h3>Add New Portfolio Items</h3>
+                            <p style="font-size: 13px; color: var(--gray); margin-bottom: 16px;">Upload one or multiple images to appear in the "Our Portfolio" section.</p>
                             <form id="portfolio-form" onsubmit="handlePortfolioSubmit(event)">
-                                <div class="form-group"><label>Project Title / Description</label><input type="text" id="port-title" placeholder="e.g., Brand Redesign" required></div>
-                                <div class="form-group"><label>Upload Image File</label><input type="file" id="port-img" accept="image/*" required style="background: white;"></div>
+                                <div class="form-group">
+                                    <label>Project Title (Optional, applied to all)</label>
+                                    <input type="text" id="port-title" placeholder="e.g., Brand Redesign">
+                                </div>
+                                <div class="form-group">
+                                    <label>Upload Image(s)</label>
+                                    <input type="file" id="port-img" accept="image/*" multiple required style="background: white;">
+                                </div>
                                 <div class="action-row"><button type="submit" id="btn-port" class="btn-primary">Publish</button></div>
                             </form>
                         </div>
                         
                         <div class="admin-card" style="margin-bottom: 0;">
-                            <h3>Add Trusted Client Logo</h3>
-                            <p style="font-size: 13px; color: var(--gray); margin-bottom: 16px;">Upload a client's logo to scroll in the "Trusted By" marquee.</p>
+                            <h3>Add Trusted Client Logos</h3>
+                            <p style="font-size: 13px; color: var(--gray); margin-bottom: 16px;">Upload one or multiple client logos to scroll in the "Trusted By" marquee.</p>
                             <form id="client-form" onsubmit="handleClientLogoSubmit(event)">
-                                <div class="form-group"><label>Client Name</label><input type="text" id="client-name" placeholder="e.g., Globex" required></div>
-                                <div class="form-group"><label>Upload Logo File</label><input type="file" id="client-img" accept="image/*" required style="background: white;"></div>
-                                <div class="action-row"><button type="submit" id="btn-client" class="btn-primary">Add Logo</button></div>
+                                <div class="form-group">
+                                    <label>Client Name (Optional, applied to all)</label>
+                                    <input type="text" id="client-name" placeholder="e.g., Globex">
+                                </div>
+                                <div class="form-group">
+                                    <label>Upload Logo(s)</label>
+                                    <input type="file" id="client-img" accept="image/*" multiple required style="background: white;">
+                                </div>
+                                <div class="action-row"><button type="submit" id="btn-client" class="btn-primary">Add Logos</button></div>
                             </form>
                         </div>
+
                     </div>
 
-                    <!-- RIGHT COLUMN: Manage Table -->
-                    <div class="admin-card" style="flex: 2; min-width: 300px; margin-bottom: 0; height: 100%;">
-                        <h3>Manage Trusted Logos</h3>
-                        <p style="font-size: 13px; color: var(--gray); margin-bottom: 16px;">View and remove existing client logos from the website.</p>
-                        <div class="table-responsive-wrapper">
-                            <table class="data-table" id="trusted-logos-table">
-                                <thead>
-                                    <tr>
-                                        <th>Client Name</th>
-                                        <th style="width: 100px; text-align: center;">Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <!-- Populated dynamically via JS -->
-                                </tbody>
-                            </table>
+                    <!-- RIGHT COLUMN: Manage Tables -->
+                    <div style="flex: 2; min-width: 300px; display: flex; flex-direction: column; gap: 20px; height: 100%;">
+                        
+                        <div class="admin-card" style="margin-bottom: 0;">
+                            <h3>Manage Trusted Logos</h3>
+                            <div class="table-responsive-wrapper">
+                                <table class="data-table" id="trusted-logos-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Client Name</th>
+                                            <th style="width: 100px; text-align: center;">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <!-- Populated dynamically via JS -->
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
+
+                        <div class="admin-card" style="margin-bottom: 0;">
+                            <h3>Manage Portfolio Items</h3>
+                            <div class="table-responsive-wrapper">
+                                <table class="data-table" id="portfolio-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Project Title</th>
+                                            <th style="width: 100px; text-align: center;">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <!-- Populated dynamically via JS -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
                     </div>
 
                 </div>
@@ -1381,7 +1415,7 @@
                 if(targetId === 'pending-reports') { renderPRClient(); renderPRVendor(); }
                 if(targetId === 'vendor-reports') { renderVendorReport(); updateAllVendorDropdowns(); }
                 if(targetId === 'all-orders') renderAllOrders();
-                if(targetId === 'web-content') renderTrustedLogos();
+                if(targetId === 'web-content') { renderTrustedLogos(); renderPortfolioItems(); }
                 if(targetId === 'gst-dashboard') loadLedger();
                 if(targetId === 'gst-sale') initSaleForm();
 
@@ -1451,7 +1485,7 @@
 
         checkAuth();
 
-        let appData = { vendors: [], orders: {}, vendorAllotmentsHistory: [], staff: [], trustedLogos: [] };
+        let appData = { vendors: [], orders: {}, vendorAllotmentsHistory: [], staff: [], trustedLogos: [], portfolioItems: [] };
 
         async function loadAppData() {
             try {
@@ -1473,9 +1507,14 @@
                 appData.vendorAllotmentsHistory = history || [];
 
                 // Fetch Trusted Logos
-                const { data: logos, error: lError } = await supabaseClient.from('trusted_logos').select('*');
+                const { data: logos, error: lError } = await supabaseClient.from('clients').select('*');
                 if (lError) console.error("Logos fetch error:", lError.message);
                 appData.trustedLogos = logos || [];
+
+                // Fetch Portfolio Items
+                const { data: portfolio, error: pError } = await supabaseClient.from('portfolio').select('*').order('id', { ascending: false });
+                if (pError) console.error("Portfolio fetch error:", pError.message);
+                appData.portfolioItems = portfolio || [];
 
                 updateDashboardStats();
                 renderAllOrders();
@@ -1486,6 +1525,7 @@
                 updateAllVendorDropdowns();
                 populateClientDatalist();
                 renderTrustedLogos();
+                renderPortfolioItems();
             } catch (err) {
                 console.error("Supabase Load Error:", err.message);
                 showToast("Error loading cloud data!");
@@ -3245,7 +3285,7 @@
         }
 
         // ==========================================
-        // WEB CONTENT: TRUSTED LOGOS LOGIC
+        // WEB CONTENT: TRUSTED LOGOS & PORTFOLIO LOGIC
         // ==========================================
         
         function renderTrustedLogos() {
@@ -3261,7 +3301,7 @@
             appData.trustedLogos.forEach(logo => {
                 tbody.innerHTML += `
                     <tr>
-                        <td><strong>${logo.name}</strong></td>
+                        <td><strong>${logo.name || 'Untitled'}</strong></td>
                         <td style="text-align: center;">
                             <button onclick="removeTrustedLogo('${logo.id}')" class="btn-primary" style="background: #ef4444; padding: 6px 12px; font-size: 11px;">Remove</button>
                         </td>
@@ -3270,32 +3310,86 @@
             });
         }
 
+        function renderPortfolioItems() {
+            const tbody = document.querySelector('#portfolio-table tbody');
+            if(!tbody) return;
+            tbody.innerHTML = '';
+            
+            if(!appData.portfolioItems || appData.portfolioItems.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="2" style="text-align:center; padding:15px;">No portfolio items found.</td></tr>';
+                return;
+            }
+            
+            appData.portfolioItems.forEach(item => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td><strong>${item.title || 'Untitled'}</strong></td>
+                        <td style="text-align: center;">
+                            <button onclick="removePortfolioItem('${item.id}')" class="btn-primary" style="background: #ef4444; padding: 6px 12px; font-size: 11px;">Remove</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
         async function handleClientLogoSubmit(e) {
             e.preventDefault();
-            const clientName = document.getElementById('client-name').value.trim();
-            
-            if(!clientName) return alert("Client name is required");
+            const submitBtn = document.getElementById('btn-client');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Uploading...';
 
-            const newLogoObj = { id: Date.now(), name: clientName };
+            try {
+                let clientNameBase = document.getElementById('client-name').value.trim();
+                const fileInput = document.getElementById('client-img');
+                const files = fileInput.files;
 
-            const { data, error } = await supabaseClient.from('trusted_logos').insert([{ name: clientName }]).select();
-            
-            if (error) {
-                console.warn("Supabase insert failed, saving locally for preview: ", error.message);
-                appData.trustedLogos.push(newLogoObj);
-            } else if (data) {
-                appData.trustedLogos.push(data[0]);
+                if (files.length === 0) {
+                    alert("Please select at least one logo image.");
+                    return;
+                }
+
+                // Upload all selected files concurrently
+                let uploadPromises = Array.from(files).map(async (file, index) => {
+                    // Set name. If base name is provided and multiple files, append a number. If no name, use filename.
+                    let cName = clientNameBase 
+                        ? (files.length > 1 ? `${clientNameBase} ${index + 1}` : clientNameBase) 
+                        : file.name.split('.')[0];
+                    
+                    const fileExt = file.name.split('.').pop();
+                    const uniqueFileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+
+                    const { error: uploadError } = await supabaseClient.storage.from('client_logos').upload(uniqueFileName, file);
+                    if (uploadError) throw uploadError;
+
+                    const { data: publicUrlData } = supabaseClient.storage.from('client_logos').getPublicUrl(uniqueFileName);
+                    const logoUrl = publicUrlData.publicUrl;
+
+                    const { data, error: dbError } = await supabaseClient.from('clients').insert([{ name: cName, logo_url: logoUrl }]).select();
+                    if (dbError) throw dbError;
+
+                    return data[0];
+                });
+
+                const results = await Promise.all(uploadPromises);
+                appData.trustedLogos.push(...results);
+
+                showToast(`${results.length} Logo(s) Uploaded!`);
+                document.getElementById('client-form').reset();
+                renderTrustedLogos();
+
+            } catch (err) {
+                console.error("Upload error:", err.message);
+                alert("Error: " + err.message);
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Add Logos';
             }
-
-            showToast("Trusted Logo Added!");
-            document.getElementById('client-form').reset();
-            renderTrustedLogos();
         }
 
         async function removeTrustedLogo(id) {
             if(!confirm("Are you sure you want to remove this client logo?")) return;
             
-            const { error } = await supabaseClient.from('trusted_logos').delete().eq('id', id);
+            const { error } = await supabaseClient.from('clients').delete().eq('id', id);
             if(error) {
                 console.warn("Could not delete from Supabase: " + error.message);
             }
@@ -3305,10 +3399,72 @@
             showToast("Trusted Logo Removed!");
         }
 
-        function handlePortfolioSubmit(e) {
+        async function handlePortfolioSubmit(e) {
             e.preventDefault();
-            showToast("Portfolio item logic not yet connected.");
-            document.getElementById('portfolio-form').reset();
+            const submitBtn = document.getElementById('btn-port');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Uploading...';
+
+            try {
+                let titleBase = document.getElementById('port-title').value.trim();
+                const fileInput = document.getElementById('port-img');
+                const files = fileInput.files;
+
+                if (files.length === 0) {
+                    alert("Please select at least one portfolio image.");
+                    return;
+                }
+
+                // Upload all selected files concurrently
+                let uploadPromises = Array.from(files).map(async (file, index) => {
+                    let pTitle = titleBase 
+                        ? (files.length > 1 ? `${titleBase} ${index + 1}` : titleBase) 
+                        : file.name.split('.')[0];
+                    
+                    const fileExt = file.name.split('.').pop();
+                    const uniqueFileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+
+                    const { error: uploadError } = await supabaseClient.storage.from('portfolio').upload(uniqueFileName, file);
+                    if (uploadError) throw uploadError;
+
+                    const { data: publicUrlData } = supabaseClient.storage.from('portfolio').getPublicUrl(uniqueFileName);
+                    const imageUrl = publicUrlData.publicUrl;
+
+                    const { data, error: dbError } = await supabaseClient.from('portfolio').insert([{ title: pTitle, image_url: imageUrl }]).select();
+                    if (dbError) throw dbError;
+
+                    return data[0];
+                });
+
+                const results = await Promise.all(uploadPromises);
+                
+                // Add to the front of the array since portfolio sorts descending usually
+                appData.portfolioItems = [...results, ...appData.portfolioItems];
+
+                showToast(`${results.length} Portfolio Item(s) Uploaded!`);
+                document.getElementById('portfolio-form').reset();
+                renderPortfolioItems();
+
+            } catch (err) {
+                console.error("Upload error:", err.message);
+                alert("Error: " + err.message + "\n\nMake sure you created a public storage bucket named 'portfolio' with an INSERT policy!");
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Publish';
+            }
+        }
+
+        async function removePortfolioItem(id) {
+            if(!confirm("Are you sure you want to remove this portfolio item?")) return;
+            
+            const { error } = await supabaseClient.from('portfolio').delete().eq('id', id);
+            if(error) {
+                console.warn("Could not delete from Supabase: " + error.message);
+            }
+
+            appData.portfolioItems = appData.portfolioItems.filter(p => String(p.id) !== String(id));
+            renderPortfolioItems();
+            showToast("Portfolio Item Removed!");
         }
 
         // Draw the first New Order work row on load
