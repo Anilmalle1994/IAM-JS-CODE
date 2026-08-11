@@ -623,6 +623,7 @@
         </div>
 
         <div class="bento" id="dynamic-portfolio-grid">
+            <!-- Supabase logic will inject images here -->
             <div class="bento-item rv"></div>
             <div class="bento-item rv" style="--d:80ms"></div>
             <div class="bento-item rv" style="--d:160ms"></div>
@@ -875,86 +876,18 @@
         })();
 
         /* ============================================================
-           SITE LOGIC — Manual Reviews, Supabase content + Contact form
+           SITE LOGIC — Supabase content + Contact form + Reviews
            ============================================================ */
         document.addEventListener('DOMContentLoaded', () => {
-
-            /* --- MANUAL GOOGLE REVIEWS INJECTION --- */
-            function loadManualReviews() {
-                const grid = document.getElementById('google-reviews-grid');
-                if (!grid) return;
-
-                // 📝 EDIT YOUR REVIEWS HERE! 📝
-                const manualReviews = [
-                    { 
-                        name: "Genghiss Con", 
-                        date: "9 days ago", 
-                        rating: 5, 
-                        text: "Amazing service! Everything was delivered on time and the print quality is unmatched. I will definitely be coming back." 
-                    },
-                    { 
-                        name: "team- 04b", 
-                        date: "10 days ago", 
-                        rating: 5, 
-                        text: "He perfectly captured our brand identity and the packaging design looks incredibly premium. Highly recommend Sri Annapurna Graphics." 
-                    },
-                    { 
-                        name: "Elisabetta Sepe", 
-                        date: "18 days ago", 
-                        rating: 5, 
-                        text: "Best printing service in Kakinada. Fast turnaround, great communication, and flawless execution." 
-                    }
-                ];
-
-                grid.innerHTML = '';
-                
-                // Updated Google Icon with a clickable link wrapped around it
-                const googleIcon = `
-                    <a href="https://maps.app.goo.gl/k33E8gyPUZV8y2Ls8" target="_blank" rel="noopener noreferrer" style="display: flex; align-items: center;" title="View on Google Maps">
-                        <svg class="google-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
-                            <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
-                            <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
-                            <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
-                            <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
-                        </svg>
-                    </a>
-                `;
-
-                manualReviews.forEach((review, i) => {
-                    const initial = review.name.charAt(0).toUpperCase();
-                    const stars = '★'.repeat(review.rating) + '☆'.repeat(5 - review.rating);
-                    
-                    grid.innerHTML += `
-                        <div class="review-card rv" style="--d:${(i * 120) + 240}ms">
-                            <div class="review-header">
-                                <div class="review-author">
-                                    <div class="review-avatar">${initial}</div>
-                                    <div class="review-meta">
-                                        <div class="review-name">${review.name}</div>
-                                        <div class="review-date">${review.date}</div>
-                                    </div>
-                                </div>
-                                ${googleIcon}
-                            </div>
-                            <div class="review-stars">${stars}</div>
-                            <div class="review-text">"${review.text}"</div>
-                        </div>
-                    `;
-                });
-                
-                if (typeof watch === 'function') watch(document.getElementById('reviews'));
-            }
-            
-            loadManualReviews();
-            /* -------------------------------------- */
 
             const SUPABASE_URL = 'https://wrqkrpysvhtjenxyytfp.supabase.co';
             const SUPABASE_ANON_KEY = 'sb_publishable_-DXwYtZ4x8XSt1DV_sQc-w_wA7Ir0N_';
             const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-            /* Load Portfolio & Clients */
+            /* Load Portfolio & Clients from Supabase */
             async function loadWebContent() {
                 try {
+                    // Fetch Portfolio (now fetching from 'portfolio' table)
                     const { data: portfolio } = await supabaseClient.from('portfolio').select('*').order('id', { ascending: false });
                     if (portfolio && portfolio.length > 0) {
                         const grid = document.getElementById('dynamic-portfolio-grid');
@@ -964,17 +897,18 @@
                                 <div class="bento-item rv" style="--d:${(i % 4) * 80}ms">
                                     <div class="bento-media" style="background-image:url('${item.image_url}')"></div>
                                     <div class="bento-veil"></div>
-                                    <div class="bento-label">${item.title}</div>
+                                    <div class="bento-label">${item.title || 'Portfolio Item'}</div>
                                 </div>`;
                         });
                         watch(grid);
                     }
 
+                    // Fetch Clients Logos (fetching from 'clients' table)
                     const { data: clients } = await supabaseClient.from('clients').select('*').order('id', { ascending: false });
                     if (clients && clients.length > 0) {
                         let logosHtml = '';
                         clients.forEach(c => {
-                            logosHtml += `<img class="client-logo" src="${c.logo_url}" alt="${c.name}" title="${c.name}">`;
+                            logosHtml += `<img class="client-logo" src="${c.logo_url}" alt="${c.name || 'Client Logo'}" title="${c.name || 'Client'}">`;
                         });
                         ['marquee-1', 'marquee-2', 'marquee-3', 'marquee-4'].forEach(id => {
                             const row = document.getElementById(id);
@@ -1058,6 +992,7 @@
                         if (file) {
                             const fileExt = file.name.split('.').pop();
                             const fileName = `client_${Date.now()}.${fileExt}`;
+                            // This uses the client_uploads bucket (ensure it exists if you want attachments to work)
                             const { error: uploadError } = await supabaseClient.storage.from('client_uploads').upload(fileName, file);
                             if (uploadError) throw uploadError;
                             const { data } = supabaseClient.storage.from('client_uploads').getPublicUrl(fileName);
@@ -1095,6 +1030,74 @@
                     }
                 });
             }
+            
+            /* --- MANUAL GOOGLE REVIEWS INJECTION --- */
+            function loadManualReviews() {
+                const grid = document.getElementById('google-reviews-grid');
+                if (!grid) return;
+
+                // 📝 EDIT YOUR REVIEWS HERE! 📝
+                const manualReviews = [
+                    { 
+                        name: "Genghiss Con", 
+                        date: "9 days ago", 
+                        rating: 5, 
+                        text: "Amazing service! Everything was delivered on time and the print quality is unmatched. I will definitely be coming back." 
+                    },
+                    { 
+                        name: "team- 04b", 
+                        date: "10 days ago", 
+                        rating: 5, 
+                        text: "He perfectly captured our brand identity and the packaging design looks incredibly premium. Highly recommend Sri Annapurna Graphics." 
+                    },
+                    { 
+                        name: "Elisabetta Sepe", 
+                        date: "18 days ago", 
+                        rating: 5, 
+                        text: "Best printing service in Kakinada. Fast turnaround, great communication, and flawless execution." 
+                    }
+                ];
+
+                grid.innerHTML = '';
+                
+                // Google Icon with a clickable link wrapped around it
+                const googleIcon = `
+                    <a href="https://maps.app.goo.gl/k33E8gyPUZV8y2Ls8" target="_blank" rel="noopener noreferrer" style="display: flex; align-items: center;" title="View on Google Maps">
+                        <svg class="google-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+                            <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+                            <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+                            <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+                            <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+                        </svg>
+                    </a>
+                `;
+
+                manualReviews.forEach((review, i) => {
+                    const initial = review.name.charAt(0).toUpperCase();
+                    const stars = '★'.repeat(review.rating) + '☆'.repeat(5 - review.rating);
+                    
+                    grid.innerHTML += `
+                        <div class="review-card rv" style="--d:${(i * 120) + 240}ms">
+                            <div class="review-header">
+                                <div class="review-author">
+                                    <div class="review-avatar">${initial}</div>
+                                    <div class="review-meta">
+                                        <div class="review-name">${review.name}</div>
+                                        <div class="review-date">${review.date}</div>
+                                    </div>
+                                </div>
+                                ${googleIcon}
+                            </div>
+                            <div class="review-stars">${stars}</div>
+                            <div class="review-text">"${review.text}"</div>
+                        </div>
+                    `;
+                });
+                
+                if (typeof watch === 'function') watch(document.getElementById('reviews'));
+            }
+            
+            loadManualReviews();
         });
     </script>
 </body>
