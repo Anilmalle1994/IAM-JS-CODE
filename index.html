@@ -41,7 +41,7 @@
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
         html { scroll-behavior: smooth; }
         body { color: var(--dark); background: var(--white); overflow-x: hidden; padding-left: var(--rail); -webkit-font-smoothing: antialiased; }
-        body.modal-open { overflow: hidden; } /* Prevents scrolling when modal is open */
+        body.modal-open { overflow: hidden; }
 
         ::selection { background: var(--primary); color: #fff; }
 
@@ -59,25 +59,23 @@
         .loader-bar i { display: block; height: 100%; width: 100%; background: var(--primary); transform: translateX(-100%); animation: sweep 1.2s var(--ease) infinite; box-shadow: 0 0 10px var(--primary); }
         @keyframes sweep { 0% { transform: translateX(-100%); } 60%, 100% { transform: translateX(100%); } }
 
-        /* Trailing cursor — desktop only */
+        /* Trailing cursor */
         .cursor { position: fixed; top: 0; left: 0; width: 34px; height: 34px; border: 1.5px solid var(--primary); border-radius: 50%; pointer-events: none; z-index: 9000; transform: translate(-50%, -50%); transition: width .35s var(--ease), height .35s var(--ease), background .35s, opacity .3s, box-shadow .35s; opacity: 0; }
         .cursor.on { opacity: 1; }
         .cursor.grow { width: 62px; height: 62px; background: rgba(242, 101, 34, .1); box-shadow: 0 0 15px rgba(242, 101, 34, 0.3); }
 
         /* ============================================================
-           2. LEFT RAIL (Futuristic Glass)
+           2. LEFT RAIL 
            ============================================================ */
         .rail { position: fixed; top: 0; left: 0; width: var(--rail); height: 100vh; z-index: 900; background: var(--glass-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-right: 1px solid var(--glass-border); display: flex; flex-direction: column; align-items: center; justify-content: space-between; padding: 24px 0 28px; box-shadow: 5px 0 30px rgba(0,0,0,0.02); }
         .rail-logo img { width: 48px; height: 48px; object-fit: cover; border-radius: 12px; display: block; transition: transform .55s var(--ease), box-shadow .55s; }
         .rail-logo img:hover { transform: scale(1.08) rotate(-4deg); box-shadow: var(--shadow-neon); }
-
         .rail-nav { display: flex; flex-direction: column; gap: 28px; align-items: center; }
         .rail-link { position: relative; display: flex; align-items: center; text-decoration: none; }
         .rail-dot { width: 24px; height: 1px; background: rgba(35,35,35,.25); transition: width .5s var(--ease), background .5s var(--ease), box-shadow .5s; }
         .rail-link:hover .rail-dot, .rail-link.active .rail-dot { width: 44px; background: var(--primary); box-shadow: 0 0 8px var(--primary-glow); }
         .rail-label { position: absolute; left: 56px; white-space: nowrap; color: #fff; background: var(--dark); padding: 6px 13px; border-radius: 6px; font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; opacity: 0; transform: translateX(-8px); transition: all .4s var(--ease); pointer-events: none; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
         .rail-link:hover .rail-label { opacity: 1; transform: none; }
-
         .rail-meta { writing-mode: vertical-rl; color: rgba(35,35,35,.35); font-size: 10px; letter-spacing: 3.5px; text-transform: uppercase; font-weight: 600; }
         .rail-progress { position: absolute; right: -1px; top: 0; width: 2px; height: 100%; background: var(--primary); transform: scaleY(0); transform-origin: 50% 0; box-shadow: -2px 0 10px var(--primary-glow); }
 
@@ -108,14 +106,8 @@
         .band-index { color: var(--primary); margin-bottom: 16px; display: flex; align-items: center; gap: 12px; text-shadow: 0 0 10px rgba(242,101,34,0.2); }
         .band-index::after { content: ''; height: 1px; width: 46px; background: var(--primary); opacity: .45; }
         .band-title { font-size: clamp(34px, 4vw, 54px); font-weight: 800; letter-spacing: -2px; line-height: 1.02; }
-        
         .band-note { color: var(--gray); font-size: 14px; max-width: 250px; text-align: right; line-height: 1.75; flex-shrink: 0; }
-
-        .grid-field { position: absolute; inset: 0; pointer-events: none;
-            background-image: linear-gradient(var(--line-soft) 1px, transparent 1px), linear-gradient(90deg, var(--line-soft) 1px, transparent 1px);
-            background-size: 64px 64px;
-            mask-image: radial-gradient(ellipse at 55% 42%, #000 5%, transparent 70%);
-            -webkit-mask-image: radial-gradient(ellipse at 55% 42%, #000 5%, transparent 70%); }
+        .grid-field { position: absolute; inset: 0; pointer-events: none; background-image: linear-gradient(var(--line-soft) 1px, transparent 1px), linear-gradient(90deg, var(--line-soft) 1px, transparent 1px); background-size: 64px 64px; mask-image: radial-gradient(ellipse at 55% 42%, #000 5%, transparent 70%); -webkit-mask-image: radial-gradient(ellipse at 55% 42%, #000 5%, transparent 70%); }
 
         /* ============================================================
            4. HERO
@@ -135,22 +127,17 @@
         .hero-desc { color: var(--gray); font-size: 18px; line-height: 1.8; max-width: 460px; margin-top: 32px; }
 
         .hero-actions { display: flex; gap: 14px; margin-top: 40px; flex-wrap: wrap; }
-        
         .btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; padding: 17px 32px; border-radius: 44px; font-size: 15px; font-weight: 700; text-decoration: none; border: 1px solid transparent; transition: all .5s var(--ease); overflow: hidden; min-width: 160px; min-height: 54px; }
-        
         .btn-solid { background: var(--primary); color: #fff; box-shadow: 0 10px 30px rgba(242,101,34,.3); position: relative; }
         .btn-solid::before { content: ''; position: absolute; top: 0; left: -100%; width: 50%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent); animation: lightSweep 4s infinite; }
         @keyframes lightSweep { 0%, 20% { left: -100%; } 80%, 100% { left: 200%; } }
-        
         .btn-solid:hover { transform: translateY(-3px); box-shadow: 0 15px 40px rgba(242,101,34,.5); background: #f0530b; }
-        
         .btn-ghost { border-color: var(--line); color: var(--dark); backdrop-filter: blur(5px); }
         .btn-ghost:hover { border-color: var(--primary); color: var(--primary); transform: translateY(-3px); box-shadow: 0 10px 30px rgba(242,101,34,.1); background: rgba(242,101,34,0.05); }
 
         .hero-frame { position: relative; padding: 28px; border: 1px solid var(--glass-border); border-radius: 28px; background: rgba(255,255,255,0.4); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); box-shadow: var(--shadow-lift); overflow: hidden; }
         .hero-frame::after { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 2px; background: var(--primary); box-shadow: 0 0 15px 3px var(--primary); opacity: 0.6; animation: scanner 6s linear infinite; z-index: 5; pointer-events: none; }
         @keyframes scanner { 0% { top: -10px; opacity: 0; } 10% { opacity: 0.6; } 90% { opacity: 0.6; } 100% { top: 100%; opacity: 0; } }
-
         .hero-frame img { width: 100%; display: block; filter: drop-shadow(0 26px 44px rgba(35,35,35,.12)); animation: float 6.5s ease-in-out infinite; position: relative; z-index: 2; }
         @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-18px); } }
         .corner { position: absolute; width: 20px; height: 20px; border: 2px solid var(--primary); z-index: 3; box-shadow: 0 0 10px var(--primary-glow); }
@@ -171,7 +158,7 @@
         @keyframes ping { 0% { box-shadow: 0 0 0 0 rgba(242,101,34,.6); } 70% { box-shadow: 0 0 0 15px rgba(242,101,34,0); } 100% { box-shadow: 0 0 0 0 rgba(242,101,34,0); } }
 
         /* ============================================================
-           5. OUR STORY & REST OF CONTENT
+           5. OUR STORY
            ============================================================ */
         .archive { display: grid; grid-template-columns: .88fr 1.12fr; gap: 80px; align-items: start; }
         .archive-plate { position: sticky; top: 90px; }
@@ -189,9 +176,7 @@
 
         /* EXPERTISE */
         .spec { border-top: 1px solid var(--line); }
-        
         .spec-row { position: relative; display: grid; grid-template-columns: 74px 1.1fr 1.3fr 44px; align-items: center; gap: 32px; padding: 38px 0; border-bottom: 1px solid var(--line); width: 100%; }
-        
         .spec-row::before { content: ''; position: absolute; left: -8%; right: -8%; top: 0; bottom: 0; background: linear-gradient(90deg, rgba(242,101,34,.09), rgba(242,101,34,0) 72%); opacity: 0; transform: translateX(-28px); transition: opacity .55s var(--ease), transform .55s var(--ease); }
         .spec-row:hover::before { opacity: 1; transform: none; }
         .spec-row > * { position: relative; z-index: 1; }
@@ -220,7 +205,7 @@
         .dossier-meta span { display: block; color: var(--primary); margin-bottom: 9px; }
         .dossier-meta p { font-weight: 600; font-size: 15px; }
 
-        /* PORTFOLIO */
+        /* PORTFOLIO GRID */
         .bento { display: grid; grid-template-columns: repeat(4, 1fr); grid-auto-rows: 250px; gap: 16px; grid-auto-flow: dense; }
         .bento-item { position: relative; overflow: hidden; border-radius: 20px; background: #ececec; cursor: pointer; transition: transform .65s var(--ease), box-shadow .65s var(--ease); border: 1px solid rgba(255,255,255,0.2); }
         .bento-item:nth-child(6n+1) { grid-column: span 2; grid-row: span 2; }
@@ -234,27 +219,34 @@
         .bento-item:hover .bento-label { opacity: 1; transform: none; }
 
         /* ============================================================
-           PORTFOLIO LIGHTBOX (COVER FLOW CAROUSEL) - UPGRADED
+           FIXED PORTFOLIO LIGHTBOX (COVER FLOW CAROUSEL)
            ============================================================ */
         .portfolio-modal {
             display: none; position: fixed; z-index: 10000; left: 0; top: 0; width: 100vw; height: 100vh; 
             background-color: rgba(10, 10, 10, 0.90); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); 
             opacity: 0; transition: opacity 0.4s var(--ease); overflow: hidden;
         }
-        .portfolio-modal.show { display: flex; align-items: center; justify-content: center; opacity: 1; }
+        .portfolio-modal.show { display: block; opacity: 1; }
         
         .modal-carousel-track {
-            position: relative; width: 100%; height: 75vh; display: flex; align-items: center; justify-content: center; 
-            perspective: 1200px; /* Gives a nice 3D depth to the side images */
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+            perspective: 1500px; transform-style: preserve-3d;
         }
         
+        /* 
+           Explicitly sizing and absolute centering the images guarantees 
+           they will NEVER collapse to 0x0 size regardless of the browser.
+        */
         .carousel-img {
             position: absolute;
-            max-width: 65vw; max-height: 100%;
+            top: 0; bottom: 0; left: 0; right: 0;
+            margin: auto;
+            width: 65vw; height: 75vh;
             border-radius: 12px; box-shadow: 0 30px 80px rgba(0,0,0,0.6);
             object-fit: contain;
-            transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.6s var(--ease), filter 0.6s var(--ease);
+            transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.6s var(--ease), filter 0.6s var(--ease);
             will-change: transform, opacity, filter;
+            background-color: rgba(255,255,255,0.02); /* Prevents total invisibility if image is broken */
         }
 
         /* Active center image */
@@ -265,24 +257,24 @@
 
         /* Previous (Left) image */
         .carousel-img.prev {
-            z-index: 5; opacity: 0.5; filter: blur(6px) brightness(0.6);
-            transform: translateX(-40vw) scale(0.75) rotateY(12deg);
+            z-index: 5; opacity: 0.4; filter: blur(8px) brightness(0.6);
+            transform: translateX(-40vw) scale(0.7) rotateY(15deg);
             cursor: pointer;
         }
-        .carousel-img.prev:hover { opacity: 0.7; filter: blur(4px) brightness(0.8); }
+        .carousel-img.prev:hover { opacity: 0.6; filter: blur(4px) brightness(0.8); }
 
         /* Next (Right) image */
         .carousel-img.next {
-            z-index: 5; opacity: 0.5; filter: blur(6px) brightness(0.6);
-            transform: translateX(40vw) scale(0.75) rotateY(-12deg);
+            z-index: 5; opacity: 0.4; filter: blur(8px) brightness(0.6);
+            transform: translateX(40vw) scale(0.7) rotateY(-15deg);
             cursor: pointer;
         }
-        .carousel-img.next:hover { opacity: 0.7; filter: blur(4px) brightness(0.8); }
+        .carousel-img.next:hover { opacity: 0.6; filter: blur(4px) brightness(0.8); }
 
-        /* Hidden images (not prev, active, or next) */
+        /* Hidden images */
         .carousel-img.hidden {
             z-index: 1; opacity: 0; filter: blur(10px); pointer-events: none;
-            transform: translateX(0) scale(0.4);
+            transform: translateX(0) scale(0.3);
         }
 
         /* Glassmorphism Badge Caption */
@@ -318,24 +310,38 @@
         .marquee-wrap:hover .marquee-row { animation-play-state: paused; }
         @keyframes scrollLogos { to { transform: translateX(-100%); } }
         .client-logo-placeholder { width: 180px; height: 85px; background: var(--light-gray); border: 1px solid var(--line); border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; color: var(--gray); font-size: 14px; flex-shrink: 0; }
-        
         .client-logo { height: 85px; max-width: 220px; object-fit: contain; flex-shrink: 0; filter: grayscale(0); opacity: 1; transition: transform .5s var(--ease), drop-shadow .4s; }
         .client-logo:hover { transform: scale(1.1); drop-shadow: 0 10px 20px rgba(0,0,0,0.12); }
 
-        /* GOOGLE REVIEWS STYLING */
-        .review-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 26px; }
-        .review-card { padding: 32px; border: 1px solid var(--glass-border); border-radius: 20px; background: rgba(255,255,255,0.6); backdrop-filter: blur(10px); box-shadow: var(--shadow-soft); transition: transform .5s var(--ease), box-shadow .5s var(--ease); display: flex; flex-direction: column; gap: 16px; cursor: default; }
-        .review-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-lift); border-color: rgba(242,101,34,.3); }
-        .review-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px; }
-        .review-author { display: flex; align-items: center; gap: 14px; }
-        .review-avatar { width: 46px; height: 46px; border-radius: 50%; background: var(--white); color: var(--primary); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 18px; border: 1px solid var(--line); box-shadow: 0 4px 10px rgba(0,0,0,0.03); background-position: center; background-repeat: no-repeat; }
-        .review-meta { display: flex; flex-direction: column; gap: 2px; }
-        .review-name { font-weight: 700; font-size: 15px; color: var(--dark); letter-spacing: -0.3px; }
-        .review-date { font-size: 12px; color: var(--gray); }
-        .google-icon { width: 22px; height: 22px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1)); transition: transform .3s; }
-        .google-icon:hover { transform: scale(1.1); }
-        .review-stars { color: #fbbc04; font-size: 19px; letter-spacing: 2.5px; }
-        .review-text { font-size: 15px; line-height: 1.8; color: var(--gray); flex-grow: 1; }
+        /* ============================================================
+           NEW TRENDING GOOGLE REVIEWS (GLASSMORPHISM MASONRY)
+           ============================================================ */
+        .reviews-container { display: grid; grid-template-columns: 320px 1fr; gap: 40px; align-items: center; margin-top: 30px; }
+        
+        .reviews-summary { text-align: center; padding: 40px 30px; background: rgba(255,255,255,0.6); border-radius: 30px; border: 1px solid var(--glass-border); backdrop-filter: blur(15px); box-shadow: var(--shadow-soft); transition: transform 0.4s var(--ease); }
+        .reviews-summary:hover { transform: translateY(-5px); box-shadow: var(--shadow-lift); }
+        .g-score { font-size: 80px; font-weight: 800; color: var(--dark); line-height: 1; letter-spacing: -4px; margin-bottom: 5px; }
+        .g-stars { color: #FBBC05; font-size: 32px; letter-spacing: 4px; margin-bottom: 12px; filter: drop-shadow(0 2px 4px rgba(251,188,5,0.3)); }
+        .g-text { color: var(--gray); font-weight: 600; font-size: 14px; margin-bottom: 24px; }
+        .g-logo-main { width: 44px; height: 44px; margin: 0 auto; display: block; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1)); }
+
+        .reviews-masonry { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; }
+        
+        .review-glass-card { background: rgba(255,255,255,0.75); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid var(--glass-border); border-radius: 24px; padding: 32px; box-shadow: var(--shadow-soft); transition: all 0.4s var(--ease); position: relative; overflow: hidden; cursor: default; }
+        .review-glass-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, #4285F4, #EA4335, #FBBC05, #34A853); opacity: 0; transition: opacity 0.4s ease; }
+        .review-glass-card:hover { transform: translateY(-8px); box-shadow: var(--shadow-lift); border-color: rgba(255,255,255,0.9); }
+        .review-glass-card:hover::before { opacity: 1; }
+        
+        .rg-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 18px; }
+        .rg-user { display: flex; gap: 14px; align-items: center; }
+        .rg-avatar { width: 46px; height: 46px; border-radius: 50%; background: linear-gradient(135deg, var(--primary-light), var(--primary)); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 700; box-shadow: 0 4px 15px var(--primary-glow); }
+        .rg-user h4 { font-size: 16px; font-weight: 700; color: var(--dark); margin-bottom: 2px; }
+        .rg-user span { font-size: 12px; color: var(--gray); font-weight: 500; }
+        .rg-g-icon { width: 22px; height: 22px; transition: transform 0.3s; }
+        .review-glass-card:hover .rg-g-icon { transform: scale(1.15) rotate(5deg); }
+        
+        .rg-stars { color: #FBBC05; font-size: 18px; letter-spacing: 2px; margin-bottom: 14px; }
+        .rg-body { font-size: 15px; color: var(--gray); line-height: 1.7; font-weight: 500; }
 
         /* CONTACT, MAP & FILE ATTACHMENT */
         .transmit { display: grid; grid-template-columns: .85fr 1.15fr; gap: 70px; }
@@ -367,8 +373,6 @@
         .file-drop::before { content: ''; position: absolute; inset: 0; background: var(--primary); opacity: 0; transition: opacity .4s; z-index: 0; }
         .file-drop:hover { border-color: var(--primary); color: var(--primary); transform: translateY(-2px); box-shadow: 0 10px 25px rgba(242,101,34,.1); }
         .file-drop:hover::before { opacity: 0.03; }
-        
-        .file-drop > * { position: relative; z-index: 1; }
         .file-drop.has-file { border-style: solid; border-color: #22c55e; color: #166534; background: rgba(34, 197, 94, 0.05); box-shadow: 0 10px 25px rgba(34, 197, 94, 0.15); }
         .file-drop.has-file:hover { border-color: #16a34a; }
         
@@ -406,6 +410,7 @@
             .bento { grid-template-columns: repeat(2, 1fr); grid-auto-rows: 220px; }
             .bento-item:nth-child(n) { grid-column: span 1; grid-row: span 1; }
             .bento-item:nth-child(4n+1), .bento-item:nth-child(4n+4) { grid-column: span 2; }
+            .reviews-container { grid-template-columns: 1fr; gap: 40px; }
         }
 
         @media (max-width: 860px) {
@@ -433,9 +438,9 @@
             footer { flex-direction: column; text-align: center; gap: 15px; }
             
             /* Responsive modal adjustments */
-            .carousel-img { max-width: 80vw; }
-            .carousel-img.prev { transform: translateX(-60vw) scale(0.7) rotateY(12deg); }
-            .carousel-img.next { transform: translateX(60vw) scale(0.7) rotateY(-12deg); }
+            .carousel-img { width: 80vw; }
+            .carousel-img.prev { transform: translateX(-55vw) scale(0.7) rotateY(15deg); }
+            .carousel-img.next { transform: translateX(55vw) scale(0.7) rotateY(-15deg); }
             .modal-slide-btn { width: 44px; height: 44px; }
             .modal-slide-prev { left: 10px; }
             .modal-slide-next { right: 10px; }
@@ -712,7 +717,7 @@
         </div>
     </section>
 
-    <!-- ===== GOOGLE REVIEWS (MANUAL) ===== -->
+    <!-- ===== NEW GLASSMORPHISM GOOGLE REVIEWS SECTION ===== -->
     <section id="reviews" class="band">
         <div class="band-head">
             <div>
@@ -722,12 +727,72 @@
             <p class="band-note rv" style="--d:200ms">What people are saying about us on Google.</p>
         </div>
 
-        <!-- Manual Reviews will be injected here by JavaScript -->
-        <div id="google-reviews-grid" class="review-grid"></div>
-        
-        <div class="rv" style="--d:400ms; margin-top: 40px; text-align: center; display: flex; justify-content: center; gap: 14px; flex-wrap: wrap;">
-            <a href="https://maps.app.goo.gl/k33E8gyPUZV8y2Ls8" target="_blank" class="btn btn-ghost" style="font-size: 14px;">View all on Google</a>
-            <a href="https://maps.app.goo.gl/k33E8gyPUZV8y2Ls8?action=review" target="_blank" class="btn btn-solid" style="font-size: 14px;">Leave a Review</a>
+        <div class="reviews-container">
+            <!-- Google Stats Block -->
+            <div class="reviews-summary rv" style="--d:150ms">
+                <div class="g-score">5.0</div>
+                <div class="g-stars">★★★★★</div>
+                <div class="g-text">Based on local Google Reviews</div>
+                <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google Logo" class="g-logo-main">
+                <a href="https://maps.app.goo.gl/k33E8gyPUZV8y2Ls8" target="_blank" class="btn btn-solid" style="margin-top: 30px; font-size: 14px; width: 100%;">Leave a Review</a>
+            </div>
+            
+            <!-- Fixed Reviews Masonry Grid -->
+            <div class="reviews-masonry">
+                <!-- Review 1 -->
+                <div class="review-glass-card rv" style="--d:250ms">
+                    <div class="rg-head">
+                        <div class="rg-user">
+                            <div class="rg-avatar">R</div>
+                            <div>
+                                <h4>Rahul Kumar</h4>
+                                <span>2 days ago</span>
+                            </div>
+                        </div>
+                        <a href="https://maps.app.goo.gl/k33E8gyPUZV8y2Ls8" target="_blank">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="G" class="rg-g-icon">
+                        </a>
+                    </div>
+                    <div class="rg-stars">★★★★★</div>
+                    <p class="rg-body">"Excellent printing quality and fast delivery in Kakinada! Highly recommend their services."</p>
+                </div>
+
+                <!-- Review 2 -->
+                <div class="review-glass-card rv" style="--d:350ms">
+                    <div class="rg-head">
+                        <div class="rg-user">
+                            <div class="rg-avatar" style="background: linear-gradient(135deg, #4285F4, #0056D2);">S</div>
+                            <div>
+                                <h4>Suresh V.</h4>
+                                <span>1 week ago</span>
+                            </div>
+                        </div>
+                        <a href="https://maps.app.goo.gl/k33E8gyPUZV8y2Ls8" target="_blank">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="G" class="rg-g-icon">
+                        </a>
+                    </div>
+                    <div class="rg-stars">★★★★★</div>
+                    <p class="rg-body">"Anil did a great graphic design work for our brand identity. The packaging looks incredibly premium."</p>
+                </div>
+
+                <!-- Review 3 -->
+                <div class="review-glass-card rv" style="--d:450ms">
+                    <div class="rg-head">
+                        <div class="rg-user">
+                            <div class="rg-avatar" style="background: linear-gradient(135deg, #34A853, #0F712A);">P</div>
+                            <div>
+                                <h4>Priya Reddy</h4>
+                                <span>3 weeks ago</span>
+                            </div>
+                        </div>
+                        <a href="https://maps.app.goo.gl/k33E8gyPUZV8y2Ls8" target="_blank">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="G" class="rg-g-icon">
+                        </a>
+                    </div>
+                    <div class="rg-stars">★★★★★</div>
+                    <p class="rg-body">"Best printing service in Kakinada. Fast turnaround, great communication, and flawless execution."</p>
+                </div>
+            </div>
         </div>
     </section>
 
@@ -793,7 +858,7 @@
         </div>
     </section>
 
-    <!-- ===== COVER FLOW LIGHTBOX MODAL FOR PORTFOLIO ===== -->
+    <!-- ===== FIXED COVER FLOW LIGHTBOX MODAL ===== -->
     <div id="portfolio-modal" class="portfolio-modal">
         <button class="modal-btn modal-close-btn" id="modal-close-btn" title="Close (Esc)">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -814,8 +879,12 @@
             </svg>
         </button>
 
-        <!-- Dynamic Carousel Track will hold all images -->
-        <div class="modal-carousel-track" id="modal-carousel-track"></div>
+        <!-- Static Image Tracks for Zero Collapse Risk -->
+        <div class="modal-carousel-track" id="modal-carousel-track">
+            <img id="carousel-prev" class="carousel-img prev" src="" alt="">
+            <img id="carousel-active" class="carousel-img active" src="" alt="">
+            <img id="carousel-next" class="carousel-img next" src="" alt="">
+        </div>
         
         <div id="modal-caption-text" class="modal-caption-text"></div>
     </div>
@@ -932,7 +1001,7 @@
                 requestAnimationFrame(loop);
             };
             loop();
-            document.querySelectorAll('a, button, .spec-row, .bento-item, label, input, textarea, .file-drop, .map-wrap, .review-card, .modal-btn, .carousel-img').forEach(el => {
+            document.querySelectorAll('a, button, .spec-row, .bento-item, label, input, textarea, .file-drop, .map-wrap, .review-glass-card, .modal-btn, .carousel-img').forEach(el => {
                 el.addEventListener('mouseenter', () => dot.classList.add('grow'));
                 el.addEventListener('mouseleave', () => dot.classList.remove('grow'));
             });
@@ -964,7 +1033,7 @@
         })();
 
         /* ============================================================
-           SITE LOGIC — Supabase content + Contact form + Reviews + Cover Flow
+           SITE LOGIC — Supabase content + Contact form + Cover Flow Lightbox
            ============================================================ */
         document.addEventListener('DOMContentLoaded', () => {
 
@@ -972,51 +1041,37 @@
             const SUPABASE_ANON_KEY = 'sb_publishable_-DXwYtZ4x8XSt1DV_sQc-w_wA7Ir0N_';
             const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-            /* Lightbox Global Variables */
+            /* Lightbox Variables */
             let currentPortfolioData = [];
             let currentModalIndex = 0;
 
             const modal = document.getElementById('portfolio-modal');
-            const carouselTrack = document.getElementById('modal-carousel-track');
+            const imgPrev = document.getElementById('carousel-prev');
+            const imgActive = document.getElementById('carousel-active');
+            const imgNext = document.getElementById('carousel-next');
             const modalCaption = document.getElementById('modal-caption-text');
+            
             const btnClose = document.getElementById('modal-close-btn');
             const btnPrev = document.getElementById('modal-prev-btn');
             const btnNext = document.getElementById('modal-next-btn');
 
-            /* Load Portfolio & Clients from Supabase */
+            /* Fetch Content */
             async function loadWebContent() {
                 try {
                     // Fetch Portfolio
                     const { data: portfolio } = await supabaseClient.from('portfolio').select('*').order('id', { ascending: false });
                     if (portfolio && portfolio.length > 0) {
-                        currentPortfolioData = portfolio; // Save to global array
-                        
+                        currentPortfolioData = portfolio;
                         const grid = document.getElementById('dynamic-portfolio-grid');
                         grid.innerHTML = '';
-                        carouselTrack.innerHTML = '';
                         
                         portfolio.forEach((item, i) => {
-                            // 1. Build Grid items
                             grid.innerHTML += `
                                 <div class="bento-item rv" style="--d:${(i % 4) * 80}ms" onclick="openPortfolioModal(${i})">
                                     <div class="bento-media" style="background-image:url('${item.image_url}')"></div>
                                     <div class="bento-veil"></div>
                                     <div class="bento-label">${item.title || 'Portfolio Item'}</div>
                                 </div>`;
-                                
-                            // 2. Build Carousel Image nodes
-                            const img = document.createElement('img');
-                            img.src = item.image_url;
-                            img.className = 'carousel-img hidden'; // All hidden by default
-                            
-                            // Make blurred side images clickable
-                            img.onclick = (e) => {
-                                e.stopPropagation();
-                                if (img.classList.contains('prev')) changeSlide(-1);
-                                else if (img.classList.contains('next')) changeSlide(1);
-                            };
-                            
-                            carouselTrack.appendChild(img);
                         });
                         watch(grid);
                     }
@@ -1039,32 +1094,33 @@
             }
             loadWebContent();
 
-            /* --- COVER FLOW LIGHTBOX (MODAL) LOGIC --- */
+            /* --- FIXED COVER FLOW LIGHTBOX (MODAL) LOGIC --- */
             
             function updateModalContent() {
                 const total = currentPortfolioData.length;
                 if (total === 0) return;
                 
-                const images = document.querySelectorAll('.carousel-img');
+                // Calculate correct indices based on total length
+                const idxActive = currentModalIndex;
+                const idxPrev = (currentModalIndex - 1 + total) % total;
+                const idxNext = (currentModalIndex + 1) % total;
                 
-                images.forEach((img, i) => {
-                    // Reset all classes
-                    img.className = 'carousel-img hidden';
-                    
-                    if (i === currentModalIndex) {
-                        img.classList.add('active'); // Center Image
-                    } else if (i === (currentModalIndex - 1 + total) % total) {
-                        img.classList.add('prev');   // Left Blurred Image
-                    } else if (i === (currentModalIndex + 1) % total) {
-                        img.classList.add('next');   // Right Blurred Image
-                    }
-                });
+                // Directly swap the SRC to avoid rendering collapse issues
+                imgActive.src = currentPortfolioData[idxActive].image_url || '';
                 
-                // Set the pill caption text
-                const item = currentPortfolioData[currentModalIndex];
-                if (item) {
-                    modalCaption.textContent = item.title || 'Portfolio Item';
+                // If there's only 1 image, hide prev/next completely
+                if (total === 1) {
+                    imgPrev.style.display = 'none';
+                    imgNext.style.display = 'none';
+                } else {
+                    imgPrev.style.display = 'block';
+                    imgNext.style.display = 'block';
+                    imgPrev.src = currentPortfolioData[idxPrev].image_url || '';
+                    imgNext.src = currentPortfolioData[idxNext].image_url || '';
                 }
+
+                // Title
+                modalCaption.textContent = currentPortfolioData[idxActive].title || 'Portfolio Item';
             }
             
             window.openPortfolioModal = function(index) {
@@ -1081,25 +1137,29 @@
 
             function changeSlide(directionStep) {
                 const total = currentPortfolioData.length;
-                if (total === 0) return;
+                if (total <= 1) return;
                 
                 currentModalIndex += directionStep;
                 
-                // Wrap around edges seamlessly
+                // Wrap around edges
                 if (currentModalIndex >= total) currentModalIndex = 0; 
                 else if (currentModalIndex < 0) currentModalIndex = total - 1; 
                 
                 updateModalContent();
             }
 
-            // Click Listeners
+            // Click Listeners for Buttons
             btnClose.addEventListener('click', closePortfolioModal);
             btnPrev.addEventListener('click', (e) => { e.stopPropagation(); changeSlide(-1); });
             btnNext.addEventListener('click', (e) => { e.stopPropagation(); changeSlide(1); });
+            
+            // Click Listeners for the blurred side-images
+            imgPrev.addEventListener('click', (e) => { e.stopPropagation(); changeSlide(-1); });
+            imgNext.addEventListener('click', (e) => { e.stopPropagation(); changeSlide(1); });
 
             // Close when clicking empty dark space
             modal.addEventListener('click', (e) => {
-                if (e.target === modal || e.target === carouselTrack) {
+                if (e.target === modal || e.target.id === 'modal-carousel-track') {
                     closePortfolioModal();
                 }
             });
@@ -1217,74 +1277,6 @@
                     }
                 });
             }
-            
-            /* --- FIXED MANUAL GOOGLE REVIEWS INJECTION --- */
-            function loadManualReviews() {
-                const grid = document.getElementById('google-reviews-grid');
-                if (!grid) return;
-
-                // Loaded with the exact reviews provided from your screenshot so they work perfectly.
-                const manualReviews = [
-                    { 
-                        name: "Rahul Kumar", 
-                        date: "2 days ago", 
-                        rating: 5, 
-                        text: "Excellent printing quality and fast delivery in Kakinada! Highly recommend their services." 
-                    },
-                    { 
-                        name: "Suresh V.", 
-                        date: "1 week ago", 
-                        rating: 5, 
-                        text: "Anil did a great graphic design work for our brand identity. The packaging looks incredibly premium." 
-                    },
-                    { 
-                        name: "Priya Reddy", 
-                        date: "3 weeks ago", 
-                        rating: 5, 
-                        text: "Best printing service in Kakinada. Fast turnaround, great communication, and flawless execution." 
-                    }
-                ];
-
-                grid.innerHTML = '';
-                
-                const googleIcon = `
-                    <a href="https://maps.app.goo.gl/k33E8gyPUZV8y2Ls8" target="_blank" rel="noopener noreferrer" style="display: flex; align-items: center;" title="View on Google Maps">
-                        <svg class="google-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
-                            <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
-                            <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
-                            <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
-                            <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
-                        </svg>
-                    </a>
-                `;
-
-                manualReviews.forEach((review, i) => {
-                    const initial = review.name.charAt(0).toUpperCase();
-                    const stars = '★'.repeat(review.rating) + '☆'.repeat(5 - review.rating);
-                    
-                    grid.innerHTML += `
-                        <div class="review-card rv" style="--d:${(i * 120) + 240}ms">
-                            <div class="review-header">
-                                <div class="review-author">
-                                    <div class="review-avatar">${initial}</div>
-                                    <div class="review-meta">
-                                        <div class="review-name">${review.name}</div>
-                                        <div class="review-date">${review.date}</div>
-                                    </div>
-                                </div>
-                                ${googleIcon}
-                            </div>
-                            <div class="review-stars">${stars}</div>
-                            <div class="review-text">"${review.text}"</div>
-                        </div>
-                    `;
-                });
-                
-                if (typeof watch === 'function') watch(document.getElementById('reviews'));
-            }
-            
-            // Execute review population immediately
-            loadManualReviews();
         });
     </script>
 </body>
