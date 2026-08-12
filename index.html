@@ -207,7 +207,7 @@
         .dossier:hover { box-shadow: var(--shadow-lift); transform: translateY(-5px); }
         .dossier-photo { position: relative; background: var(--light-gray); display: flex; align-items: flex-end; justify-content: center; padding-top: 46px; overflow: hidden; }
         .dossier-photo img { width: 100%; max-width: 380px; display: block; position: relative; z-index: 2; }
-        .dossier-photo::after { content: absolute; width: 340px; height: 340px; border-radius: 50%; background: radial-gradient(circle, rgba(242,101,34,.35), transparent 66%); bottom: 30px; filter: blur(15px); }
+        .dossier-photo::after { content: ''; position: absolute; width: 340px; height: 340px; border-radius: 50%; background: radial-gradient(circle, rgba(242,101,34,.35), transparent 66%); bottom: 30px; filter: blur(15px); }
         .dossier-body { padding: 62px 58px; }
         .dossier-greeting { font-size: 20px; font-weight: 600; color: var(--gray); }
         .dossier-greeting .bang { color: var(--primary); display: inline-block; animation: bang 3.2s var(--ease) infinite; text-shadow: 0 0 10px rgba(242,101,34,0.4); }
@@ -1037,25 +1037,25 @@
                 if (!grid) return;
 
                 // 📝 EDIT YOUR REVIEWS HERE! 📝
-                // You can update the names, dates, rating (1-5), and text to exactly match your real customer reviews.
+                // Replace the [PLACEHOLDERS] below with the exact text from your real Google Reviews.
                 const manualReviews = [
                     { 
-                        name: "Rahul Kumar", 
-                        date: "2 days ago", 
+                        name: "[ENTER CUSTOMER NAME 1]", 
+                        date: "[ENTER DATE E.G., 2 weeks ago]", 
                         rating: 5, 
-                        text: "Excellent printing quality and fast delivery in Kakinada! Highly recommend their services." 
+                        text: "[PASTE CUSTOMER REVIEW TEXT HERE]" 
                     },
                     { 
-                        name: "Suresh V.", 
-                        date: "1 week ago", 
+                        name: "[ENTER CUSTOMER NAME 2]", 
+                        date: "[ENTER DATE E.G., 1 month ago]", 
                         rating: 5, 
-                        text: "Anil did a great graphic design work for our brand identity. The packaging looks incredibly premium." 
+                        text: "[PASTE CUSTOMER REVIEW TEXT HERE]" 
                     },
                     { 
-                        name: "Priya Reddy", 
-                        date: "3 weeks ago", 
+                        name: "[ENTER CUSTOMER NAME 3]", 
+                        date: "[ENTER DATE E.G., 3 months ago]", 
                         rating: 5, 
-                        text: "Best printing service in Kakinada. Fast turnaround, great communication, and flawless execution." 
+                        text: "[PASTE CUSTOMER REVIEW TEXT HERE]" 
                     }
                 ];
 
