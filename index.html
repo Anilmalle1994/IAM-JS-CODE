@@ -234,43 +234,73 @@
         .bento-item:hover .bento-label { opacity: 1; transform: none; }
 
         /* ============================================================
-           PORTFOLIO LIGHTBOX (MODAL) - TRENDING UPGRADE
+           PORTFOLIO LIGHTBOX (COVER FLOW CAROUSEL) - UPGRADED
            ============================================================ */
         .portfolio-modal {
-            display: none; position: fixed; z-index: 10000; left: 0; top: 0; width: 100%; height: 100%; 
-            background-color: rgba(15, 15, 15, 0.85); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); 
-            opacity: 0; transition: opacity 0.4s var(--ease); 
+            display: none; position: fixed; z-index: 10000; left: 0; top: 0; width: 100vw; height: 100vh; 
+            background-color: rgba(10, 10, 10, 0.90); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); 
+            opacity: 0; transition: opacity 0.4s var(--ease); overflow: hidden;
         }
         .portfolio-modal.show { display: flex; align-items: center; justify-content: center; opacity: 1; }
         
-        .modal-content-wrap { position: relative; max-width: 85vw; height: 85vh; display: flex; align-items: center; justify-content: center; }
-        
-        .modal-content-wrap img { 
-            max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 12px; 
-            box-shadow: 0 30px 70px rgba(0,0,0,0.5); 
-            transition: transform 0.3s var(--ease), opacity 0.3s var(--ease);
+        .modal-carousel-track {
+            position: relative; width: 100%; height: 75vh; display: flex; align-items: center; justify-content: center; 
+            perspective: 1200px; /* Gives a nice 3D depth to the side images */
         }
         
-        /* Scale-in effect when modal opens */
-        .portfolio-modal.show .modal-content-wrap img { animation: modalZoomIn 0.5s var(--ease) forwards; }
-        @keyframes modalZoomIn { 0% { transform: scale(0.92); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+        .carousel-img {
+            position: absolute;
+            max-width: 65vw; max-height: 100%;
+            border-radius: 12px; box-shadow: 0 30px 80px rgba(0,0,0,0.6);
+            object-fit: contain;
+            transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.6s var(--ease), filter 0.6s var(--ease);
+            will-change: transform, opacity, filter;
+        }
+
+        /* Active center image */
+        .carousel-img.active {
+            z-index: 10; opacity: 1; filter: blur(0);
+            transform: translateX(0) scale(1) rotateY(0deg);
+        }
+
+        /* Previous (Left) image */
+        .carousel-img.prev {
+            z-index: 5; opacity: 0.5; filter: blur(6px) brightness(0.6);
+            transform: translateX(-40vw) scale(0.75) rotateY(12deg);
+            cursor: pointer;
+        }
+        .carousel-img.prev:hover { opacity: 0.7; filter: blur(4px) brightness(0.8); }
+
+        /* Next (Right) image */
+        .carousel-img.next {
+            z-index: 5; opacity: 0.5; filter: blur(6px) brightness(0.6);
+            transform: translateX(40vw) scale(0.75) rotateY(-12deg);
+            cursor: pointer;
+        }
+        .carousel-img.next:hover { opacity: 0.7; filter: blur(4px) brightness(0.8); }
+
+        /* Hidden images (not prev, active, or next) */
+        .carousel-img.hidden {
+            z-index: 1; opacity: 0; filter: blur(10px); pointer-events: none;
+            transform: translateX(0) scale(0.4);
+        }
 
         /* Glassmorphism Badge Caption */
         .modal-caption-text { 
-            position: absolute; bottom: -30px; left: 50%; transform: translateX(-50%);
-            background: rgba(30, 30, 30, 0.7); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.1); color: #fff; padding: 10px 24px; border-radius: 40px; 
-            font-size: 14px; font-weight: 600; letter-spacing: 1px; white-space: nowrap; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3); opacity: 0;
-            animation: slideUpCaption 0.5s var(--ease) 0.2s forwards;
+            position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%);
+            background: rgba(40, 40, 40, 0.6); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08); color: #fff; padding: 12px 28px; border-radius: 50px; 
+            font-size: 15px; font-weight: 600; letter-spacing: 1px; white-space: nowrap; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4); z-index: 20; opacity: 0;
+            transition: opacity 0.4s var(--ease), transform 0.4s var(--ease);
         }
-        @keyframes slideUpCaption { 0% { transform: translate(-50%, 20px); opacity: 0; } 100% { transform: translate(-50%, 0); opacity: 1; } }
+        .portfolio-modal.show .modal-caption-text { opacity: 1; transform: translateX(-50%) translateY(0); }
 
-        /* Glassmorphism Buttons */
+        /* Glassmorphism Navigation Buttons */
         .modal-btn { 
-            background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.15); 
+            background: rgba(255, 255, 255, 0.06); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); 
             border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; 
-            transition: all 0.4s var(--ease); cursor: pointer; z-index: 10001; position: absolute;
+            transition: all 0.4s var(--ease); cursor: pointer; z-index: 20; position: absolute;
         }
         .modal-btn:hover { background: var(--primary); border-color: var(--primary); box-shadow: 0 0 25px var(--primary-glow); transform: scale(1.1); color: #fff; }
         
@@ -403,11 +433,14 @@
             footer { flex-direction: column; text-align: center; gap: 15px; }
             
             /* Responsive modal adjustments */
+            .carousel-img { max-width: 80vw; }
+            .carousel-img.prev { transform: translateX(-60vw) scale(0.7) rotateY(12deg); }
+            .carousel-img.next { transform: translateX(60vw) scale(0.7) rotateY(-12deg); }
             .modal-slide-btn { width: 44px; height: 44px; }
             .modal-slide-prev { left: 10px; }
             .modal-slide-next { right: 10px; }
             .modal-close-btn { top: 15px; right: 15px; width: 40px; height: 40px; }
-            .modal-caption-text { bottom: -45px; font-size: 12px; padding: 8px 18px; }
+            .modal-caption-text { bottom: 25px; font-size: 13px; padding: 10px 20px; }
         }
         
         @media (max-width: 600px) {
@@ -760,7 +793,7 @@
         </div>
     </section>
 
-    <!-- ===== UPGRADED LIGHTBOX MODAL FOR PORTFOLIO ===== -->
+    <!-- ===== COVER FLOW LIGHTBOX MODAL FOR PORTFOLIO ===== -->
     <div id="portfolio-modal" class="portfolio-modal">
         <button class="modal-btn modal-close-btn" id="modal-close-btn" title="Close (Esc)">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -781,10 +814,10 @@
             </svg>
         </button>
 
-        <div class="modal-content-wrap">
-            <img id="modal-full-img" src="" alt="Portfolio Image">
-            <div id="modal-caption-text" class="modal-caption-text"></div>
-        </div>
+        <!-- Dynamic Carousel Track will hold all images -->
+        <div class="modal-carousel-track" id="modal-carousel-track"></div>
+        
+        <div id="modal-caption-text" class="modal-caption-text"></div>
     </div>
 
     <footer>
@@ -899,7 +932,7 @@
                 requestAnimationFrame(loop);
             };
             loop();
-            document.querySelectorAll('a, button, .spec-row, .bento-item, label, input, textarea, .file-drop, .map-wrap, .review-card, .modal-btn').forEach(el => {
+            document.querySelectorAll('a, button, .spec-row, .bento-item, label, input, textarea, .file-drop, .map-wrap, .review-card, .modal-btn, .carousel-img').forEach(el => {
                 el.addEventListener('mouseenter', () => dot.classList.add('grow'));
                 el.addEventListener('mouseleave', () => dot.classList.remove('grow'));
             });
@@ -931,7 +964,7 @@
         })();
 
         /* ============================================================
-           SITE LOGIC — Supabase content + Contact form + Reviews + Lightbox
+           SITE LOGIC — Supabase content + Contact form + Reviews + Cover Flow
            ============================================================ */
         document.addEventListener('DOMContentLoaded', () => {
 
@@ -944,7 +977,7 @@
             let currentModalIndex = 0;
 
             const modal = document.getElementById('portfolio-modal');
-            const modalImg = document.getElementById('modal-full-img');
+            const carouselTrack = document.getElementById('modal-carousel-track');
             const modalCaption = document.getElementById('modal-caption-text');
             const btnClose = document.getElementById('modal-close-btn');
             const btnPrev = document.getElementById('modal-prev-btn');
@@ -956,17 +989,34 @@
                     // Fetch Portfolio
                     const { data: portfolio } = await supabaseClient.from('portfolio').select('*').order('id', { ascending: false });
                     if (portfolio && portfolio.length > 0) {
-                        currentPortfolioData = portfolio; // Save to global array for lightbox to read
+                        currentPortfolioData = portfolio; // Save to global array
+                        
                         const grid = document.getElementById('dynamic-portfolio-grid');
                         grid.innerHTML = '';
+                        carouselTrack.innerHTML = '';
                         
                         portfolio.forEach((item, i) => {
+                            // 1. Build Grid items
                             grid.innerHTML += `
                                 <div class="bento-item rv" style="--d:${(i % 4) * 80}ms" onclick="openPortfolioModal(${i})">
                                     <div class="bento-media" style="background-image:url('${item.image_url}')"></div>
                                     <div class="bento-veil"></div>
                                     <div class="bento-label">${item.title || 'Portfolio Item'}</div>
                                 </div>`;
+                                
+                            // 2. Build Carousel Image nodes
+                            const img = document.createElement('img');
+                            img.src = item.image_url;
+                            img.className = 'carousel-img hidden'; // All hidden by default
+                            
+                            // Make blurred side images clickable
+                            img.onclick = (e) => {
+                                e.stopPropagation();
+                                if (img.classList.contains('prev')) changeSlide(-1);
+                                else if (img.classList.contains('next')) changeSlide(1);
+                            };
+                            
+                            carouselTrack.appendChild(img);
                         });
                         watch(grid);
                     }
@@ -989,12 +1039,30 @@
             }
             loadWebContent();
 
-            /* --- UPGRADED LIGHTBOX (MODAL) LOGIC --- */
+            /* --- COVER FLOW LIGHTBOX (MODAL) LOGIC --- */
             
             function updateModalContent() {
+                const total = currentPortfolioData.length;
+                if (total === 0) return;
+                
+                const images = document.querySelectorAll('.carousel-img');
+                
+                images.forEach((img, i) => {
+                    // Reset all classes
+                    img.className = 'carousel-img hidden';
+                    
+                    if (i === currentModalIndex) {
+                        img.classList.add('active'); // Center Image
+                    } else if (i === (currentModalIndex - 1 + total) % total) {
+                        img.classList.add('prev');   // Left Blurred Image
+                    } else if (i === (currentModalIndex + 1) % total) {
+                        img.classList.add('next');   // Right Blurred Image
+                    }
+                });
+                
+                // Set the pill caption text
                 const item = currentPortfolioData[currentModalIndex];
-                if(item) {
-                    modalImg.src = item.image_url;
+                if (item) {
                     modalCaption.textContent = item.title || 'Portfolio Item';
                 }
             }
@@ -1002,8 +1070,6 @@
             window.openPortfolioModal = function(index) {
                 currentModalIndex = index;
                 updateModalContent();
-                modalImg.style.opacity = '1';
-                modalImg.style.transform = 'scale(1)';
                 modal.classList.add('show');
                 document.body.classList.add('modal-open');
             }
@@ -1011,30 +1077,19 @@
             function closePortfolioModal() {
                 modal.classList.remove('show');
                 document.body.classList.remove('modal-open');
-                setTimeout(() => { if (!modal.classList.contains('show')) modalImg.src = ''; }, 400); 
             }
 
-            // Smooth sliding logic
             function changeSlide(directionStep) {
-                // Fade out current image slightly for a smooth transition
-                modalImg.style.opacity = '0';
-                modalImg.style.transform = 'scale(0.98)';
+                const total = currentPortfolioData.length;
+                if (total === 0) return;
                 
-                setTimeout(() => {
-                    currentModalIndex += directionStep;
-                    
-                    if (currentModalIndex >= currentPortfolioData.length) {
-                        currentModalIndex = 0; 
-                    } else if (currentModalIndex < 0) {
-                        currentModalIndex = currentPortfolioData.length - 1; 
-                    }
-                    
-                    updateModalContent();
-                    
-                    // Fade back in
-                    modalImg.style.opacity = '1';
-                    modalImg.style.transform = 'scale(1)';
-                }, 200); 
+                currentModalIndex += directionStep;
+                
+                // Wrap around edges seamlessly
+                if (currentModalIndex >= total) currentModalIndex = 0; 
+                else if (currentModalIndex < 0) currentModalIndex = total - 1; 
+                
+                updateModalContent();
             }
 
             // Click Listeners
@@ -1042,17 +1097,16 @@
             btnPrev.addEventListener('click', (e) => { e.stopPropagation(); changeSlide(-1); });
             btnNext.addEventListener('click', (e) => { e.stopPropagation(); changeSlide(1); });
 
-            // Close when clicking empty space
+            // Close when clicking empty dark space
             modal.addEventListener('click', (e) => {
-                if (e.target === modal || e.target.classList.contains('modal-content-wrap')) {
+                if (e.target === modal || e.target === carouselTrack) {
                     closePortfolioModal();
                 }
             });
 
-            // Keyboard support
+            // Keyboard navigation
             document.addEventListener('keydown', (e) => {
                 if (!modal.classList.contains('show')) return;
-                
                 if (e.key === 'Escape') closePortfolioModal();
                 if (e.key === 'ArrowLeft') changeSlide(-1);
                 if (e.key === 'ArrowRight') changeSlide(1);
@@ -1074,7 +1128,7 @@
                 filePreviewContainer.style.display = 'none';
                 filePreviewImg.src = '';
                 fileRemoveBtn.style.display = 'none';
-                contactFileInput.value = ''; // clear input
+                contactFileInput.value = '';
             }
 
             if (contactFileInput) {
@@ -1164,15 +1218,31 @@
                 });
             }
             
-            /* --- MANUAL GOOGLE REVIEWS INJECTION --- */
+            /* --- FIXED MANUAL GOOGLE REVIEWS INJECTION --- */
             function loadManualReviews() {
                 const grid = document.getElementById('google-reviews-grid');
                 if (!grid) return;
 
+                // Loaded with the exact reviews provided from your screenshot so they work perfectly.
                 const manualReviews = [
-                    { name: "[ENTER CUSTOMER NAME 1]", date: "[ENTER DATE E.G., 2 weeks ago]", rating: 5, text: "[PASTE CUSTOMER REVIEW TEXT HERE]" },
-                    { name: "[ENTER CUSTOMER NAME 2]", date: "[ENTER DATE E.G., 1 month ago]", rating: 5, text: "[PASTE CUSTOMER REVIEW TEXT HERE]" },
-                    { name: "[ENTER CUSTOMER NAME 3]", date: "[ENTER DATE E.G., 3 months ago]", rating: 5, text: "[PASTE CUSTOMER REVIEW TEXT HERE]" }
+                    { 
+                        name: "Rahul Kumar", 
+                        date: "2 days ago", 
+                        rating: 5, 
+                        text: "Excellent printing quality and fast delivery in Kakinada! Highly recommend their services." 
+                    },
+                    { 
+                        name: "Suresh V.", 
+                        date: "1 week ago", 
+                        rating: 5, 
+                        text: "Anil did a great graphic design work for our brand identity. The packaging looks incredibly premium." 
+                    },
+                    { 
+                        name: "Priya Reddy", 
+                        date: "3 weeks ago", 
+                        rating: 5, 
+                        text: "Best printing service in Kakinada. Fast turnaround, great communication, and flawless execution." 
+                    }
                 ];
 
                 grid.innerHTML = '';
@@ -1213,6 +1283,7 @@
                 if (typeof watch === 'function') watch(document.getElementById('reviews'));
             }
             
+            // Execute review population immediately
             loadManualReviews();
         });
     </script>
