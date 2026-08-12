@@ -207,7 +207,7 @@
         .dossier:hover { box-shadow: var(--shadow-lift); transform: translateY(-5px); }
         .dossier-photo { position: relative; background: var(--light-gray); display: flex; align-items: flex-end; justify-content: center; padding-top: 46px; overflow: hidden; }
         .dossier-photo img { width: 100%; max-width: 380px; display: block; position: relative; z-index: 2; }
-        .dossier-photo::after { content: ''; position: absolute; width: 340px; height: 340px; border-radius: 50%; background: radial-gradient(circle, rgba(242,101,34,.35), transparent 66%); bottom: 30px; filter: blur(15px); }
+        .dossier-photo::after { content: absolute; width: 340px; height: 340px; border-radius: 50%; background: radial-gradient(circle, rgba(242,101,34,.35), transparent 66%); bottom: 30px; filter: blur(15px); }
         .dossier-body { padding: 62px 58px; }
         .dossier-greeting { font-size: 20px; font-weight: 600; color: var(--gray); }
         .dossier-greeting .bang { color: var(--primary); display: inline-block; animation: bang 3.2s var(--ease) infinite; text-shadow: 0 0 10px rgba(242,101,34,0.4); }
@@ -1037,23 +1037,23 @@
                 if (!grid) return;
 
                 // 📝 EDIT YOUR REVIEWS HERE! 📝
-                // Note: Change the name, date, rating, and text below to match your real customer reviews.
+                // You can update the names, dates, rating (1-5), and text to exactly match your real customer reviews.
                 const manualReviews = [
                     { 
-                        name: "Genghiss Con", 
-                        date: "9 days ago", 
+                        name: "Rahul Kumar", 
+                        date: "2 days ago", 
                         rating: 5, 
-                        text: "Amazing service! Everything was delivered on time and the print quality is unmatched. I will definitely be coming back." 
+                        text: "Excellent printing quality and fast delivery in Kakinada! Highly recommend their services." 
                     },
                     { 
-                        name: "team- 04b", 
-                        date: "10 days ago", 
+                        name: "Suresh V.", 
+                        date: "1 week ago", 
                         rating: 5, 
-                        text: "He perfectly captured our brand identity and the packaging design looks incredibly premium. Highly recommend Sri Annapurna Graphics." 
+                        text: "Anil did a great graphic design work for our brand identity. The packaging looks incredibly premium." 
                     },
                     { 
-                        name: "Elisabetta Sepe", 
-                        date: "18 days ago", 
+                        name: "Priya Reddy", 
+                        date: "3 weeks ago", 
                         rating: 5, 
                         text: "Best printing service in Kakinada. Fast turnaround, great communication, and flawless execution." 
                     }
