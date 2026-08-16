@@ -218,6 +218,27 @@
         .dossier-meta span { display: block; color: var(--primary); margin-bottom: 9px; }
         .dossier-meta p { font-weight: 600; font-size: 15px; }
 
+        /* ============================================================
+           TEAM UI ACCORDION 
+           ============================================================ */
+        .team-container { display: flex; width: 100%; height: 500px; gap: 15px; margin-top: 40px; }
+        .team-card { position: relative; flex: 1; border-radius: 30px; background-size: cover; background-position: center; cursor: pointer; transition: flex 0.6s var(--ease); overflow: hidden; box-shadow: var(--shadow-soft); }
+        .team-card::before { content: ''; position: absolute; inset: 0; background: linear-gradient(to top, rgba(15,15,15,0.8), transparent 60%); opacity: 0; transition: opacity 0.4s var(--ease); }
+        .team-card.active { flex: 8; }
+        .team-card.active::before { opacity: 1; }
+        .team-card:hover { box-shadow: var(--shadow-lift); }
+        
+        .card-content { position: absolute; bottom: 30px; left: 30px; display: flex; align-items: center; gap: 20px; opacity: 0; transition: opacity 0.4s var(--ease) 0.2s; pointer-events: none; }
+        .team-card.active .card-content { opacity: 1; pointer-events: auto; }
+        
+        .card-icon { width: 48px; height: 48px; background: var(--white); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); flex-shrink: 0; }
+        .card-info { color: #fff; text-shadow: 0 2px 10px rgba(0,0,0,0.5); }
+        .card-info h3 { margin: 0; font-size: 28px; font-weight: 800; letter-spacing: -0.5px; }
+        .card-info p { margin: 4px 0 0; font-size: 14px; font-weight: 600; color: rgba(255,255,255,0.9); text-transform: uppercase; letter-spacing: 1.5px; }
+        
+        .collapsed-icon { position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); width: 48px; height: 48px; background: var(--white); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; transition: opacity 0.3s var(--ease), transform 0.3s; box-shadow: 0 10px 25px rgba(0,0,0,0.15); }
+        .team-card.active .collapsed-icon { opacity: 0; transform: translate(-50%, 20px); pointer-events: none; }
+
         /* PORTFOLIO GRID */
         .bento { display: grid; grid-template-columns: repeat(4, 1fr); grid-auto-rows: 250px; gap: 16px; grid-auto-flow: dense; }
         .bento-item { position: relative; overflow: hidden; border-radius: 20px; background: #ececec; cursor: pointer; transition: transform .65s var(--ease), box-shadow .65s var(--ease); border: 1px solid rgba(255,255,255,0.2); }
@@ -412,6 +433,11 @@
             .dossier-body { padding: 42px 28px; }
             .dossier-meta { grid-template-columns: 1fr; gap: 16px; }
             
+            .team-container { flex-direction: column; height: 700px; }
+            .team-card.active { flex: 4; }
+            .collapsed-icon { bottom: auto; top: 50%; transform: translate(-50%, -50%); }
+            .team-card.active .collapsed-icon { transform: translate(-50%, -50%) scale(0.5); }
+            
             .form { grid-template-columns: 1fr; }
             footer { flex-direction: column; text-align: center; gap: 15px; }
             
@@ -490,6 +516,10 @@
                 <span class="rail-dot"></span>
                 <span class="rail-label">Designer</span>
             </a>
+            <a href="#team" class="rail-link">
+                <span class="rail-dot"></span>
+                <span class="rail-label">Our Team</span>
+            </a>
             <a href="#showcase" class="rail-link">
                 <span class="rail-dot"></span>
                 <span class="rail-label">Showcase</span>
@@ -521,6 +551,7 @@
         <a href="#about">Our Story</a>
         <a href="#services">Services</a>
         <a href="#profile">Designer</a>
+        <a href="#team">Our Team</a>
         <a href="#showcase">Showcase</a>
         <a href="#clients">Clients</a>
         <a href="#reviews">Reviews</a>
@@ -691,11 +722,26 @@
         </div>
     </section>
 
-    <!-- ===== PORTFOLIO ===== -->
-    <section id="showcase" class="band">
+    <!-- ===== TEAM ACCORDION ===== -->
+    <section id="team" class="band">
         <div class="band-head">
             <div>
-                <div class="band-index tag rv">04 — Output</div>
+                <div class="band-index tag rv">04 — Collective</div>
+                <h2 class="band-title mask" style="--d:120ms"><i>Our Team</i></h2>
+            </div>
+            <p class="band-note rv" style="--d:200ms">The minds and hands behind the press.</p>
+        </div>
+
+        <div class="team-container rv" id="dynamic-team-container" style="--d:250ms">
+            <!-- Supabase Data will populate here. See JavaScript below for placeholders if empty. -->
+        </div>
+    </section>
+
+    <!-- ===== PORTFOLIO ===== -->
+    <section id="showcase" class="band band-mist">
+        <div class="band-head">
+            <div>
+                <div class="band-index tag rv">05 — Output</div>
                 <h2 class="band-title mask" style="--d:120ms"><i>Our Portfolio</i></h2>
             </div>
             <p class="band-note rv" style="--d:200ms">Selected work, straight off the press.</p>
@@ -707,10 +753,10 @@
     </section>
 
     <!-- ===== CLIENTS ===== -->
-    <section id="clients" class="band band-mist">
+    <section id="clients" class="band">
         <div class="band-head">
             <div>
-                <div class="band-index tag rv">05 — Network</div>
+                <div class="band-index tag rv">06 — Network</div>
                 <h2 class="band-title mask" style="--d:120ms"><i>Trusted By</i></h2>
             </div>
             <p class="band-note rv" style="--d:200ms">Brands that keep coming back to the press.</p>
@@ -727,10 +773,10 @@
     </section>
 
     <!-- ===== LIVE TRUSTINDEX GOOGLE REVIEWS SECTION ===== -->
-    <section id="reviews" class="band">
+    <section id="reviews" class="band band-mist">
         <div class="band-head">
             <div>
-                <div class="band-index tag rv">06 — Testimonials</div>
+                <div class="band-index tag rv">07 — Testimonials</div>
                 <h2 class="band-title mask" style="--d:120ms"><i>Client Reviews</i></h2>
             </div>
             <p class="band-note rv" style="--d:200ms">What people are saying about us on Google.</p>
@@ -744,10 +790,10 @@
     </section>
 
     <!-- ===== CONTACT ===== -->
-    <section id="contact" class="band band-mist">
+    <section id="contact" class="band">
         <div class="band-head">
             <div>
-                <div class="band-index tag rv">07 — Transmit</div>
+                <div class="band-index tag rv">08 — Transmit</div>
                 <h2 class="band-title mask" style="--d:120ms"><i>Let's Connect</i></h2>
             </div>
             <p class="band-note rv" style="--d:200ms">Send the brief. We'll come back with a plan.</p>
@@ -857,17 +903,6 @@
     </footer>
 
     <script>
-        /*
-         * SUPABASE TABLE SETUP INSTRUCTIONS:
-         * To edit the portfolio modal details from your admin panel, make sure your 'portfolio' 
-         * table in Supabase has the following exact column names:
-         * - title (text)
-         * - image_url (text)
-         * - description (text)
-         * - material (text)
-         * - client_logo (text - URL to the logo image)
-         */
-
         /* ============================================================
            MOTION + INTERFACE
            ============================================================ */
@@ -974,7 +1009,7 @@
                 requestAnimationFrame(loop);
             };
             loop();
-            document.querySelectorAll('a, button, .spec-row, .bento-item, label, input, textarea, .file-drop, .map-wrap, .modal-btn, .carousel-img').forEach(el => {
+            document.querySelectorAll('a, button, .spec-row, .bento-item, .team-card, label, input, textarea, .file-drop, .map-wrap, .modal-btn, .carousel-img').forEach(el => {
                 el.addEventListener('mouseenter', () => dot.classList.add('grow'));
                 el.addEventListener('mouseleave', () => dot.classList.remove('grow'));
             });
@@ -1005,6 +1040,12 @@
             }));
         })();
 
+        /* Team Accordion Global Function */
+        window.activateTeamCard = function(element) {
+            document.querySelectorAll('.team-card').forEach(card => card.classList.remove('active'));
+            element.classList.add('active');
+        }
+
         /* ============================================================
            SITE LOGIC — Supabase content + Contact form + Split Lightbox
            ============================================================ */
@@ -1032,6 +1073,63 @@
             /* Fetch Content */
             async function loadWebContent() {
                 try {
+                    // Fetch Team Members
+                    const { data: teamData } = await supabaseClient.from('team_members').select('*').order('id', { ascending: true });
+                    const teamContainer = document.getElementById('dynamic-team-container');
+                    
+                    if (teamData && teamData.length > 0) {
+                        teamContainer.innerHTML = '';
+                        teamData.forEach((member, i) => {
+                            const isActive = i === 0 ? 'active' : '';
+                            teamContainer.innerHTML += `
+                                <div class="team-card ${isActive}" style="background-image: url('${member.image_url}')" onclick="activateTeamCard(this)">
+                                    <div class="collapsed-icon">${member.icon || '👤'}</div>
+                                    <div class="card-content">
+                                        <div class="card-icon">${member.icon || '👤'}</div>
+                                        <div class="card-info">
+                                            <h3>${member.name}</h3>
+                                            <p>${member.role}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                    } else {
+                        // Placeholders if Supabase database is empty, exactly recreating the accordion feel
+                        teamContainer.innerHTML = `
+                            <div class="team-card active" style="background-image: url('https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=800&q=80');" onclick="activateTeamCard(this)">
+                                <div class="collapsed-icon">👩‍💼</div>
+                                <div class="card-content">
+                                    <div class="card-icon">👩‍💼</div>
+                                    <div class="card-info">
+                                        <h3>Sarah Jenkins</h3>
+                                        <p>Chief Executive Officer</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="team-card" style="background-image: url('https://images.unsplash.com/photo-1560250097-0b93528c311a?w=800&q=80');" onclick="activateTeamCard(this)">
+                                <div class="collapsed-icon">👨‍💻</div>
+                                <div class="card-content">
+                                    <div class="card-icon">👨‍💻</div>
+                                    <div class="card-info">
+                                        <h3>David Chen</h3>
+                                        <p>Lead Developer</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="team-card" style="background-image: url('https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=800&q=80');" onclick="activateTeamCard(this)">
+                                <div class="collapsed-icon">🎨</div>
+                                <div class="card-content">
+                                    <div class="card-icon">🎨</div>
+                                    <div class="card-info">
+                                        <h3>Elena Rodriguez</h3>
+                                        <p>Creative Director</p>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }
+
                     // Fetch Portfolio
                     const { data: portfolio } = await supabaseClient.from('portfolio').select('*').order('id', { ascending: false });
                     if (portfolio && portfolio.length > 0) {
