@@ -663,6 +663,14 @@
                                     <input type="text" id="port-title" placeholder="e.g., Brand Redesign">
                                 </div>
                                 <div class="form-group">
+                                    <label>Project Description (Optional, applied to all)</label>
+                                    <textarea id="port-desc" placeholder="Detailed description of the project..." rows="3"></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label>Materials & Specs (Optional, applied to all)</label>
+                                    <input type="text" id="port-material" placeholder="e.g. 300gsm Matte Art Board">
+                                </div>
+                                <div class="form-group">
                                     <label>Upload Image(s)</label>
                                     <input type="file" id="port-img" accept="image/*" multiple required style="background: white;">
                                 </div>
@@ -715,6 +723,8 @@
                                     <thead>
                                         <tr>
                                             <th>Project Title</th>
+                                            <th>Description</th>
+                                            <th>Material</th>
                                             <th style="width: 100px; text-align: center;">Action</th>
                                         </tr>
                                     </thead>
@@ -3316,7 +3326,7 @@
             tbody.innerHTML = '';
             
             if(!appData.portfolioItems || appData.portfolioItems.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="2" style="text-align:center; padding:15px;">No portfolio items found.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:15px;">No portfolio items found.</td></tr>';
                 return;
             }
             
@@ -3324,6 +3334,8 @@
                 tbody.innerHTML += `
                     <tr>
                         <td><strong>${item.title || 'Untitled'}</strong></td>
+                        <td>${item.description || '-'}</td>
+                        <td>${item.material || '-'}</td>
                         <td style="text-align: center;">
                             <button onclick="removePortfolioItem('${item.id}')" class="btn-primary" style="background: #ef4444; padding: 6px 12px; font-size: 11px;">Remove</button>
                         </td>
@@ -3407,6 +3419,8 @@
 
             try {
                 let titleBase = document.getElementById('port-title').value.trim();
+                let descBase = document.getElementById('port-desc').value.trim();
+                let matBase = document.getElementById('port-material').value.trim();
                 const fileInput = document.getElementById('port-img');
                 const files = fileInput.files;
 
@@ -3430,7 +3444,13 @@
                     const { data: publicUrlData } = supabaseClient.storage.from('portfolio').getPublicUrl(uniqueFileName);
                     const imageUrl = publicUrlData.publicUrl;
 
-                    const { data, error: dbError } = await supabaseClient.from('portfolio').insert([{ title: pTitle, image_url: imageUrl }]).select();
+                    const { data, error: dbError } = await supabaseClient.from('portfolio').insert([{
+                        title: pTitle,
+                        description: descBase,
+                        material: matBase,
+                        image_url: imageUrl
+                    }]).select();
+                    
                     if (dbError) throw dbError;
 
                     return data[0];
@@ -3447,7 +3467,7 @@
 
             } catch (err) {
                 console.error("Upload error:", err.message);
-                alert("Error: " + err.message + "\n\nMake sure you created a public storage bucket named 'portfolio' with an INSERT policy!");
+                alert("Error: " + err.message + "\n\nMake sure your 'portfolio' table has the 'description' and 'material' columns added!");
             } finally {
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'Publish';
