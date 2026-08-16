@@ -4,7 +4,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Anil Malle - Graphic Design & Printing</title>
+
+    <title>Graphic Designer &amp; Printing Services in Kakinada | Anil Malle</title>
+    <meta name="description" content="Anil Malle provides professional graphic design, branding, digital printing and commercial printing services in Kakinada. Business cards, brochures, wedding invitations, packaging, signage and complete print solutions.">
+    <meta name="author" content="Anil Malle">
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+    <link rel="canonical" href="https://www.anilmalle.in/">
+
+    <meta name="theme-color" content="#ffffff">
+    <meta name="geo.region" content="IN-AP">
+    <meta name="geo.placename" content="Kakinada, Andhra Pradesh, India">
+
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Anil Malle">
+    <meta property="og:title" content="Graphic Design &amp; Printing Services in Kakinada | Anil Malle">
+    <meta property="og:description" content="Professional graphic design, branding and high-quality printing services in Kakinada for businesses, brands, institutions and families.">
+    <meta property="og:url" content="https://www.anilmalle.in/">
+    <meta property="og:image" content="https://www.anilmalle.in/Home%20Page%20Image%20_%2001.png">
+    <meta property="og:locale" content="en_IN">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Graphic Design &amp; Printing Services in Kakinada | Anil Malle">
+    <meta name="twitter:description" content="Professional graphic design, branding and high-quality printing services in Kakinada.">
+    <meta name="twitter:image" content="https://www.anilmalle.in/Home%20Page%20Image%20_%2001.png">
 
     <link rel="icon" href="LOGO.jpg.jpeg" type="image/jpeg">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
@@ -221,23 +243,143 @@
         /* ============================================================
            TEAM UI ACCORDION 
            ============================================================ */
-        .team-container { display: flex; width: 100%; height: 500px; gap: 15px; margin-top: 40px; }
-        .team-card { position: relative; flex: 1; border-radius: 30px; background-size: cover; background-position: center; cursor: pointer; transition: flex 0.6s var(--ease); overflow: hidden; box-shadow: var(--shadow-soft); }
-        .team-card::before { content: ''; position: absolute; inset: 0; background: linear-gradient(to top, rgba(15,15,15,0.8), transparent 60%); opacity: 0; transition: opacity 0.4s var(--ease); }
-        .team-card.active { flex: 8; }
-        .team-card.active::before { opacity: 1; }
+        /* ============================================================
+           TEAM — PREMIUM EXPANDING CARD LAYOUT
+           Desktop: one large active card + two slim cards, matching
+           the supplied reference layout.
+           ============================================================ */
+        .team-container {
+            display: flex;
+            width: 100%;
+            height: 500px;
+            gap: 14px;
+            margin-top: 40px;
+            overflow: hidden;
+        }
+
+        .team-card {
+            position: relative;
+            flex: 1 1 0;
+            min-width: 0;
+            height: 100%;
+            border-radius: 30px;
+            background-color: #e9e9e9;
+            background-repeat: no-repeat;
+            background-size: cover;
+            background-position: center center;
+            cursor: pointer;
+            transition: flex 0.65s cubic-bezier(.22,1,.36,1),
+                        box-shadow 0.45s ease,
+                        background-position 0.65s ease;
+            overflow: hidden;
+            box-shadow: var(--shadow-soft);
+            isolation: isolate;
+        }
+
+        /* The screenshot layout: active ≈ 8 parts, narrow cards ≈ 1 part */
+        .team-card.active {
+            flex: 8 1 0;
+            background-position: center center;
+        }
+
+        .team-card::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            z-index: -1;
+            background: linear-gradient(
+                to top,
+                rgba(15,15,15,.86) 0%,
+                rgba(15,15,15,.30) 34%,
+                rgba(15,15,15,0) 66%
+            );
+            opacity: 0;
+            transition: opacity .45s ease;
+        }
+
+        .team-card.active::after { opacity: 1; }
         .team-card:hover { box-shadow: var(--shadow-lift); }
-        
-        .card-content { position: absolute; bottom: 30px; left: 30px; display: flex; align-items: center; gap: 20px; opacity: 0; transition: opacity 0.4s var(--ease) 0.2s; pointer-events: none; }
-        .team-card.active .card-content { opacity: 1; pointer-events: auto; }
-        
-        .card-icon { width: 48px; height: 48px; background: var(--white); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); flex-shrink: 0; }
-        .card-info { color: #fff; text-shadow: 0 2px 10px rgba(0,0,0,0.5); }
-        .card-info h3 { margin: 0; font-size: 28px; font-weight: 800; letter-spacing: -0.5px; }
-        .card-info p { margin: 4px 0 0; font-size: 14px; font-weight: 600; color: rgba(255,255,255,0.9); text-transform: uppercase; letter-spacing: 1.5px; }
-        
-        .collapsed-icon { position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); width: 48px; height: 48px; background: var(--white); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; transition: opacity 0.3s var(--ease), transform 0.3s; box-shadow: 0 10px 25px rgba(0,0,0,0.15); }
-        .team-card.active .collapsed-icon { opacity: 0; transform: translate(-50%, 20px); pointer-events: none; }
+        .team-card:focus-visible {
+            outline: 3px solid var(--primary);
+            outline-offset: 4px;
+        }
+
+        .card-content {
+            position: absolute;
+            z-index: 2;
+            left: 28px;
+            bottom: 28px;
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: opacity .4s ease .15s, transform .45s ease .15s;
+            pointer-events: none;
+            max-width: calc(100% - 56px);
+        }
+
+        .team-card.active .card-content {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+        }
+
+        .card-icon, .collapsed-icon {
+            width: 48px;
+            height: 48px;
+            min-width: 48px;
+            background: var(--white);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            box-shadow: 0 10px 25px rgba(0,0,0,.18);
+        }
+
+        .card-info {
+            color: #fff;
+            text-shadow: 0 2px 14px rgba(0,0,0,.55);
+        }
+
+        .card-info h3 {
+            margin: 0;
+            font-size: clamp(22px, 2vw, 30px);
+            font-weight: 800;
+            letter-spacing: -.6px;
+            line-height: 1.05;
+        }
+
+        .card-info p {
+            margin: 7px 0 0;
+            font-size: 13px;
+            font-weight: 700;
+            color: rgba(255,255,255,.92);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+
+        .collapsed-icon {
+            position: absolute;
+            z-index: 2;
+            left: 50%;
+            bottom: 28px;
+            transform: translateX(-50%);
+            transition: opacity .3s ease, transform .3s ease;
+        }
+
+        .team-card.active .collapsed-icon {
+            opacity: 0;
+            transform: translate(-50%, 20px);
+            pointer-events: none;
+        }
+
+        @media (min-width: 769px) {
+            .team-container.has-two .team-card.active { flex: 8 1 0; }
+            .team-container.has-three .team-card.active { flex: 8 1 0; }
+            .team-container.has-four-plus .team-card.active { flex: 8 1 0; }
+        }
 
         /* PORTFOLIO GRID */
         .bento { display: grid; grid-template-columns: repeat(4, 1fr); grid-auto-rows: 250px; gap: 16px; grid-auto-flow: dense; }
@@ -245,7 +387,7 @@
         .bento-item:nth-child(6n+1) { grid-column: span 2; grid-row: span 2; }
         .bento-item:nth-child(6n+4) { grid-column: span 2; }
         .bento-item:hover { transform: translateY(-8px); box-shadow: 0 20px 40px rgba(0,0,0,0.15), 0 0 20px rgba(242,101,34,0.2); z-index: 2; }
-        .bento-media { position: absolute; inset: 0; background-size: cover; background-position: center; transition: transform .95s var(--ease), filter .95s; }
+        .bento-media { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center; display: block; transition: transform .95s var(--ease), filter .95s; }
         .bento-item:hover .bento-media { transform: scale(1.09); filter: brightness(1.1); }
         .bento-veil { position: absolute; inset: 0; background: linear-gradient(to top, rgba(15,15,15,.9), transparent 65%); opacity: 0; transition: opacity .5s var(--ease); }
         .bento-item:hover .bento-veil { opacity: 1; }
@@ -433,10 +575,15 @@
             .dossier-body { padding: 42px 28px; }
             .dossier-meta { grid-template-columns: 1fr; gap: 16px; }
             
-            .team-container { flex-direction: column; height: 700px; }
-            .team-card.active { flex: 4; }
+            .team-container { flex-direction: column; height: 720px; gap: 10px; }
+            .team-card, .team-card.active { flex: 1 1 0; min-height: 0; }
+            .team-card.active { flex: 2.2 1 0; }
             .collapsed-icon { bottom: auto; top: 50%; transform: translate(-50%, -50%); }
-            .team-card.active .collapsed-icon { transform: translate(-50%, -50%) scale(0.5); }
+            .team-card.active .collapsed-icon { transform: translate(-50%, -50%) scale(.5); }
+            .card-content { left: 20px; bottom: 20px; gap: 12px; max-width: calc(100% - 40px); }
+            .card-icon { width: 42px; height: 42px; min-width: 42px; font-size: 19px; }
+            .card-info h3 { font-size: 22px; }
+            .card-info p { font-size: 10px; letter-spacing: 1px; }
             
             .form { grid-template-columns: 1fr; }
             footer { flex-direction: column; text-align: center; gap: 15px; }
@@ -476,6 +623,33 @@
             .band-head::after { transform: scaleX(1) !important; }
         }
     </style>
+
+    <!-- Local business + service structured data -->
+    <script type="application/ld+json">
+    {
+      "@context":"https://schema.org",
+      "@type":"LocalBusiness",
+      "@id":"https://www.anilmalle.in/#business",
+      "name":"Sri Annapurna Graphics & Printers",
+      "url":"https://www.anilmalle.in/",
+      "logo":"https://www.anilmalle.in/LOGO.jpg.jpeg",
+      "image":"https://www.anilmalle.in/Home%20Page%20Image%20_%2001.png",
+      "telephone":"+91 92999 99564",
+      "email":"iamdesign81@gmail.com",
+      "description":"Graphic design, branding, digital printing and commercial printing services in Kakinada.",
+      "foundingDate":"1990",
+      "address":{"@type":"PostalAddress","streetAddress":"Majestic Complex, Cinema Road","addressLocality":"Kakinada","addressRegion":"Andhra Pradesh","addressCountry":"IN"},
+      "areaServed":{"@type":"City","name":"Kakinada"},
+      "hasOfferCatalog":{"@type":"OfferCatalog","name":"Design & Printing Services","itemListElement":[
+        {"@type":"Offer","itemOffered":{"@type":"Service","name":"Graphic Design"}},
+        {"@type":"Offer","itemOffered":{"@type":"Service","name":"Brand Identity & Logo Design"}},
+        {"@type":"Offer","itemOffered":{"@type":"Service","name":"Digital Printing"}},
+        {"@type":"Offer","itemOffered":{"@type":"Service","name":"Commercial Printing"}},
+        {"@type":"Offer","itemOffered":{"@type":"Service","name":"Wedding Invitation Printing"}},
+        {"@type":"Offer","itemOffered":{"@type":"Service","name":"Packaging & Label Design"}}
+      ]}
+    }
+    </script>
 </head>
 
 <body>
@@ -566,13 +740,13 @@
 
         <div class="hero-grid">
             <div>
-                <div class="hero-eyebrow tag">Graphic Design &amp; Printing</div>
+                <div class="hero-eyebrow tag">Graphic Design &amp; Printing Services in Kakinada</div>
                 <h1 class="hero-title">
                     <span class="mask" style="--d:120ms"><i class="outline">LOCAL</i></span>
                     <span class="mask" style="--d:220ms"><i>BUSINESS TO</i></span>
                     <span class="mask" style="--d:320ms"><i class="fill">BRAND</i></span>
                 </h1>
-                <p class="hero-desc rv" style="--d:500ms">Premium graphic design and high-quality printing solutions tailored to elevate your brand's identity to the next level.</p>
+                <p class="hero-desc rv" style="--d:500ms">Professional graphic design, branding and high-quality printing services in Kakinada for businesses, brands, institutions and families.</p>
                 <div class="hero-actions rv" style="--d:600ms">
                     <a href="#contact" class="btn btn-solid">Start a project →</a>
                     <a href="#showcase" class="btn btn-ghost">See the work</a>
@@ -582,14 +756,14 @@
             <div class="hero-frame rv" style="--d:420ms">
                 <span class="corner tl"></span><span class="corner tr"></span>
                 <span class="corner bl"></span><span class="corner br"></span>
-                <img src="Home Page Image _ 01.png" id="hero-art" alt="Designer Illustration" onerror="this.src='https://via.placeholder.com/500x500?text=Design+Artwork'">
+                <img src="Home Page Image _ 01.png" id="hero-art" alt="Graphic design and printing services in Kakinada by Anil Malle" loading="eager" decoding="async" onerror="this.src='https://via.placeholder.com/500x500?text=Design+Artwork'">
             </div>
         </div>
 
         <div class="readout">
-            <div class="readout-cell rv" style="--d:660ms"><h3 data-count="1000">0<b>+</b></h3><p class="tag">Projects Delivered</p></div>
-            <div class="readout-cell rv" style="--d:740ms"><h3 data-count="150">0<b>+</b></h3><p class="tag">Brands Printed</p></div>
-            <div class="readout-cell rv" style="--d:820ms"><h3 data-count="40">0<b>+</b></h3><p class="tag">Years in Printing</p></div>
+            <div class="readout-cell rv" style="--d:660ms"><h3 data-count="1000">1,000<b>+</b></h3><p class="tag">Projects Delivered</p></div>
+            <div class="readout-cell rv" style="--d:740ms"><h3 data-count="150">150<b>+</b></h3><p class="tag">Brands Printed</p></div>
+            <div class="readout-cell rv" style="--d:820ms"><h3 data-count="40">40<b>+</b></h3><p class="tag">Years in Printing</p></div>
             <div class="readout-live rv tag" style="--d:900ms"><span class="pulse"></span> Press running · Kakinada</div>
         </div>
     </section>
@@ -606,7 +780,7 @@
 
         <div class="archive">
             <div class="archive-plate">
-                <img src="About%20Page%20Image%20_%2001.png" class="wipe" alt="Vintage Printing Press" onerror="this.src='https://via.placeholder.com/400x400?text=Printing+Press'">
+                <img src="About%20Page%20Image%20_%2001.png" class="wipe" alt="Traditional printing press representing four decades of family printing heritage" loading="lazy" decoding="async" onerror="this.src='https://via.placeholder.com/400x400?text=Printing+Press'">
                 <div class="plate-caption rv" style="--d:150ms">
                     <strong>Plate 01</strong>
                     Some traditions are meant to be preserved. Others are meant to be reimagined.
@@ -626,13 +800,13 @@
                     <div class="era-year tag">1990</div>
                     <h4>Sri Annapurna Printers</h4>
                     <p>Those principles became the foundation of Sri Annapurna Printers, established by our father in 1990.</p>
-                    <p>As technology transformed the industry, so did we.</p>
+                    <p>As printing technology transformed the industry, so did we—embracing new methods while preserving the craftsmanship, personal service, and attention to detail that have defined our family for generations.</p>
                 </div>
 
                 <div class="era rv" style="--d:160ms">
                     <div class="era-year tag">2014</div>
                     <h4>Sri Annapurna Graphics &amp; Printers</h4>
-                    <p>In 2014, we evolved into Sri Annapurna Graphics &amp; Printers, embracing advanced digital production while preserving the attention to detail and personal service that have defined our family for generations.</p>
+                    <p>In 2014, we evolved into Sri Annapurna Graphics &amp; Printers, embracing advanced digital printing and modern production technology while continuing our tradition of quality and personalized service. Today, we bring together graphic design, branding, digital printing, commercial printing, and creative production to provide complete solutions for businesses, brands, institutions, and families.</p>
                 </div>
 
                 <div class="era rv" style="--d:240ms">
@@ -659,36 +833,36 @@
         <div class="spec">
             <a href="brand-identity.html" class="spec-row rv" style="text-decoration: none; color: inherit; display: grid;">
                 <div class="spec-num tag">01</div>
-                <div class="spec-name"><em>✒️</em> Brand Identity &amp; Logo</div>
-                <p class="spec-desc">Crafting unique visual identity tailored to represent you.</p>
+                <h3 class="spec-name"><em aria-hidden="true">✒️</em> Brand Identity &amp; Logo Design</h3>
+                <p class="spec-desc">Professional brand identity and logo design in Kakinada, tailored to represent your business with clarity and consistency.</p>
                 <div class="spec-arrow">→</div>
             </a>
             
             <a href="print-packaging.html" class="spec-row rv" style="--d:70ms; text-decoration: none; color: inherit; display: grid;">
                 <div class="spec-num tag">02</div>
-                <div class="spec-name"><em>🖨️</em> Print &amp; Production</div>
-                <p class="spec-desc">High quality prints with best in class materials.</p>
+                <h3 class="spec-name"><em aria-hidden="true">🖨️</em> Digital &amp; Commercial Printing</h3>
+                <p class="spec-desc">High-quality digital and commercial printing in Kakinada, including business cards, brochures, stationery, invitations and specialty print products.</p>
                 <div class="spec-arrow">→</div>
             </a>
             
             <div class="spec-row rv" style="--d:140ms">
                 <div class="spec-num tag">03</div>
-                <div class="spec-name"><em>📄</em> Marketing Collateral</div>
-                <p class="spec-desc">Brochures, flyers, and digital ad campaigns.</p>
+                <h3 class="spec-name"><em aria-hidden="true">📄</em> Marketing Collateral</h3>
+                <p class="spec-desc">Brochures, flyers, posters, stationery and promotional materials designed to communicate your brand effectively.</p>
                 <div class="spec-arrow">→</div>
             </div>
             
             <div class="spec-row rv" style="--d:210ms">
                 <div class="spec-num tag">04</div>
-                <div class="spec-name"><em>📦</em> Packaging &amp; Labels</div>
-                <p class="spec-desc">Custom labels for all your product packaging.</p>
+                <h3 class="spec-name"><em aria-hidden="true">📦</em> Packaging &amp; Label Design</h3>
+                <p class="spec-desc">Custom packaging, product labels and print-ready designs that help products stand out on the shelf.</p>
                 <div class="spec-arrow">→</div>
             </div>
             
             <div class="spec-row rv" style="--d:280ms">
                 <div class="spec-num tag">05</div>
-                <div class="spec-name"><em>🏷️</em> Special Printing</div>
-                <p class="spec-desc">Offset, flex, and specialized promotional prints.</p>
+                <h3 class="spec-name"><em aria-hidden="true">🏷️</em> Special &amp; Specialty Printing</h3>
+                <p class="spec-desc">Offset, flex and specialized promotional printing for business, events, institutions and personal projects.</p>
                 <div class="spec-arrow">→</div>
             </div>
         </div>
@@ -706,7 +880,7 @@
 
         <div class="dossier rv">
             <div class="dossier-photo">
-                <img src="Landing Page _ copy.png" alt="Anil Malle Portrait" onerror="this.src='https://via.placeholder.com/400x500?text=Anil+Malle'">
+                <img src="Landing Page _ copy.png" alt="Anil Malle, graphic designer and printing professional in Kakinada" loading="lazy" decoding="async" onerror="this.src='https://via.placeholder.com/400x500?text=Anil+Malle'">
             </div>
             <div class="dossier-body">
                 <div class="dossier-greeting">H<span class="bang">!</span> am</div>
@@ -763,12 +937,12 @@
         </div>
 
         <div class="marquee-wrap rv">
-            <div class="marquee-row" id="marquee-1"><div class="client-logo-placeholder">Loading Clients...</div></div>
-            <div class="marquee-row" id="marquee-2"><div class="client-logo-placeholder">Loading Clients...</div></div>
+            <div class="marquee-row" id="marquee-1"><div class="client-logo-placeholder" aria-hidden="true">Our Clients</div></div>
+            <div class="marquee-row" id="marquee-2"><div class="client-logo-placeholder" aria-hidden="true">Our Clients</div></div>
         </div>
         <div class="marquee-wrap reverse rv" style="--d:120ms">
-            <div class="marquee-row" id="marquee-3"><div class="client-logo-placeholder">Loading Clients...</div></div>
-            <div class="marquee-row" id="marquee-4"><div class="client-logo-placeholder">Loading Clients...</div></div>
+            <div class="marquee-row" id="marquee-3"><div class="client-logo-placeholder" aria-hidden="true">Our Clients</div></div>
+            <div class="marquee-row" id="marquee-4"><div class="client-logo-placeholder" aria-hidden="true">Our Clients</div></div>
         </div>
     </section>
 
@@ -794,9 +968,9 @@
         <div class="band-head">
             <div>
                 <div class="band-index tag rv">08 — Transmit</div>
-                <h2 class="band-title mask" style="--d:120ms"><i>Let's Connect</i></h2>
+                <h2 class="band-title mask" style="--d:120ms"><i>Get a Quote</i></h2>
             </div>
-            <p class="band-note rv" style="--d:200ms">Send the brief. We'll come back with a plan.</p>
+            <p class="band-note rv" style="--d:200ms">Tell us about your project and we’ll come back with a clear plan on WhatsApp.</p>
         </div>
 
         <div class="transmit">
@@ -811,7 +985,7 @@
                     </a>
                     
                     <div class="map-wrap">
-                        <iframe src="https://maps.google.com/maps?q=Sri+Annapurna+Graphics+%26+Printers,+Kakinada&t=&z=16&ie=UTF8&iwloc=&output=embed" allowfullscreen loading="lazy"></iframe>
+                        <iframe src="https://maps.google.com/maps?q=Sri+Annapurna+Graphics+%26+Printers,+Kakinada&t=&z=16&ie=UTF8&iwloc=&output=embed" allowfullscreen loading="lazy" title="Sri Annapurna Graphics & Printers location in Kakinada"></iframe>
                     </div>
                 </div>
             </div>
@@ -838,14 +1012,14 @@
                     <input type="file" id="contact-file" style="display:none" accept="image/*, .pdf, .doc, .docx">
                     <label for="contact-file" class="file-drop" id="contact-file-label">
                         <div id="file-preview-container">
-                            <img id="file-preview" alt="File Preview" />
+                            <img id="file-preview" alt="Selected project file preview" />
                         </div>
                         <span id="contact-file-name">📎 Attach a file (PDF, Image, Doc)</span>
                         <div class="file-remove-btn" id="file-remove-btn">Remove File ✕</div>
                     </label>
                 </div>
 
-                <button type="submit" id="contact-submit" class="btn btn-solid">Send Message →</button>
+                <button type="submit" id="contact-submit" class="btn btn-solid">Get a Quote →</button>
             </form>
         </div>
     </section>
@@ -863,7 +1037,7 @@
                     </svg>
                 </button>
                 
-                <img id="modal-full-img" src="" alt="Portfolio Image">
+                <img id="modal-full-img" src="" alt="Graphic design and printing portfolio project by Anil Malle">
                 
                 <button class="modal-btn modal-slide-btn modal-slide-next" id="modal-next-btn" title="Next">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -898,8 +1072,21 @@
     </div>
 
     <footer>
-        <p>&copy; 2026 anilmalle.in. All rights reserved.</p>
-        <a href="admin/index.html">Admin Login</a>
+        <div>
+            <strong style="color:var(--dark);">Sri Annapurna Graphics &amp; Printers</strong>
+            <p style="margin-top:6px;">Graphic design and printing services in Kakinada, Andhra Pradesh.</p>
+        </div>
+        <nav aria-label="Footer navigation" style="display:flex;gap:18px;flex-wrap:wrap;justify-content:center;">
+            <a href="#about">About</a>
+            <a href="#services">Services</a>
+            <a href="#showcase">Portfolio</a>
+            <a href="#reviews">Reviews</a>
+            <a href="#contact">Contact</a>
+        </nav>
+        <div>
+            <p>&copy; 2026 Sri Annapurna Graphics &amp; Printers. All rights reserved.</p>
+            <a href="admin/index.html" style="font-size:11px;opacity:.5;">Admin Login</a>
+        </div>
     </footer>
 
     <script>
@@ -920,7 +1107,7 @@
                 setTimeout(() => loader.remove(), 1600);
             };
             window.addEventListener('load', () => setTimeout(finish, 280));
-            setTimeout(finish, 1800);
+            setTimeout(finish, 900);
         })();
 
         /* Scroll reveals */
@@ -1042,8 +1229,14 @@
 
         /* Team Accordion Global Function */
         window.activateTeamCard = function(element) {
+            const container = document.getElementById('dynamic-team-container');
             document.querySelectorAll('.team-card').forEach(card => card.classList.remove('active'));
             element.classList.add('active');
+            if (container) {
+                container.querySelectorAll('.team-card').forEach(card => {
+                    card.setAttribute('aria-expanded', card === element ? 'true' : 'false');
+                });
+            }
         }
 
         /* ============================================================
@@ -1079,52 +1272,48 @@
                     
                     if (teamData && teamData.length > 0) {
                         teamContainer.innerHTML = '';
-                        teamData.forEach((member, i) => {
-                            const isActive = i === 0 ? 'active' : '';
+
+                        // Keep the premium reference composition: three cards are
+                        // shown when available — one expanded card and two slim cards.
+                        const visibleTeam = teamData.slice(0, 3);
+                        teamContainer.classList.toggle('has-two', visibleTeam.length === 2);
+                        teamContainer.classList.toggle('has-three', visibleTeam.length >= 3);
+                        teamContainer.classList.toggle('has-four-plus', visibleTeam.length > 3);
+
+                        visibleTeam.forEach((member, i) => {
+                            const isActive = i === 0;
+                            const icon = member.icon || '👤';
+                            const name = member.name || 'Team Member';
+                            const role = member.role || 'Creative & Printing';
+                            const image = member.image_url || '';
+
                             teamContainer.innerHTML += `
-                                <div class="team-card ${isActive}" style="background-image: url('${member.image_url}')" onclick="activateTeamCard(this)">
-                                    <div class="collapsed-icon">${member.icon || '👤'}</div>
+                                <article
+                                    class="team-card ${isActive ? 'active' : ''}"
+                                    style="background-image:url('${image.replace(/'/g, "\\'")}')"
+                                    onclick="activateTeamCard(this)"
+                                    role="button"
+                                    tabindex="0"
+                                    aria-expanded="${isActive ? 'true' : 'false'}"
+                                    aria-label="${name}, ${role}"
+                                    onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();activateTeamCard(this)}">
+                                    <div class="collapsed-icon" aria-hidden="true">${icon}</div>
                                     <div class="card-content">
-                                        <div class="card-icon">${member.icon || '👤'}</div>
+                                        <div class="card-icon" aria-hidden="true">${icon}</div>
                                         <div class="card-info">
-                                            <h3>${member.name}</h3>
-                                            <p>${member.role}</p>
+                                            <h3>${name}</h3>
+                                            <p>${role}</p>
                                         </div>
                                     </div>
-                                </div>
+                                </article>
                             `;
                         });
                     } else {
-                        // Placeholders if Supabase database is empty, exactly recreating the accordion feel
                         teamContainer.innerHTML = `
-                            <div class="team-card active" style="background-image: url('https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=800&q=80');" onclick="activateTeamCard(this)">
-                                <div class="collapsed-icon">👩‍💼</div>
-                                <div class="card-content">
-                                    <div class="card-icon">👩‍💼</div>
-                                    <div class="card-info">
-                                        <h3>Sarah Jenkins</h3>
-                                        <p>Chief Executive Officer</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="team-card" style="background-image: url('https://images.unsplash.com/photo-1560250097-0b93528c311a?w=800&q=80');" onclick="activateTeamCard(this)">
-                                <div class="collapsed-icon">👨‍💻</div>
-                                <div class="card-content">
-                                    <div class="card-icon">👨‍💻</div>
-                                    <div class="card-info">
-                                        <h3>David Chen</h3>
-                                        <p>Lead Developer</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="team-card" style="background-image: url('https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=800&q=80');" onclick="activateTeamCard(this)">
-                                <div class="collapsed-icon">🎨</div>
-                                <div class="card-content">
-                                    <div class="card-icon">🎨</div>
-                                    <div class="card-info">
-                                        <h3>Elena Rodriguez</h3>
-                                        <p>Creative Director</p>
-                                    </div>
+                            <div class="team-empty" style="width:100%;display:flex;align-items:center;justify-content:center;text-align:center;padding:50px;border:1px solid var(--line);border-radius:30px;background:var(--light-gray);">
+                                <div>
+                                    <h3 style="font-size:28px;margin-bottom:12px;">A Family-Led Creative Team</h3>
+                                    <p style="color:var(--gray);line-height:1.8;max-width:620px;">Graphic design and printing expertise backed by more than four decades of family experience in Kakinada.</p>
                                 </div>
                             </div>
                         `;
@@ -1139,13 +1328,18 @@
                         
                         portfolio.forEach((item, i) => {
                             grid.innerHTML += `
-                                <div class="bento-item rv" style="--d:${(i % 4) * 80}ms" onclick="openPortfolioModal(${i})">
-                                    <div class="bento-media" style="background-image:url('${item.image_url}')"></div>
+                                <article class="bento-item rv" style="--d:${(i % 4) * 80}ms" onclick="openPortfolioModal(${i})" tabindex="0" role="button" aria-label="View ${item.title || 'portfolio project'}">
+                                    <img class="bento-media" src="${item.image_url || ''}" alt="${item.alt_text || item.title || 'Graphic design and printing project by Anil Malle in Kakinada'}" loading="lazy" decoding="async">
                                     <div class="bento-veil"></div>
-                                    <div class="bento-label">${item.title || 'Portfolio Item'}</div>
-                                </div>`;
+                                    <div class="bento-label"><strong>${item.title || 'Portfolio Project'}</strong>${item.description ? `<span style="display:block;font-size:12px;font-weight:400;margin-top:5px;opacity:.9;">${item.description}</span>` : ''}</div>
+                                </article>`;
                         });
                         watch(grid);
+                        grid.querySelectorAll('.bento-item').forEach(card => {
+                            card.addEventListener('keydown', e => {
+                                if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); card.click(); }
+                            });
+                        });
                     }
 
                     // Fetch Clients Logos 
@@ -1153,7 +1347,7 @@
                     if (clients && clients.length > 0) {
                         let logosHtml = '';
                         clients.forEach(c => {
-                            logosHtml += `<img class="client-logo" src="${c.logo_url}" alt="${c.name || 'Client Logo'}" title="${c.name || 'Client'}">`;
+                            logosHtml += `<img class="client-logo" src="${c.logo_url}" alt="${c.name || 'Client logo'}" title="${c.name || 'Client'}" loading="lazy" decoding="async">`;
                         });
                         ['marquee-1', 'marquee-2', 'marquee-3', 'marquee-4'].forEach(id => {
                             const row = document.getElementById(id);
@@ -1174,6 +1368,7 @@
                 
                 // Update Image
                 imgFull.src = item.image_url || '';
+                imgFull.alt = item.alt_text || item.title || 'Graphic design and printing portfolio project by Anil Malle in Kakinada';
                 
                 // Update Texts
                 textTitle.textContent = item.title || 'Portfolio Item';
@@ -1339,7 +1534,26 @@
                             body: emailData
                         });
 
-                        alert("Thank you! Your message and file have been successfully sent.");
+                        // Open WhatsApp with the complete enquiry details after successful submission.
+                        const whatsappNumber = "919299995564";
+                        const whatsappMessage = [
+                            "*New Design & Printing Quote Request*",
+                            "",
+                            `*Name:* ${name}`,
+                            `*Contact Number:* ${phone}`,
+                            `*Email:* ${email}`,
+                            "",
+                            "*Project Details:*",
+                            message,
+                            attachmentUrl ? `\n*Attached File:* ${attachmentUrl}` : "",
+                            "",
+                            "Sent from: anilmalle.in"
+                        ].filter(Boolean).join("\n");
+
+                        const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(whatsappMessage)}`;
+                        window.open(whatsappUrl, "_blank", "noopener,noreferrer");
+
+                        alert("Thank you! Your quote request has been submitted. WhatsApp will now open with your enquiry details.");
                         contactForm.reset();
                         resetFileUI();
 
