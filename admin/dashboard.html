@@ -267,6 +267,7 @@
                     <li><a href="#" class="nav-btn" data-target="vendors-master">🏢 Vendors Master</a></li>
                     <li><a href="#" class="nav-btn" data-target="staff-master">👥 Staff Master</a></li>
                     <li><a href="#" class="nav-btn" data-target="web-content">🌐 Web Content</a></li>
+                    <li><a href="#" class="nav-btn" data-target="team-master">👥 Team Master</a></li>
                     <li><a href="#" class="nav-btn" data-target="pending-reports">📑 Pending Reports</a></li>
                     <li><a href="#" class="nav-btn" data-target="vendor-reports">📈 Vendor Reports</a></li>
                     <li><a href="#" class="nav-btn" data-target="clients-data">📇 Clients Data</a></li>
@@ -643,6 +644,62 @@
                     <div class="table-responsive-wrapper">
                         <table class="data-table" id="staff-table"><thead><tr><th>Name</th><th>Phone</th><th>Action</th></tr></thead><tbody></tbody></table>
                     </div>
+                </div>
+            </div>
+
+            <!-- TEAM MASTER VIEW SECTION (NEW) -->
+            <div id="team-master" class="view-section admin-view">
+                <div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start;">
+                    
+                    <!-- LEFT COLUMN: Form -->
+                    <div style="flex: 1; min-width: 300px; display: flex; flex-direction: column; gap: 20px;">
+                        <div class="admin-card" style="margin-bottom: 0;">
+                            <h3>Add New Team Member</h3>
+                            <p style="font-size: 13px; color: var(--gray); margin-bottom: 16px;">Upload details to appear in the "Our Team" section.</p>
+                            <form id="team-form" onsubmit="handleTeamSubmit(event)">
+                                <div class="form-group">
+                                    <label>Full Name</label>
+                                    <input type="text" id="team-name" placeholder="e.g., Sarah Jenkins" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Role / Job Title</label>
+                                    <input type="text" id="team-role" placeholder="e.g., Chief Executive Officer" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Icon (Emoji)</label>
+                                    <input type="text" id="team-icon" placeholder="👩‍💼" value="👤" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Profile Image</label>
+                                    <input type="file" id="team-img" accept="image/*" required style="background: white;">
+                                </div>
+                                <div class="action-row"><button type="submit" id="btn-team" class="btn-primary">Add Member</button></div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- RIGHT COLUMN: Table -->
+                    <div style="flex: 2; min-width: 300px; display: flex; flex-direction: column; gap: 20px; height: 100%;">
+                        <div class="admin-card" style="margin-bottom: 0;">
+                            <h3>Manage Team Members</h3>
+                            <div class="table-responsive-wrapper">
+                                <table class="data-table" id="team-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Icon</th>
+                                            <th>Name</th>
+                                            <th>Role</th>
+                                            <th style="width: 100px; text-align: center;">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <!-- Populated dynamically via JS -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
             </div>
 
@@ -1426,6 +1483,7 @@
                 if(targetId === 'vendor-reports') { renderVendorReport(); updateAllVendorDropdowns(); }
                 if(targetId === 'all-orders') renderAllOrders();
                 if(targetId === 'web-content') { renderTrustedLogos(); renderPortfolioItems(); }
+                if(targetId === 'team-master') { renderTeamTable(); }
                 if(targetId === 'gst-dashboard') loadLedger();
                 if(targetId === 'gst-sale') initSaleForm();
 
@@ -1495,7 +1553,7 @@
 
         checkAuth();
 
-        let appData = { vendors: [], orders: {}, vendorAllotmentsHistory: [], staff: [], trustedLogos: [], portfolioItems: [] };
+        let appData = { vendors: [], orders: {}, vendorAllotmentsHistory: [], staff: [], trustedLogos: [], portfolioItems: [], team: [] };
 
         async function loadAppData() {
             try {
@@ -1526,6 +1584,11 @@
                 if (pError) console.error("Portfolio fetch error:", pError.message);
                 appData.portfolioItems = portfolio || [];
 
+                // Fetch Team Members
+                const { data: teamData, error: tError } = await supabaseClient.from('team_members').select('*').order('id', { ascending: true });
+                if (tError) console.error("Team fetch error:", tError.message);
+                appData.team = teamData || [];
+
                 updateDashboardStats();
                 renderAllOrders();
                 renderPRClient();
@@ -1536,6 +1599,7 @@
                 populateClientDatalist();
                 renderTrustedLogos();
                 renderPortfolioItems();
+                renderTeamTable();
             } catch (err) {
                 console.error("Supabase Load Error:", err.message);
                 showToast("Error loading cloud data!");
@@ -3295,7 +3359,7 @@
         }
 
         // ==========================================
-        // WEB CONTENT: TRUSTED LOGOS & PORTFOLIO LOGIC
+        // WEB CONTENT: TRUSTED LOGOS, PORTFOLIO LOGIC & TEAM LOGIC
         // ==========================================
         
         function renderTrustedLogos() {
@@ -3344,6 +3408,30 @@
             });
         }
 
+        function renderTeamTable() {
+            const tbody = document.querySelector('#team-table tbody');
+            if(!tbody) return;
+            tbody.innerHTML = '';
+            
+            if(!appData.team || appData.team.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:15px;">No team members found.</td></tr>';
+                return;
+            }
+            
+            appData.team.forEach(member => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td style="font-size: 20px;">${member.icon || '👤'}</td>
+                        <td><strong>${member.name || 'Untitled'}</strong></td>
+                        <td>${member.role || '-'}</td>
+                        <td style="text-align: center;">
+                            <button onclick="removeTeamMember('${member.id}')" class="btn-primary" style="background: #ef4444; padding: 6px 12px; font-size: 11px;">Remove</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
         async function handleClientLogoSubmit(e) {
             e.preventDefault();
             const submitBtn = document.getElementById('btn-client');
@@ -3362,7 +3450,6 @@
 
                 // Upload all selected files concurrently
                 let uploadPromises = Array.from(files).map(async (file, index) => {
-                    // Set name. If base name is provided and multiple files, append a number. If no name, use filename.
                     let cName = clientNameBase 
                         ? (files.length > 1 ? `${clientNameBase} ${index + 1}` : clientNameBase) 
                         : file.name.split('.')[0];
@@ -3485,6 +3572,71 @@
             appData.portfolioItems = appData.portfolioItems.filter(p => String(p.id) !== String(id));
             renderPortfolioItems();
             showToast("Portfolio Item Removed!");
+        }
+
+        async function handleTeamSubmit(e) {
+            e.preventDefault();
+            const submitBtn = document.getElementById('btn-team');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Uploading...';
+
+            try {
+                let name = document.getElementById('team-name').value.trim();
+                let role = document.getElementById('team-role').value.trim();
+                let icon = document.getElementById('team-icon').value.trim();
+                const fileInput = document.getElementById('team-img');
+                const file = fileInput.files[0];
+
+                if (!file) {
+                    alert("Please select a profile image.");
+                    return;
+                }
+
+                const fileExt = file.name.split('.').pop();
+                const uniqueFileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+
+                // Upload to Supabase Storage (requires a 'team_images' bucket)
+                const { error: uploadError } = await supabaseClient.storage.from('team_images').upload(uniqueFileName, file);
+                if (uploadError) throw uploadError;
+
+                const { data: publicUrlData } = supabaseClient.storage.from('team_images').getPublicUrl(uniqueFileName);
+                const imageUrl = publicUrlData.publicUrl;
+
+                const { data, error: dbError } = await supabaseClient.from('team_members').insert([{
+                    name: name,
+                    role: role,
+                    icon: icon,
+                    image_url: imageUrl
+                }]).select();
+                
+                if (dbError) throw dbError;
+
+                appData.team.push(data[0]);
+                showToast(`Team Member Added!`);
+                document.getElementById('team-form').reset();
+                document.getElementById('team-icon').value = '👤';
+                renderTeamTable();
+
+            } catch (err) {
+                console.error("Upload error:", err.message);
+                alert("Error: " + err.message + "\n\nMake sure your 'team_members' table and 'team_images' bucket exist in Supabase!");
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Add Member';
+            }
+        }
+
+        async function removeTeamMember(id) {
+            if(!confirm("Are you sure you want to remove this team member?")) return;
+            
+            const { error } = await supabaseClient.from('team_members').delete().eq('id', id);
+            if(error) {
+                console.warn("Could not delete from Supabase: " + error.message);
+            }
+
+            appData.team = appData.team.filter(m => String(m.id) !== String(id));
+            renderTeamTable();
+            showToast("Team Member Removed!");
         }
 
         // Draw the first New Order work row on load
