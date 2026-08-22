@@ -89,7 +89,7 @@
         .admin-profile { display: flex; align-items: center; gap: 12px; flex-shrink: 0;}
         .header-icon { background: var(--white); width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 10px rgba(0,0,0,0.02); font-size: 15px;}
         .profile-chip { background: var(--white); display: flex; align-items: center; gap: 8px; padding: 5px 12px 5px 5px; border-radius: 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.02);}
-        .profile-chip span.avatar { background: var(--primary); color: var(--white); width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; border-radius: 50%; font-weight: 600; font-size: 12px;}
+        .profile-chip span.avatar { background: var(--primary); color: var(--white); width: 30px; height: 30px; display: flex; align-items: center; justify-content: border-radius: 50%; font-weight: 600; font-size: 12px;}
         .profile-chip #user-email { font-size: 12px; font-weight: 500; color: var(--dark); max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;}
 
         /* Content Area & Dashboard */
@@ -1209,7 +1209,7 @@
             </div>
             <div class="form-group" style="margin-top:12px;">
                 <label>GST % (e.g. 18%, 12%)</label>
-                <input type="text" id="ev_gst">
+                <input type="text" id="ev_gst" placeholder="e.g. 18%">
             </div>
             <input type="hidden" id="ev_id">
             <button class="btn-primary" style="width: 100%; margin-top: 20px;" onclick="saveEditedVendorBill()">Save Changes</button>
@@ -3409,8 +3409,12 @@
             ledger.forEach(entry => {
                 let balanceColor = entry.computedBalance >= 0 ? 'text-green' : 'text-red';
                 
-                // Add Edit Button if type is Vendor and has an ID attached
-                let actionBtn = entry.type === 'vendor' && entry.id ? `<button class="btn-secondary" style="padding:4px 8px; font-size:11px;" onclick="openEditVendorBill('${entry.id}')">Edit</button>` : '';
+                // Add Edit/Delete Button if type is Vendor and has an ID attached
+                let actionBtn = entry.type === 'vendor' && entry.id ? `
+                    <div style="display:flex; gap:6px; justify-content:center;">
+                        <button class="btn-primary" style="padding:4px 10px; font-size:11px; background:#3b82f6;" onclick="openEditVendorBill('${entry.id}')">Edit</button>
+                        <button class="btn-primary" style="padding:4px 10px; font-size:11px; background:#ef4444;" onclick="deleteVendorBill('${entry.id}')">Delete</button>
+                    </div>` : '';
 
                 tbody += `<tr>
                     <td>${formatDate(entry.date)}</td>
@@ -3432,7 +3436,10 @@
             if(ledgerTbody) ledgerTbody.innerHTML = tbody;
         }
 
-        // Ledger Edit Functionality
+        // ==========================================
+        // VENDOR BILL EDIT & DELETE
+        // ==========================================
+        
         function openEditVendorBill(id) {
             const vendors = getData('surya_vendors');
             const v = vendors.find(x => x.id === id);
@@ -3453,9 +3460,9 @@
         function saveEditedVendorBill() {
             const id = document.getElementById('ev_id').value;
             const total = parseFloat(document.getElementById('ev_total').value) || 0;
-            const gst = document.getElementById('ev_gst').value;
+            const gst = document.getElementById('ev_gst').value.trim();
 
-            if(total <= 0) return alert('Invalid amount.');
+            if(total <= 0) return alert('Invalid amount. Total must be greater than 0.');
 
             let vendors = getData('surya_vendors');
             const idx = vendors.findIndex(x => x.id === id);
@@ -3463,10 +3470,22 @@
                 vendors[idx].total = total.toFixed(2);
                 vendors[idx].gst = gst;
                 saveData('surya_vendors', vendors);
+                
                 showToast('Vendor bill updated successfully!');
                 closeEditVendorModal();
-                loadLedger();
+                loadLedger(); // Refresh the table
             }
+        }
+
+        function deleteVendorBill(id) {
+            if(!confirm("Are you sure you want to permanently delete this vendor bill? This will recalculate the ledger.")) return;
+            
+            let vendors = getData('surya_vendors');
+            vendors = vendors.filter(v => v.id !== id);
+            saveData('surya_vendors', vendors);
+            
+            showToast("Vendor Bill Deleted!");
+            loadLedger(); // Refresh the table
         }
 
         function downloadLedgerPDF() {
