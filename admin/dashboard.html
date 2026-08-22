@@ -89,7 +89,7 @@
         .admin-profile { display: flex; align-items: center; gap: 12px; flex-shrink: 0;}
         .header-icon { background: var(--white); width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 10px rgba(0,0,0,0.02); font-size: 15px;}
         .profile-chip { background: var(--white); display: flex; align-items: center; gap: 8px; padding: 5px 12px 5px 5px; border-radius: 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.02);}
-        .profile-chip span.avatar { background: var(--primary); color: var(--white); width: 30px; height: 30px; display: flex; align-items: center; justify-content: border-radius: 50%; font-weight: 600; font-size: 12px;}
+        .profile-chip span.avatar { background: var(--primary); color: var(--white); width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; border-radius: 50%; font-weight: 600; font-size: 12px;}
         .profile-chip #user-email { font-size: 12px; font-weight: 500; color: var(--dark); max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;}
 
         /* Content Area & Dashboard */
@@ -1194,25 +1194,36 @@
         </div>
     </div>
 
-    <!-- Edit Vendor Bill Modal -->
-    <div id="editVendorModal" class="modal">
+    <!-- Universal Edit Ledger Entry Modal -->
+    <div id="editLedgerModal" class="modal">
         <div class="modal-content">
-            <span class="close-modal" onclick="closeEditVendorModal()">&times;</span>
-            <h3 style="margin-bottom: 16px;">Edit Vendor Bill</h3>
+            <span class="close-modal" onclick="closeEditLedgerModal()">&times;</span>
+            <h3 style="margin-bottom: 16px;">Edit Ledger Entry</h3>
+            <input type="hidden" id="el_id">
+            <input type="hidden" id="el_type">
+            
             <div class="form-group" style="margin-top:12px;">
-                <label>Vendor Name</label>
-                <input type="text" id="ev_name" readonly>
+                <label>Date</label>
+                <input type="date" id="el_date" required>
             </div>
             <div class="form-group" style="margin-top:12px;">
-                <label>Total Bill Amount (₹)</label>
-                <input type="number" id="ev_total" step="0.01">
+                <label>Invoice No</label>
+                <input type="text" id="el_inv" required>
             </div>
             <div class="form-group" style="margin-top:12px;">
-                <label>GST % (e.g. 18%, 12%)</label>
-                <input type="text" id="ev_gst" placeholder="e.g. 18%">
+                <label>Particulars (Client / Vendor Name)</label>
+                <input type="text" id="el_name" required>
             </div>
-            <input type="hidden" id="ev_id">
-            <button class="btn-primary" style="width: 100%; margin-top: 20px;" onclick="saveEditedVendorBill()">Save Changes</button>
+            <div class="form-group" style="margin-top:12px;">
+                <label>Total Amount (₹)</label>
+                <input type="number" id="el_total" step="0.01" required>
+            </div>
+            <div class="form-group" style="margin-top:12px;">
+                <label>GST % (e.g., 18%, 12%, 555%)</label>
+                <input type="text" id="el_gst" placeholder="Manual override GST% text...">
+            </div>
+            
+            <button class="btn-primary" style="width: 100%; margin-top: 20px;" onclick="saveEditedLedgerEntry()">Save Changes</button>
         </div>
     </div>
 
@@ -3366,9 +3377,19 @@
             const vendors = getData('surya_vendors');
 
             let ledger = [];
-            // Map IDs to ledger array mapping to easily access them for edits
-            sales.forEach(s => ledger.push({ id: s.id, type: 'sale', date: s.date, gst: s.gst || '-', inv: s.inv, name: s.client, credit: parseFloat(s.total), debit: 0 }));
-            vendors.forEach(v => ledger.push({ id: v.id, type: 'vendor', date: v.date, gst: v.gst || '-', inv: v.inv, name: v.name, credit: 0, debit: parseFloat(v.total) }));
+            
+            // Map IDs and ensure backward compatibility for items saved before ID was introduced
+            sales.forEach(s => {
+                if(!s.id) s.id = 's_' + Date.now() + Math.random();
+                ledger.push({ id: s.id, type: 'sale', date: s.date, gst: s.gst || '-', inv: s.inv, name: s.client, credit: parseFloat(s.total), debit: 0 })
+            });
+            saveData('surya_sales', sales); // Save back to persist new IDs if any
+            
+            vendors.forEach(v => {
+                if(!v.id) v.id = 'v_' + Date.now() + Math.random();
+                ledger.push({ id: v.id, type: 'vendor', date: v.date, gst: v.gst || '-', inv: v.inv, name: v.name, credit: 0, debit: parseFloat(v.total) })
+            });
+            saveData('surya_vendors', vendors);
 
             const monthFilterElem = document.getElementById('ledgerMonth');
             const monthFilter = monthFilterElem ? monthFilterElem.value : '';
@@ -3409,11 +3430,10 @@
             ledger.forEach(entry => {
                 let balanceColor = entry.computedBalance >= 0 ? 'text-green' : 'text-red';
                 
-                // Add Edit/Delete Button if type is Vendor and has an ID attached
-                let actionBtn = entry.type === 'vendor' && entry.id ? `
+                let actionBtn = entry.id ? `
                     <div style="display:flex; gap:6px; justify-content:center;">
-                        <button class="btn-primary" style="padding:4px 10px; font-size:11px; background:#3b82f6;" onclick="openEditVendorBill('${entry.id}')">Edit</button>
-                        <button class="btn-primary" style="padding:4px 10px; font-size:11px; background:#ef4444;" onclick="deleteVendorBill('${entry.id}')">Delete</button>
+                        <button class="btn-primary" style="padding:4px 10px; font-size:11px; background:#3b82f6;" onclick="openEditLedgerEntry('${entry.id}', '${entry.type}')">Edit</button>
+                        <button class="btn-primary" style="padding:4px 10px; font-size:11px; background:#ef4444;" onclick="deleteLedgerEntry('${entry.id}', '${entry.type}')">Delete</button>
                     </div>` : '';
 
                 tbody += `<tr>
@@ -3436,56 +3456,70 @@
             if(ledgerTbody) ledgerTbody.innerHTML = tbody;
         }
 
-        // ==========================================
-        // VENDOR BILL EDIT & DELETE
-        // ==========================================
-        
-        function openEditVendorBill(id) {
-            const vendors = getData('surya_vendors');
-            const v = vendors.find(x => x.id === id);
-            if(!v) return alert('Record not found.');
+        // Ledger Universal Edit/Delete Functionality
+        function openEditLedgerEntry(id, type) {
+            const listName = type === 'sale' ? 'surya_sales' : 'surya_vendors';
+            const list = getData(listName);
+            const item = list.find(x => x.id === id);
+            
+            if(!item) return alert('Record not found.');
 
-            document.getElementById('ev_id').value = v.id;
-            document.getElementById('ev_name').value = v.name;
-            document.getElementById('ev_total').value = v.total;
-            document.getElementById('ev_gst').value = v.gst;
+            document.getElementById('el_id').value = item.id;
+            document.getElementById('el_type').value = type;
+            document.getElementById('el_date').value = item.date || '';
+            document.getElementById('el_inv').value = item.inv || '';
+            document.getElementById('el_name').value = type === 'sale' ? (item.client || '') : (item.name || '');
+            document.getElementById('el_total').value = item.total || 0;
+            document.getElementById('el_gst').value = item.gst || '';
 
-            document.getElementById('editVendorModal').style.display = 'flex';
+            document.getElementById('editLedgerModal').style.display = 'flex';
         }
 
-        function closeEditVendorModal() {
-            document.getElementById('editVendorModal').style.display = 'none';
+        function closeEditLedgerModal() {
+            document.getElementById('editLedgerModal').style.display = 'none';
         }
 
-        function saveEditedVendorBill() {
-            const id = document.getElementById('ev_id').value;
-            const total = parseFloat(document.getElementById('ev_total').value) || 0;
-            const gst = document.getElementById('ev_gst').value.trim();
+        function saveEditedLedgerEntry() {
+            const id = document.getElementById('el_id').value;
+            const type = document.getElementById('el_type').value;
+            const date = document.getElementById('el_date').value;
+            const inv = document.getElementById('el_inv').value.trim();
+            const name = document.getElementById('el_name').value.trim();
+            const total = parseFloat(document.getElementById('el_total').value) || 0;
+            const gst = document.getElementById('el_gst').value.trim();
 
-            if(total <= 0) return alert('Invalid amount. Total must be greater than 0.');
+            if(!date || !inv || !name || total < 0) return alert('Please fill required fields properly.');
 
-            let vendors = getData('surya_vendors');
-            const idx = vendors.findIndex(x => x.id === id);
+            const listName = type === 'sale' ? 'surya_sales' : 'surya_vendors';
+            let list = getData(listName);
+            const idx = list.findIndex(x => x.id === id);
+            
             if(idx !== -1) {
-                vendors[idx].total = total.toFixed(2);
-                vendors[idx].gst = gst;
-                saveData('surya_vendors', vendors);
+                list[idx].date = date;
+                list[idx].inv = inv;
+                if(type === 'sale') list[idx].client = name;
+                else list[idx].name = name;
                 
-                showToast('Vendor bill updated successfully!');
-                closeEditVendorModal();
-                loadLedger(); // Refresh the table
+                list[idx].total = total.toFixed(2);
+                list[idx].gst = gst;
+                
+                saveData(listName, list);
+                showToast('Ledger entry updated successfully!');
+                closeEditLedgerModal();
+                loadLedger(); // Refresh table
             }
         }
 
-        function deleteVendorBill(id) {
-            if(!confirm("Are you sure you want to permanently delete this vendor bill? This will recalculate the ledger.")) return;
+        function deleteLedgerEntry(id, type) {
+            if(!confirm("Are you sure you want to permanently delete this entry? This will recalculate the ledger.")) return;
             
-            let vendors = getData('surya_vendors');
-            vendors = vendors.filter(v => v.id !== id);
-            saveData('surya_vendors', vendors);
+            const listName = type === 'sale' ? 'surya_sales' : 'surya_vendors';
+            let list = getData(listName);
+            list = list.filter(x => x.id !== id);
+            saveData(listName, list);
             
-            showToast("Vendor Bill Deleted!");
-            loadLedger(); // Refresh the table
+            showToast("Entry Deleted!");
+            loadLedger(); // Refresh table
         }
 
         function downloadLedgerPDF() {
