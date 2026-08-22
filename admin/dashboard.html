@@ -1014,6 +1014,7 @@
                                     <th style="text-align:right">Credit (₹ In)</th>
                                     <th style="text-align:right">Debit (₹ Out)</th>
                                     <th style="text-align:right">Running Bal. (₹)</th>
+                                    <th style="text-align:center">Action</th>
                                 </tr>
                             </thead>
                             <tbody></tbody>
@@ -1096,9 +1097,46 @@
                             <div class="form-group"><label>Vendor Invoice No</label><input type="text" id="v_inv" required></div>
                             <div class="form-group span-2"><label>Vendor Name</label><input type="text" id="v_name" required></div>
                             <div class="form-group span-2"><label>Vendor GSTIN (Optional)</label><input type="text" id="v_gstin"></div>
-                            <div class="form-group"><label>Tax Amount (GST) ₹</label><input type="number" id="v_tax" value="0" step="0.01"></div>
-                            <div class="form-group"><label>Total Bill Amount ₹</label><input type="number" id="v_total" value="0" step="0.01" required></div>
                         </div>
+                        
+                        <!-- Multi-row GST Breakup Table -->
+                        <div class="table-responsive-wrapper" style="margin-top: 15px;">
+                            <table class="data-table" id="vendorItemsTable">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 25%;">GST %</th>
+                                        <th style="width: 35%;">Tax Amount (GST) ₹</th>
+                                        <th style="width: 35%;">Total Bill Amount ₹</th>
+                                        <th style="width: 5%; text-align: center;"></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>
+                                            <select class="v_row_gst" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #e5e7eb;">
+                                                <option value="0">0%</option>
+                                                <option value="5">5%</option>
+                                                <option value="12">12%</option>
+                                                <option value="18" selected>18%</option>
+                                                <option value="28">28%</option>
+                                            </select>
+                                        </td>
+                                        <td><input type="number" class="v_row_tax" value="0" step="0.01" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #e5e7eb;" oninput="calcVendorTotal()"></td>
+                                        <td><input type="number" class="v_row_total" value="0" step="0.01" required style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #e5e7eb;" oninput="calcVendorTotal()"></td>
+                                        <td style="text-align: center;"><button type="button" class="remove-btn" onclick="removeVendorRow(this)">×</button></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <button type="button" class="add-row-btn" style="margin-top: 10px;" onclick="addVendorRow()">+ Add GST Slab</button>
+                        </div>
+
+                        <!-- Grand Total calculation summary -->
+                        <div class="form-grid" style="margin-top: 15px; padding: 15px; background: #fafafa; border-radius: 8px; align-items: center;">
+                            <div style="font-size: 16px; font-weight: bold; color: var(--dark);">
+                                Grand Total Bill: ₹<span id="v_grand_total">0.00</span>
+                            </div>
+                        </div>
+
                         <div class="action-row">
                             <button type="button" class="btn-primary" onclick="saveVendorBill()">Save Expense to Ledger</button>
                         </div>
@@ -1156,14 +1194,34 @@
         </div>
     </div>
 
+    <!-- Edit Vendor Bill Modal -->
+    <div id="editVendorModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeEditVendorModal()">&times;</span>
+            <h3 style="margin-bottom: 16px;">Edit Vendor Bill</h3>
+            <div class="form-group" style="margin-top:12px;">
+                <label>Vendor Name</label>
+                <input type="text" id="ev_name" readonly>
+            </div>
+            <div class="form-group" style="margin-top:12px;">
+                <label>Total Bill Amount (₹)</label>
+                <input type="number" id="ev_total" step="0.01">
+            </div>
+            <div class="form-group" style="margin-top:12px;">
+                <label>GST % (e.g. 18%, 12%)</label>
+                <input type="text" id="ev_gst">
+            </div>
+            <input type="hidden" id="ev_id">
+            <button class="btn-primary" style="width: 100%; margin-top: 20px;" onclick="saveEditedVendorBill()">Save Changes</button>
+        </div>
+    </div>
+
     <!-- Toast Notification -->
     <div id="app-toast" class="toast-notification"><span>🔔</span> <span id="toast-message"></span></div>
 
     <!-- PRINT TEMPLATE FOR GST INVOICE -->
     <div class="print-container">
-        <!-- ... Existing GST Print Block Content ... -->
         <div class="invoice-container" style="width: 800px; background: #ffffff; margin: 0 auto; color: #3a3a3a; font-family: 'Montserrat', sans-serif;">
-            <!-- ... Keep internal print divs intact from your original code ... -->
             <div style="display: flex; justify-content: space-between; align-items: flex-start; padding-top: 40px; margin-bottom: 20px;">
                 <div style="padding-left: 50px; width: 50%; position: relative; padding-bottom: 15px;">
                     <img src="LOGO.jpg" alt="Logo" style="width: 70px; height: auto; margin-bottom: 10px; display: block;" onerror="this.style.display='none'">
@@ -3204,13 +3262,113 @@
             return `${d}/${m}/${y}`;
         }
 
+        // ==========================================
+        // VENDOR BILLS MULTI-ROW LOGIC
+        // ==========================================
+        function addVendorRow() {
+            const tbody = document.querySelector('#vendorItemsTable tbody');
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>
+                    <select class="v_row_gst" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #e5e7eb;">
+                        <option value="0">0%</option>
+                        <option value="5">5%</option>
+                        <option value="12">12%</option>
+                        <option value="18" selected>18%</option>
+                        <option value="28">28%</option>
+                    </select>
+                </td>
+                <td><input type="number" class="v_row_tax" value="0" step="0.01" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #e5e7eb;" oninput="calcVendorTotal()"></td>
+                <td><input type="number" class="v_row_total" value="0" step="0.01" required style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #e5e7eb;" oninput="calcVendorTotal()"></td>
+                <td style="text-align: center;"><button type="button" class="remove-btn" onclick="removeVendorRow(this)">×</button></td>
+            `;
+            if(tbody) tbody.appendChild(tr);
+        }
+
+        function removeVendorRow(btn) {
+            btn.closest('tr').remove();
+            calcVendorTotal();
+        }
+
+        function calcVendorTotal() {
+            let grand = 0;
+            document.querySelectorAll('#vendorItemsTable tbody tr').forEach(row => {
+                let tot = parseFloat(row.querySelector('.v_row_total').value) || 0;
+                grand += tot;
+            });
+            const grandSpan = document.getElementById('v_grand_total');
+            if(grandSpan) grandSpan.innerText = grand.toFixed(2);
+        }
+
+        function saveVendorBill() {
+            let date = document.getElementById('v_date').value;
+            let inv = document.getElementById('v_inv').value;
+            let name = document.getElementById('v_name').value;
+            let gstin = document.getElementById('v_gstin').value;
+
+            if(!date || !inv || !name) return alert('Please fill required fields');
+
+            let grandTotal = 0;
+            let items = [];
+            let uniqueGsts = new Set();
+
+            document.querySelectorAll('#vendorItemsTable tbody tr').forEach(row => {
+                let gst = row.querySelector('.v_row_gst').value;
+                let tax = parseFloat(row.querySelector('.v_row_tax').value) || 0;
+                let total = parseFloat(row.querySelector('.v_row_total').value) || 0;
+
+                if(total > 0) {
+                    grandTotal += total;
+                    uniqueGsts.add(gst + '%');
+                    items.push({ gst, tax, total });
+                }
+            });
+
+            if(grandTotal <= 0) return alert('Total Bill Amount must be greater than zero.');
+
+            let gstString = Array.from(uniqueGsts).join(', ') || "0%";
+
+            let vendors = getData('surya_vendors');
+            let entryId = 'v_' + Date.now(); // Generate ID for future editing mapping
+            
+            vendors.push({ id: entryId, date: date, inv: inv, name: name, gstin: gstin, total: grandTotal.toFixed(2), gst: gstString, items: items });
+            saveData('surya_vendors', vendors);
+
+            // Reset the form
+            document.getElementById('vendorForm').reset();
+            document.querySelector('#vendorItemsTable tbody').innerHTML = `
+                <tr>
+                    <td>
+                        <select class="v_row_gst" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #e5e7eb;">
+                            <option value="0">0%</option>
+                            <option value="5">5%</option>
+                            <option value="12">12%</option>
+                            <option value="18" selected>18%</option>
+                            <option value="28">28%</option>
+                        </select>
+                    </td>
+                    <td><input type="number" class="v_row_tax" value="0" step="0.01" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #e5e7eb;" oninput="calcVendorTotal()"></td>
+                    <td><input type="number" class="v_row_total" value="0" step="0.01" required style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #e5e7eb;" oninput="calcVendorTotal()"></td>
+                    <td style="text-align: center;"><button type="button" class="remove-btn" onclick="removeVendorRow(this)">×</button></td>
+                </tr>
+            `;
+            calcVendorTotal();
+            
+            showToast("Vendor Bill Saved to Ledger!");
+            loadLedger();
+        }
+
+        // ==========================================
+        // LEDGER RENDERING AND EDITING LOGIC
+        // ==========================================
         function loadLedger() {
             const sales = getData('surya_sales');
             const vendors = getData('surya_vendors');
 
             let ledger = [];
-            sales.forEach(s => ledger.push({ date: s.date, gst: s.gst || '-', inv: s.inv, name: s.client, credit: parseFloat(s.total), debit: 0 }));
-            vendors.forEach(v => ledger.push({ date: v.date, gst: v.gst || '-', inv: v.inv, name: v.name, credit: 0, debit: parseFloat(v.total) }));
+            // Map IDs to ledger array mapping to easily access them for edits
+            sales.forEach(s => ledger.push({ id: s.id, type: 'sale', date: s.date, gst: s.gst || '-', inv: s.inv, name: s.client, credit: parseFloat(s.total), debit: 0 }));
+            vendors.forEach(v => ledger.push({ id: v.id, type: 'vendor', date: v.date, gst: v.gst || '-', inv: v.inv, name: v.name, credit: 0, debit: parseFloat(v.total) }));
 
             const monthFilterElem = document.getElementById('ledgerMonth');
             const monthFilter = monthFilterElem ? monthFilterElem.value : '';
@@ -3250,6 +3408,10 @@
             let tbody = '';
             ledger.forEach(entry => {
                 let balanceColor = entry.computedBalance >= 0 ? 'text-green' : 'text-red';
+                
+                // Add Edit Button if type is Vendor and has an ID attached
+                let actionBtn = entry.type === 'vendor' && entry.id ? `<button class="btn-secondary" style="padding:4px 8px; font-size:11px;" onclick="openEditVendorBill('${entry.id}')">Edit</button>` : '';
+
                 tbody += `<tr>
                     <td>${formatDate(entry.date)}</td>
                     <td style="text-align:center"><span style="background:#e0e0e0; padding:4px 8px; border-radius:4px; font-size:11px; font-weight:bold; color:#333;">${entry.gst}</span></td>
@@ -3258,15 +3420,53 @@
                     <td style="text-align:right">${entry.credit > 0 ? '₹'+entry.credit.toFixed(2) : '-'}</td>
                     <td style="text-align:right">${entry.debit > 0 ? '₹'+entry.debit.toFixed(2) : '-'}</td>
                     <td style="text-align:right; font-weight:700;" class="${balanceColor}">₹${entry.computedBalance.toFixed(2)}</td>
+                    <td style="text-align:center">${actionBtn}</td>
                 </tr>`;
             });
 
             if (ledger.length === 0) {
-                tbody = `<tr><td colspan="7" style="text-align:center; padding:20px;">No transactions found for this period.</td></tr>`;
+                tbody = `<tr><td colspan="8" style="text-align:center; padding:20px;">No transactions found for this period.</td></tr>`;
             }
 
             const ledgerTbody = document.querySelector('#ledgerTable tbody');
             if(ledgerTbody) ledgerTbody.innerHTML = tbody;
+        }
+
+        // Ledger Edit Functionality
+        function openEditVendorBill(id) {
+            const vendors = getData('surya_vendors');
+            const v = vendors.find(x => x.id === id);
+            if(!v) return alert('Record not found.');
+
+            document.getElementById('ev_id').value = v.id;
+            document.getElementById('ev_name').value = v.name;
+            document.getElementById('ev_total').value = v.total;
+            document.getElementById('ev_gst').value = v.gst;
+
+            document.getElementById('editVendorModal').style.display = 'flex';
+        }
+
+        function closeEditVendorModal() {
+            document.getElementById('editVendorModal').style.display = 'none';
+        }
+
+        function saveEditedVendorBill() {
+            const id = document.getElementById('ev_id').value;
+            const total = parseFloat(document.getElementById('ev_total').value) || 0;
+            const gst = document.getElementById('ev_gst').value;
+
+            if(total <= 0) return alert('Invalid amount.');
+
+            let vendors = getData('surya_vendors');
+            const idx = vendors.findIndex(x => x.id === id);
+            if(idx !== -1) {
+                vendors[idx].total = total.toFixed(2);
+                vendors[idx].gst = gst;
+                saveData('surya_vendors', vendors);
+                showToast('Vendor bill updated successfully!');
+                closeEditVendorModal();
+                loadLedger();
+            }
         }
 
         function downloadLedgerPDF() {
@@ -3452,7 +3652,8 @@
             let gstString = uniqueGsts.map(g => g + '%').join(', ') || "0%";
 
             let sales = getData('surya_sales');
-            sales.push({ inv: invNo, date: date, client: client, total: document.getElementById('s_grand').innerText, gst: gstString });
+            let entryId = 's_' + Date.now();
+            sales.push({ id: entryId, inv: invNo, date: date, client: client, total: document.getElementById('s_grand').innerText, gst: gstString });
             saveData('surya_sales', sales);
             incrementFYCounter();
 
@@ -3484,30 +3685,6 @@
             document.getElementById('p_total').innerText = document.getElementById('s_grand').innerText;
 
             window.print();
-        }
-
-        function saveVendorBill() {
-            let date = document.getElementById('v_date').value;
-            let inv = document.getElementById('v_inv').value;
-            let name = document.getElementById('v_name').value;
-            let tax = parseFloat(document.getElementById('v_tax').value) || 0;
-            let total = parseFloat(document.getElementById('v_total').value) || 0;
-
-            if(!date || !inv || !name || total <= 0) return alert('Please fill required fields');
-
-            let gstPercent = "-";
-            if (tax > 0 && total > tax) {
-                let sub = total - tax;
-                gstPercent = Math.round((tax / sub) * 100) + "%";
-            } else if (tax === 0) { gstPercent = "0%"; }
-
-            let vendors = getData('surya_vendors');
-            vendors.push({ date: date, inv: inv, name: name, total: total.toFixed(2), gst: gstPercent });
-            saveData('surya_vendors', vendors);
-
-            document.getElementById('vendorForm').reset();
-            showToast("Vendor Bill Saved to Ledger!");
-            loadLedger();
         }
 
         function renderTrustedLogos() {
