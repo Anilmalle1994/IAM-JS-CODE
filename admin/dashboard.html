@@ -293,6 +293,7 @@
                     <li><a href="#" class="nav-btn" data-target="pending-reports">📑 Pending Reports</a></li>
                     <li><a href="#" class="nav-btn" data-target="vendor-reports">📈 Vendor Reports</a></li>
                     <li><a href="#" class="nav-btn" data-target="clients-data">📇 Clients Data</a></li>
+                    <li><a href="#" class="nav-btn" data-target="whatsapp-auto">🤖 WhatsApp Auto</a></li>
                 </ul>
             </li>
 
@@ -447,7 +448,6 @@
                             </div>
                         </div>
                         
-                        <!-- Work rows are rendered by nwWorkRowHTML() so the bill can read Size / Copies / Rate -->
                         <div id="nw-works-container" style="margin-top: 12px;"></div>
                         
                         <button type="button" class="add-row-btn" onclick="addNewWorkRow()">+ Add Another Work</button>
@@ -569,6 +569,27 @@
                         <p style="font-size: 15px;"><strong>Balance Due:</strong> ₹<span id="res-bal" style="color:red; font-weight:bold;"></span></p>
                     </div>
                     <div class="action-row"><button type="button" class="btn-whatsapp" onclick="sendDeliveryWhatsApp()">📱 Ready For Delivery</button></div>
+                </div>
+            </div>
+
+            <!-- WHATSAPP AUTOMATION DASHBOARD VIEW -->
+            <div id="whatsapp-auto" class="view-section admin-view">
+                <div class="admin-card">
+                    <h3>WhatsApp Web Automation</h3>
+                    <p style="font-size: 13px; color: var(--gray); margin-bottom: 16px;">Scan the QR code to connect the iam des!gns system to your WhatsApp. Keep the Node.js server running for background messaging.</p>
+                    
+                    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; background: #f8f9fa; padding: 30px; border-radius: 12px; border: 1px solid #e5e7eb;">
+                        <div id="wa-status-badge" class="status-badge status-designing" style="margin-bottom: 15px; font-size: 14px;">Status: Checking Connection...</div>
+                        
+                        <div id="wa-qrcode-container" style="background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); min-width: 200px; min-height: 200px; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 10px;">
+                            <span style="color: var(--gray); font-size: 13px;">Waiting for server...</span>
+                        </div>
+                        
+                        <div class="action-row" style="margin-top: 20px;">
+                            <button class="btn-primary" onclick="connectWhatsAppServer()">Generate QR</button>
+                            <button class="btn-secondary" onclick="checkWhatsAppStatus()">Refresh Status</button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -1299,6 +1320,73 @@
 
     <!-- MAIN SCRIPT -->
     <script>
+
+        // ==========================================
+        // WHATSAPP AUTOMATION
+        // ==========================================
+        const WA_BACKEND_URL = "http://localhost:3000"; 
+
+        async function connectWhatsAppServer() {
+            const qrContainer = document.getElementById('wa-qrcode-container');
+            const statusBadge = document.getElementById('wa-status-badge');
+            
+            statusBadge.innerHTML = "Status: Fetching QR...";
+            qrContainer.innerHTML = "Loading...";
+
+            try {
+                const res = await fetch(`${WA_BACKEND_URL}/qr`);
+                const data = await res.json();
+
+                if (data.status === 'connected') {
+                    statusBadge.innerHTML = `<span style="color: #10b981; font-weight:bold;">Status: Connected & Ready</span>`;
+                    qrContainer.innerHTML = "<div style='font-size:40px;'>✅</div><div>WhatsApp Linked</div>";
+                } else if (data.qr) {
+                    statusBadge.innerHTML = `<span style="color: #f59e0b; font-weight:bold;">Status: Scan QR Code</span>`;
+                    qrContainer.innerHTML = "";
+                    new QRCode(qrContainer, {
+                        text: data.qr,
+                        width: 220,
+                        height: 220,
+                        colorDark : "#111111",
+                        colorLight : "#ffffff"
+                    });
+                }
+            } catch (error) {
+                statusBadge.innerHTML = `<span style="color: #ef4444; font-weight:bold;">Status: Server Offline</span>`;
+                qrContainer.innerHTML = "Could not connect to Node.js backend. Ensure it is running on port 3000.";
+            }
+        }
+
+        async function checkWhatsAppStatus() {
+            connectWhatsAppServer();
+        }
+
+        async function sendAutomatedWhatsApp(phone, message) {
+            let cleanedPhone = (phone || '').replace(/[^0-9]/g, '');
+            if (cleanedPhone.length === 10) { cleanedPhone = '91' + cleanedPhone; }
+
+            try {
+                const res = await fetch(`${WA_BACKEND_URL}/send`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ phone: cleanedPhone, message })
+                });
+                
+                const data = await res.json();
+                
+                if (data.success) {
+                    showToast("✅ Automated WhatsApp Sent!");
+                    return true;
+                } else {
+                    throw new Error("Backend failed to send");
+                }
+            } catch (e) {
+                showToast("Server offline. Falling back to manual WA.");
+                window.open(getWhatsAppLink(phone, message), '_blank');
+                return false;
+            }
+        }
+
         // ==========================================
         // NOTEPAD / TODO LOGIC
         // ==========================================
@@ -1625,6 +1713,9 @@
                 if(targetId === 'team-master') { renderTeamTable(); }
                 if(targetId === 'gst-dashboard') loadLedger();
                 if(targetId === 'gst-sale') initSaleForm();
+                
+                // Trigger auto whatsapp check when viewing the page
+                if(targetId === 'whatsapp-auto') checkWhatsAppStatus();
 
                 if(window.innerWidth <= 768) {
                     sidebar.classList.remove('open'); 
@@ -1939,7 +2030,9 @@
             }
 
             let msg = `Hello ${client},\nYour order ${orderId} has been successfully placed with iam des!gns.\n\nWork : ${workString}\nTotal Amount: ₹${payload.amount}\nPaid: ₹${payload.advance}\nBalance Due: ₹${payload.balance}\n\nWe will notify you when it is ready!`;
-            window.open(getWhatsAppLink(phone, msg), '_blank');
+            
+            // Automated WA replacement
+            await sendAutomatedWhatsApp(phone, msg);
 
             document.getElementById('new-order-form').reset();
             initNewOrder(); 
@@ -2096,7 +2189,10 @@
 
             order.status = 'ready_for_delivery';
             let msg = `Hello,\nPlease pick up the following order:\n*Order ID:* ${order.orderId}\n*Vendor:* ${order.vendorName}\n*Work Details:* ${order.work}`;
-            window.open(getWhatsAppLink(staffPhone, msg), '_blank');
+            
+            // Automated WA replacement
+            await sendAutomatedWhatsApp(staffPhone, msg);
+
             showToast(`Pickup Ready Notification Sent`);
             document.getElementById('pickup-result-card').style.display = 'none';
             updateDashboardStats();
@@ -2154,7 +2250,8 @@
                     await autoIssueBill(order);
                     
                     let msg = `Dear ${order.client},\nYour payment for Order ${order.orderId} has been fully received. Your pending balance is ₹0.00.\n\nThank you for choosing iam des!gns!`;
-                    window.open(getWhatsAppLink(order.phone, msg), '_blank');
+                    // Automated WA replacement
+                    await sendAutomatedWhatsApp(order.phone, msg);
                 }
             }
         }
@@ -2420,7 +2517,10 @@
 
                 order.status = 'delivered';
                 const msg = `Dear Customer, your order ${order.orderId} is ready for delivery!\nDue : ₹${order.balance}`;
-                window.open(getWhatsAppLink(phone, msg), '_blank');
+                
+                // Automated WA replacement
+                await sendAutomatedWhatsApp(phone, msg);
+
                 updateDashboardStats();
                 document.getElementById('del-result-card').style.display = 'none';
                 renderDashboardTable(currentDashFilter);
@@ -2875,7 +2975,7 @@
                 grandTotal += bal;
                 const dateStr = o.date ? new Date(o.date).toLocaleDateString() : 'N/A';
                 const msg = `Dear ${o.client || 'Customer'}, gentle reminder that a balance of ₹${bal} is due for order ${o.orderId}. Thank you!`;
-                const wa = getWhatsAppLink(o.phone || '', msg);
+                const safeMsg = msg.replace(/"/g, '&quot;').replace(/'/g, "\\'");
                 
                 tbody.innerHTML += `
                     <tr>
@@ -2885,7 +2985,7 @@
                         <td>${o.phone || 'N/A'}</td>
                         <td>${o.work || 'N/A'}</td>
                         <td style="color:red; font-weight:bold;">₹${bal.toFixed(2)}</td>
-                        <td><button class="btn-whatsapp" style="padding: 6px 12px; font-size: 11px;" onclick="window.open('${wa}', '_blank')">🔔 Remind</button></td>
+                        <td><button class="btn-whatsapp" style="padding: 6px 12px; font-size: 11px;" onclick="sendAutomatedWhatsApp('${o.phone || ''}', '${safeMsg}')">🔔 Remind</button></td>
                     </tr>`;
             });
 
@@ -3456,7 +3556,6 @@
             if(ledgerTbody) ledgerTbody.innerHTML = tbody;
         }
 
-        // Ledger Universal Edit/Delete Functionality
         function openEditLedgerEntry(id, type) {
             const listName = type === 'sale' ? 'surya_sales' : 'surya_vendors';
             const list = getData(listName);
