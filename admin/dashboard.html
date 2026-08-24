@@ -144,7 +144,7 @@
         .btn-secondary:hover { background: #e5e7eb; }
         .btn-whatsapp { background: #25D366; color: var(--white); border: none; padding: 10px 22px; border-radius: 30px; font-weight: 500; cursor: pointer; transition: 0.3s; display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-size: 13px;}
         .btn-excel { background: #1D6F42; color: white; border: none; padding: 10px 22px; border-radius: 30px; font-weight: 500; cursor: pointer; transition: 0.3s; font-size: 13px;}
-        .add-row-btn { background: none; border: none; color: var(--primary); font-weight: 500; cursor: margin-top: 4px; text-align: left; font-size: 13px;}
+        .add-row-btn { background: none; border: none; color: var(--primary); font-weight: 500; cursor: pointer; margin-top: 4px; text-align: left; font-size: 13px;}
         .remove-btn { color: #ef4444; cursor: pointer; font-weight: bold; background: none; border: none; font-size: 16px; padding: 5px;}
         
         .toast-notification { position: fixed; bottom: 20px; right: 20px; background: var(--dark); color: var(--white); padding: 12px 20px; border-radius: 12px; font-weight: 500; font-size: 13px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); transform: translateY(100px); opacity: 0; transition: all 0.4s; z-index: 9999; display: flex; align-items: center; gap: 8px; }
@@ -1356,6 +1356,13 @@
 
     <!-- MAIN SCRIPT -->
     <script>
+        
+        // ==========================================
+        // UPI & PAYMENT CONFIGURATION
+        // Replace this with your actual PhonePe UPI ID
+        // ==========================================
+        const MERCHANT_UPI_ID = "9133058685@ybl"; 
+        const MERCHANT_UPI_NAME = "iam designs";
 
         // ==========================================
         // WHATSAPP AUTOMATION
@@ -1420,6 +1427,34 @@
                 showToast("Server offline. Falling back to manual WA.");
                 window.open(getWhatsAppLink(phone, message), '_blank');
                 return false;
+            }
+        }
+
+        // ==========================================
+        // API TRIGGER FOR AUTO-DETECTED PAYMENTS (WEBHOOKS)
+        // Set your backend to hit this function when a PhonePe payment is completed
+        // ==========================================
+        window.processWebhookPayment = async function(orderId, amountPaid) {
+            const order = appData.orders[orderId];
+            if(!order || order.balance <= 0) return;
+
+            const amt = parseFloat(amountPaid) || 0;
+            const newAdvance = ((parseFloat(order.advance) || 0) + amt).toFixed(2);
+            const newBalance = ((parseFloat(order.balance) || 0) - amt).toFixed(2);
+
+            const { error } = await supabaseClient.from('orders').update({ advance: newAdvance, balance: newBalance }).eq('orderId', orderId);
+            if(error) { console.error("Webhook update failed", error); return; }
+
+            order.advance = newAdvance; 
+            order.balance = newBalance;
+            
+            updateDashboardStats();
+            renderAllOrders();
+
+            if (parseFloat(newBalance) <= 0) {
+                await autoIssueBill(order);
+                let msg = `Dear ${order.client},\nYour automated payment of ₹${amt} for Order ${order.orderId} has been successfully received via PhonePe. Your pending balance is ₹0.00.\n\nThank you for choosing iam des!gns!`;
+                await sendAutomatedWhatsApp(order.phone, msg);
             }
         }
 
@@ -1510,12 +1545,18 @@
                 let phone = cb.value;
                 let data = clientGroupsForReminders[phone];
                 
+                let upiLink = `upi://pay?pa=${MERCHANT_UPI_ID}&pn=${encodeURIComponent(MERCHANT_UPI_NAME)}&am=${data.total.toFixed(2)}&cu=INR`;
+                let qrUrl = `https://quickchart.io/qr?text=${encodeURIComponent(upiLink)}&size=300`;
+
                 let msg = `Dear ${data.client},\n\nThis is an automated reminder regarding your pending payments with *iam des!gns*.\n\n*Pending Bills:*\n`;
                 data.bills.forEach(o => {
                     const dateStr = o.date ? new Date(o.date).toLocaleDateString('en-GB') : 'N/A';
                     msg += `🔸 *${dateStr}* | ${o.work}\n   Amount Due: ₹${o.balance}\n`;
                 });
-                msg += `\n*Total Pending Amount: ₹${data.total.toFixed(2)}*\n\nPlease arrange the payment at your earliest convenience. Ignore if already paid. Thank you!`;
+                msg += `\n*Total Pending Amount: ₹${data.total.toFixed(2)}*\n\n`;
+                msg += `💳 *Pay exact total securely via PhonePe / UPI:* \n${upiLink}\n\n`;
+                msg += `🖼️ *Scan QR to Pay:* \n${qrUrl}\n\n`;
+                msg += `Please arrange the payment at your earliest convenience. Ignore if already paid. Thank you!`;
 
                 await sendAutomatedWhatsApp(phone, msg);
                 // Pause slightly between sends to avoid rate limits
@@ -1973,6 +2014,9 @@
                 renderTrustedLogos();
                 renderPortfolioItems();
                 renderTeamTable();
+                
+                // Add this line to trigger the reminders 5 seconds after dashboard load
+                setTimeout(checkAndSendAutoReminders, 5000); 
 
             } catch (err) {
                 console.error("Supabase Load Error:", err.message);
@@ -2176,7 +2220,15 @@
                 await autoIssueBill(payload);
             }
 
-            let msg = `Hello ${client},\nYour order ${orderId} has been successfully placed with iam des!gns.\n\nWork : ${workString}\nTotal Amount: ₹${payload.amount}\nPaid: ₹${payload.advance}\nBalance Due: ₹${payload.balance}\n\nWe will notify you when it is ready!`;
+            let upiLink = `upi://pay?pa=${MERCHANT_UPI_ID}&pn=${encodeURIComponent(MERCHANT_UPI_NAME)}&am=${payload.balance}&cu=INR&tn=${orderId}`;
+            let qrUrl = `https://quickchart.io/qr?text=${encodeURIComponent(upiLink)}&size=300`;
+
+            let msg = `Hello ${client},\nYour order ${orderId} has been successfully placed with iam des!gns.\n\nWork : ${workString}\nTotal Amount: ₹${payload.amount}\nPaid: ₹${payload.advance}\nBalance Due: ₹${payload.balance}\n\n`;
+            
+            if(payload.balance > 0) {
+                msg += `💳 *Pay exact balance securely via PhonePe / UPI:* \n${upiLink}\n\n🖼️ *Scan QR to Pay:* \n${qrUrl}\n\n`;
+            }
+            msg += `We will notify you when it is ready!`;
             
             // Automated WA replacement
             await sendAutomatedWhatsApp(phone, msg);
@@ -2672,7 +2724,16 @@
                 if(error) return alert("Delivery Update Error: " + error.message);
 
                 order.status = 'delivered';
-                const msg = `Dear Customer, your order ${order.orderId} is ready for delivery!\nDue : ₹${order.balance}`;
+                
+                let upiLink = `upi://pay?pa=${MERCHANT_UPI_ID}&pn=${encodeURIComponent(MERCHANT_UPI_NAME)}&am=${order.balance}&cu=INR&tn=${order.orderId}`;
+                let qrUrl = `https://quickchart.io/qr?text=${encodeURIComponent(upiLink)}&size=300`;
+
+                let msg = `Dear Customer, your order ${order.orderId} is ready for delivery!\nDue : ₹${order.balance}\n\n`;
+                
+                if(order.balance > 0) {
+                    msg += `💳 *Pay exact balance securely via PhonePe / UPI:* \n${upiLink}\n\n🖼️ *Scan QR to Pay:* \n${qrUrl}\n\n`;
+                }
+                msg += `Thank you!`;
                 
                 // Automated WA replacement
                 await sendAutomatedWhatsApp(phone, msg);
@@ -3130,7 +3191,12 @@
                 const bal = parseFloat(o.balance) || 0;
                 grandTotal += bal;
                 const dateStr = o.date ? new Date(o.date).toLocaleDateString() : 'N/A';
-                const msg = `Dear ${o.client || 'Customer'}, gentle reminder that a balance of ₹${bal} is due for order ${o.orderId}. Thank you!`;
+                
+                let upiLink = `upi://pay?pa=${MERCHANT_UPI_ID}&pn=${encodeURIComponent(MERCHANT_UPI_NAME)}&am=${bal}&cu=INR&tn=${o.orderId}`;
+                let qrUrl = `https://quickchart.io/qr?text=${encodeURIComponent(upiLink)}&size=300`;
+
+                let msg = `Dear ${o.client || 'Customer'},\nThis is a gentle reminder that a balance of ₹${bal} is due for order ${o.orderId}.\n\n💳 *Pay securely via PhonePe / UPI:* \n${upiLink}\n\n🖼️ *Scan QR to Pay:* \n${qrUrl}\n\nThank you for choosing iam des!gns!`;
+                
                 const safeMsg = msg.replace(/"/g, '&quot;').replace(/'/g, "\\'");
                 
                 tbody.innerHTML += `
