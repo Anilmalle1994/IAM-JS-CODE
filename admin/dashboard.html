@@ -89,7 +89,7 @@
         .admin-profile { display: flex; align-items: center; gap: 12px; flex-shrink: 0;}
         .header-icon { background: var(--white); width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 10px rgba(0,0,0,0.02); font-size: 15px;}
         .profile-chip { background: var(--white); display: flex; align-items: center; gap: 8px; padding: 5px 12px 5px 5px; border-radius: 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.02);}
-        .profile-chip span.avatar { background: var(--primary); color: var(--white); width: 30px; height: 30px; display: flex; align-items: center; justify-content: border-radius: 50%; font-weight: 600; font-size: 12px;}
+        .profile-chip span.avatar { background: var(--primary); color: var(--white); width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; border-radius: 50%; font-weight: 600; font-size: 12px;}
         .profile-chip #user-email { font-size: 12px; font-weight: 500; color: var(--dark); max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;}
 
         /* Content Area & Dashboard */
@@ -144,7 +144,7 @@
         .btn-secondary:hover { background: #e5e7eb; }
         .btn-whatsapp { background: #25D366; color: var(--white); border: none; padding: 10px 22px; border-radius: 30px; font-weight: 500; cursor: pointer; transition: 0.3s; display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-size: 13px;}
         .btn-excel { background: #1D6F42; color: white; border: none; padding: 10px 22px; border-radius: 30px; font-weight: 500; cursor: pointer; transition: 0.3s; font-size: 13px;}
-        .add-row-btn { background: none; border: none; color: var(--primary); font-weight: 500; cursor: pointer; margin-top: 4px; text-align: left; font-size: 13px;}
+        .add-row-btn { background: none; border: none; color: var(--primary); font-weight: 500; cursor: margin-top: 4px; text-align: left; font-size: 13px;}
         .remove-btn { color: #ef4444; cursor: pointer; font-weight: bold; background: none; border: none; font-size: 16px; padding: 5px;}
         
         .toast-notification { position: fixed; bottom: 20px; right: 20px; background: var(--dark); color: var(--white); padding: 12px 20px; border-radius: 12px; font-weight: 500; font-size: 13px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); transform: translateY(100px); opacity: 0; transition: all 0.4s; z-index: 9999; display: flex; align-items: center; gap: 8px; }
@@ -826,7 +826,8 @@
                 <div class="admin-card">
                     <h3>Pending Client Dues</h3>
                     <div class="action-row" style="margin-top: 0; padding-top: 0; border: none; justify-content: flex-start; margin-bottom: 10px;">
-                        <button type="button" class="btn-whatsapp" onclick="checkAndSendAutoReminders()">🤖 Send Auto-Reminders Now</button>
+                        <!-- NEW BULK WHATSAPP REMINDERS BUTTON -->
+                        <button type="button" class="btn-whatsapp" onclick="openBulkReminderModal()">🤖 Bulk WhatsApp Reminders</button>
                         <button type="button" class="btn-secondary" onclick="downloadPRClientPDF()">📄 Download PDF</button>
                         <button type="button" class="btn-secondary" onclick="downloadPRClientExcel()">📊 Download Excel</button>
                     </div>
@@ -1185,7 +1186,7 @@
         </div>
     </div>
 
-    <!-- Payment Modal -->
+    <!-- UPDATED: Payment Modal with Method Dropdown -->
     <div id="paymentModal" class="modal">
         <div class="modal-content">
             <span class="close-modal" onclick="closePaymentModal()">&times;</span>
@@ -1202,11 +1203,45 @@
                 <label>Discount / Round Off (₹)</label>
                 <input type="number" id="pay-modal-roundoff" value="0" min="0">
             </div>
+            <div class="form-group" style="margin-top:12px;">
+                <label>Payment Method</label>
+                <select id="pay-modal-method">
+                    <option value="Cash">Cash</option>
+                    <option value="PhonePe (Anil Malle)">PhonePe (Anil Malle)</option>
+                    <option value="PhonePe (M Dorababu)">PhonePe (M Dorababu)</option>
+                </select>
+            </div>
             
             <button class="btn-primary" style="width: 100%; margin-top: 20px;" onclick="submitPayment()">Submit Payment</button>
         </div>
     </div>
     
+    <!-- NEW: Bulk WhatsApp Reminder Modal -->
+    <div id="bulkReminderModal" class="modal">
+        <div class="modal-content" style="max-width: 600px;">
+            <span class="close-modal" onclick="closeBulkReminderModal()">&times;</span>
+            <h3 style="margin-bottom: 6px;">Select Clients for WhatsApp Reminder</h3>
+            <p style="font-size: 12px; color: var(--gray); margin-bottom: 15px;">Clients notified within the last 48 hours are automatically unchecked. Select clients to group and send their pending bill summaries.</p>
+            
+            <div class="table-responsive-wrapper" style="max-height: 400px; overflow-y: auto;">
+                <table class="data-table" id="bulk-reminders-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 40px;"><input type="checkbox" id="check-all-reminders" onchange="toggleAllReminders()"></th>
+                            <th>Client Name</th>
+                            <th>Phone</th>
+                            <th style="text-align: right;">Total Pending (₹)</th>
+                            <th style="text-align: center;">Last Sent</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            
+            <button class="btn-whatsapp" id="btn-send-bulk-reminders" style="width: 100%; margin-top: 20px;" onclick="sendSelectedReminders()">🚀 Send Reminders</button>
+        </div>
+    </div>
+
     <!-- QR Scanner Modal -->
     <div id="qrModal" class="modal">
         <div class="modal-content" style="max-width: 460px; text-align: center;">
@@ -1389,64 +1424,113 @@
         }
 
         // ==========================================
-        // AUTOMATED 2-DAY PENDING AMOUNT REMINDERS
+        // NEW: BULK WHATSAPP REMINDERS MODAL LOGIC
         // ==========================================
-        async function checkAndSendAutoReminders() {
-            const pendingByClient = {};
+        let clientGroupsForReminders = {};
+
+        function openBulkReminderModal() {
+            clientGroupsForReminders = {};
             
             // Group all pending orders by phone number
             Object.values(appData.orders).forEach(order => {
                 const bal = parseFloat(order.balance) || 0;
-                
-                // Only include orders with a balance greater than 0
                 if (bal > 0) { 
                     const phone = (order.phone || '').trim();
                     if(phone.length >= 10) {
-                        if (!pendingByClient[phone]) {
-                            pendingByClient[phone] = { client: order.client, totalPending: 0, orders: [] };
+                        if (!clientGroupsForReminders[phone]) {
+                            clientGroupsForReminders[phone] = { client: order.client, total: 0, bills: [] };
                         }
-                        pendingByClient[phone].totalPending += bal;
-                        pendingByClient[phone].orders.push(order);
+                        clientGroupsForReminders[phone].total += bal;
+                        clientGroupsForReminders[phone].bills.push(order);
                     }
                 }
             });
 
-            // Retrieve the log of when we last sent messages
+            const tbody = document.querySelector('#bulk-reminders-table tbody');
+            tbody.innerHTML = '';
+
             const lastReminders = JSON.parse(localStorage.getItem('iam_auto_reminders') || '{}');
             const now = Date.now();
-            const TWO_DAYS_MS = 2 * 24 * 60 * 60 * 1000; // 48 hours in milliseconds
+            const TWO_DAYS_MS = 2 * 24 * 60 * 60 * 1000;
 
-            let sentCount = 0;
+            if(Object.keys(clientGroupsForReminders).length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 20px;">No pending client dues with valid phone numbers.</td></tr>`;
+            } else {
+                for(let phone in clientGroupsForReminders) {
+                    const data = clientGroupsForReminders[phone];
+                    const lastSent = lastReminders[phone] || 0;
+                    const isRecent = (now - lastSent) < TWO_DAYS_MS;
+                    const checkedState = isRecent ? '' : 'checked';
+                    const lastSentText = lastSent === 0 ? 'Never' : new Date(lastSent).toLocaleString('en-GB', {day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit'});
+                    const badgeColor = isRecent ? 'color: var(--primary);' : 'color: var(--gray);';
 
-            for (const phone in pendingByClient) {
-                const data = pendingByClient[phone];
-                const lastSent = lastReminders[phone] || 0;
-
-                // Check if 2 days have passed since the last automated message
-                if (now - lastSent >= TWO_DAYS_MS) {
-                    let msg = `Dear ${data.client},\n\nThis is an automated reminder regarding your pending payments with *iam des!gns*.\n\n*Pending Bills:*\n`;
-
-                    data.orders.forEach(o => {
-                        const dateStr = o.date ? new Date(o.date).toLocaleDateString('en-GB') : 'N/A';
-                        msg += `🔸 *${dateStr}* | ${o.work}\n   Amount Due: ₹${o.balance}\n`;
-                    });
-
-                    msg += `\n*Total Pending Amount: ₹${data.totalPending.toFixed(2)}*\n\nPlease arrange the payment at your earliest convenience. Ignore if already paid. Thank you!`;
-
-                    // Send message and pause briefly to avoid rate-limiting the Node server
-                    await sendAutomatedWhatsApp(phone, msg);
-                    await new Promise(resolve => setTimeout(resolve, 2500)); 
-
-                    // Record the timestamp of this successfully sent reminder
-                    lastReminders[phone] = now;
-                    sentCount++;
+                    tbody.innerHTML += `
+                        <tr>
+                            <td><input type="checkbox" class="reminder-client-check" value="${phone}" ${checkedState}></td>
+                            <td><strong>${data.client}</strong></td>
+                            <td>${phone}</td>
+                            <td style="text-align:right; font-weight:bold; color:red;">₹${data.total.toFixed(2)}</td>
+                            <td style="text-align:center; font-size:11px; ${badgeColor}">${lastSentText}</td>
+                        </tr>
+                    `;
                 }
             }
+            
+            // Uncheck header "select all" box if any individual boxes are unchecked
+            const allChecked = document.querySelectorAll('.reminder-client-check:not(:checked)').length === 0;
+            document.getElementById('check-all-reminders').checked = (Object.keys(clientGroupsForReminders).length > 0) && allChecked;
 
-            if (sentCount > 0) {
-                localStorage.setItem('iam_auto_reminders', JSON.stringify(lastReminders));
-                showToast(`Sent ${sentCount} automated 2-day client reminders!`);
+            document.getElementById('bulkReminderModal').style.display = 'flex';
+        }
+
+        function closeBulkReminderModal() {
+            document.getElementById('bulkReminderModal').style.display = 'none';
+        }
+
+        function toggleAllReminders() {
+            const isChecked = document.getElementById('check-all-reminders').checked;
+            document.querySelectorAll('.reminder-client-check').forEach(cb => {
+                cb.checked = isChecked;
+            });
+        }
+
+        async function sendSelectedReminders() {
+            const checkboxes = document.querySelectorAll('.reminder-client-check:checked');
+            if(checkboxes.length === 0) return alert("Select at least one client to send reminders.");
+            
+            const btn = document.getElementById('btn-send-bulk-reminders');
+            btn.innerText = 'Sending... Please wait';
+            btn.disabled = true;
+
+            const lastReminders = JSON.parse(localStorage.getItem('iam_auto_reminders') || '{}');
+            const now = Date.now();
+            let sentCount = 0;
+
+            for(let cb of checkboxes) {
+                let phone = cb.value;
+                let data = clientGroupsForReminders[phone];
+                
+                let msg = `Dear ${data.client},\n\nThis is an automated reminder regarding your pending payments with *iam des!gns*.\n\n*Pending Bills:*\n`;
+                data.bills.forEach(o => {
+                    const dateStr = o.date ? new Date(o.date).toLocaleDateString('en-GB') : 'N/A';
+                    msg += `🔸 *${dateStr}* | ${o.work}\n   Amount Due: ₹${o.balance}\n`;
+                });
+                msg += `\n*Total Pending Amount: ₹${data.total.toFixed(2)}*\n\nPlease arrange the payment at your earliest convenience. Ignore if already paid. Thank you!`;
+
+                await sendAutomatedWhatsApp(phone, msg);
+                // Pause slightly between sends to avoid rate limits
+                await new Promise(resolve => setTimeout(resolve, 2000)); 
+                
+                lastReminders[phone] = now;
+                sentCount++;
             }
+            
+            localStorage.setItem('iam_auto_reminders', JSON.stringify(lastReminders));
+            showToast(`Successfully sent ${sentCount} reminders!`);
+            
+            btn.innerText = '🚀 Send Reminders';
+            btn.disabled = false;
+            closeBulkReminderModal();
         }
 
         // ==========================================
@@ -1889,9 +1973,6 @@
                 renderTrustedLogos();
                 renderPortfolioItems();
                 renderTeamTable();
-                
-                // Add this line to trigger the reminders 5 seconds after dashboard load
-                setTimeout(checkAndSendAutoReminders, 5000); 
 
             } catch (err) {
                 console.error("Supabase Load Error:", err.message);
@@ -2282,6 +2363,8 @@
             if ((parseFloat(order.balance) || 0) <= 0) return alert("This order is already fully paid!");
             document.getElementById('modal-order-id').innerText = id; 
             document.getElementById('pay-modal-amt').value = order.balance; 
+            document.getElementById('pay-modal-roundoff').value = '0'; // Reset discount
+            document.getElementById('pay-modal-method').value = 'Cash'; // Reset payment method to Cash
             document.getElementById('paymentModal').style.display = 'flex'; 
         }
         
@@ -2290,16 +2373,20 @@
         async function submitPayment() {
             const amt = parseFloat(document.getElementById('pay-modal-amt').value) || 0;
             const ro = parseFloat(document.getElementById('pay-modal-roundoff').value) || 0;
+            const method = document.getElementById('pay-modal-method').value; // Get payment method
             const order = appData.orders[currentlySearchedOrderId];
             
             if(order && (amt > 0 || ro > 0)) {
                 const newAdvance = ((parseFloat(order.advance) || 0) + amt).toFixed(2);
                 const newBalance = ((parseFloat(order.balance) || 0) - (amt + ro)).toFixed(2);
+                
+                // Update Supabase Database
                 const { error } = await supabaseClient.from('orders').update({ advance: newAdvance, balance: newBalance }).eq('orderId', order.orderId);
                 if(error) return alert("Payment Error: " + error.message);
 
                 order.advance = newAdvance; order.balance = newBalance;
 
+                // Handle round-off discounts for bill generation memory
                 if (ro > 0) {
                     let disc = {};
                     try { disc = JSON.parse(localStorage.getItem('iam_bill_discounts') || '{}'); } catch (e) { disc = {}; }
@@ -2307,15 +2394,18 @@
                     localStorage.setItem('iam_bill_discounts', JSON.stringify(disc));
                 }
 
-                showToast(`Payment applied.`);
+                showToast(`Payment of ₹${amt} via ${method} applied.`);
                 closePaymentModal(); searchPayment(); updateDashboardStats();
                 renderAllOrders();
                 renderPRClient();
 
+                // If balance becomes 0, generate PDF and send WhatsApp
                 if (parseFloat(newBalance) <= 0) {
                     await autoIssueBill(order);
                     
-                    let msg = `Dear ${order.client},\nYour payment for Order ${order.orderId} has been fully received. Your pending balance is ₹0.00.\n\nThank you for choosing iam des!gns!`;
+                    // Include payment method in WhatsApp confirmation
+                    let msg = `Dear ${order.client},\nYour payment of ₹${amt} for Order ${order.orderId} has been fully received via *${method}*. Your pending balance is ₹0.00.\n\nThank you for choosing iam des!gns!`;
+                    
                     // Automated WA replacement
                     await sendAutomatedWhatsApp(order.phone, msg);
                 }
