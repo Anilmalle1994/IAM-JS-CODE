@@ -89,7 +89,7 @@
         .admin-profile { display: flex; align-items: center; gap: 12px; flex-shrink: 0;}
         .header-icon { background: var(--white); width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 10px rgba(0,0,0,0.02); font-size: 15px;}
         .profile-chip { background: var(--white); display: flex; align-items: center; gap: 8px; padding: 5px 12px 5px 5px; border-radius: 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.02);}
-        .profile-chip span.avatar { background: var(--primary); color: var(--white); width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; border-radius: 50%; font-weight: 600; font-size: 12px;}
+        .profile-chip span.avatar { background: var(--primary); color: var(--white); width: 30px; height: 30px; display: flex; align-items: center; justify-content: border-radius: 50%; font-weight: 600; font-size: 12px;}
         .profile-chip #user-email { font-size: 12px; font-weight: 500; color: var(--dark); max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;}
 
         /* Content Area & Dashboard */
@@ -826,6 +826,7 @@
                 <div class="admin-card">
                     <h3>Pending Client Dues</h3>
                     <div class="action-row" style="margin-top: 0; padding-top: 0; border: none; justify-content: flex-start; margin-bottom: 10px;">
+                        <button type="button" class="btn-whatsapp" onclick="checkAndSendAutoReminders()">🤖 Send Auto-Reminders Now</button>
                         <button type="button" class="btn-secondary" onclick="downloadPRClientPDF()">📄 Download PDF</button>
                         <button type="button" class="btn-secondary" onclick="downloadPRClientExcel()">📊 Download Excel</button>
                     </div>
@@ -1388,6 +1389,67 @@
         }
 
         // ==========================================
+        // AUTOMATED 2-DAY PENDING AMOUNT REMINDERS
+        // ==========================================
+        async function checkAndSendAutoReminders() {
+            const pendingByClient = {};
+            
+            // Group all pending orders by phone number
+            Object.values(appData.orders).forEach(order => {
+                const bal = parseFloat(order.balance) || 0;
+                
+                // Only include orders with a balance greater than 0
+                if (bal > 0) { 
+                    const phone = (order.phone || '').trim();
+                    if(phone.length >= 10) {
+                        if (!pendingByClient[phone]) {
+                            pendingByClient[phone] = { client: order.client, totalPending: 0, orders: [] };
+                        }
+                        pendingByClient[phone].totalPending += bal;
+                        pendingByClient[phone].orders.push(order);
+                    }
+                }
+            });
+
+            // Retrieve the log of when we last sent messages
+            const lastReminders = JSON.parse(localStorage.getItem('iam_auto_reminders') || '{}');
+            const now = Date.now();
+            const TWO_DAYS_MS = 2 * 24 * 60 * 60 * 1000; // 48 hours in milliseconds
+
+            let sentCount = 0;
+
+            for (const phone in pendingByClient) {
+                const data = pendingByClient[phone];
+                const lastSent = lastReminders[phone] || 0;
+
+                // Check if 2 days have passed since the last automated message
+                if (now - lastSent >= TWO_DAYS_MS) {
+                    let msg = `Dear ${data.client},\n\nThis is an automated reminder regarding your pending payments with *iam des!gns*.\n\n*Pending Bills:*\n`;
+
+                    data.orders.forEach(o => {
+                        const dateStr = o.date ? new Date(o.date).toLocaleDateString('en-GB') : 'N/A';
+                        msg += `🔸 *${dateStr}* | ${o.work}\n   Amount Due: ₹${o.balance}\n`;
+                    });
+
+                    msg += `\n*Total Pending Amount: ₹${data.totalPending.toFixed(2)}*\n\nPlease arrange the payment at your earliest convenience. Ignore if already paid. Thank you!`;
+
+                    // Send message and pause briefly to avoid rate-limiting the Node server
+                    await sendAutomatedWhatsApp(phone, msg);
+                    await new Promise(resolve => setTimeout(resolve, 2500)); 
+
+                    // Record the timestamp of this successfully sent reminder
+                    lastReminders[phone] = now;
+                    sentCount++;
+                }
+            }
+
+            if (sentCount > 0) {
+                localStorage.setItem('iam_auto_reminders', JSON.stringify(lastReminders));
+                showToast(`Sent ${sentCount} automated 2-day client reminders!`);
+            }
+        }
+
+        // ==========================================
         // NOTEPAD / TODO LOGIC
         // ==========================================
         function toggleNotepad() {
@@ -1827,6 +1889,10 @@
                 renderTrustedLogos();
                 renderPortfolioItems();
                 renderTeamTable();
+                
+                // Add this line to trigger the reminders 5 seconds after dashboard load
+                setTimeout(checkAndSendAutoReminders, 5000); 
+
             } catch (err) {
                 console.error("Supabase Load Error:", err.message);
                 showToast("Error loading cloud data!");
