@@ -4107,4 +4107,206 @@
             e.preventDefault();
             const submitBtn = document.getElementById('btn-client');
             submitBtn.disabled = true;
-            submitBtn.textContent =
+            submitBtn.textContent = 'Uploading...';
+
+            try {
+                let clientNameBase = document.getElementById('client-name').value.trim();
+                const fileInput = document.getElementById('client-img');
+                const files = fileInput.files;
+
+                if (files.length === 0) {
+                    alert("Please select at least one logo image.");
+                    return;
+                }
+
+                let uploadPromises = Array.from(files).map(async (file, index) => {
+                    let cName = clientNameBase 
+                        ? (files.length > 1 ? `${clientNameBase} ${index + 1}` : clientNameBase) 
+                        : file.name.split('.')[0];
+                    
+                    const fileExt = file.name.split('.').pop();
+                    const uniqueFileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+
+                    const { error: uploadError } = await supabaseClient.storage.from('client_logos').upload(uniqueFileName, file);
+                    if (uploadError) throw uploadError;
+
+                    const { data: publicUrlData } = supabaseClient.storage.from('client_logos').getPublicUrl(uniqueFileName);
+                    const logoUrl = publicUrlData.publicUrl;
+
+                    const { data, error: dbError } = await supabaseClient.from('clients').insert([{ name: cName, logo_url: logoUrl }]).select();
+                    if (dbError) throw dbError;
+
+                    return data[0];
+                });
+
+                const results = await Promise.all(uploadPromises);
+                appData.trustedLogos.push(...results);
+
+                showToast(`${results.length} Logo(s) Uploaded!`);
+                document.getElementById('client-form').reset();
+                renderTrustedLogos();
+
+            } catch (err) {
+                console.error("Upload error:", err.message);
+                alert("Error: " + err.message);
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Add Logos';
+            }
+        }
+
+        async function removeTrustedLogo(id) {
+            if(!confirm("Are you sure you want to remove this client logo?")) return;
+            
+            const { error } = await supabaseClient.from('clients').delete().eq('id', id);
+            if(error) {
+                console.warn("Could not delete from Supabase: " + error.message);
+            }
+
+            appData.trustedLogos = appData.trustedLogos.filter(l => String(l.id) !== String(id));
+            renderTrustedLogos();
+            showToast("Trusted Logo Removed!");
+        }
+
+        async function handlePortfolioSubmit(e) {
+            e.preventDefault();
+            const submitBtn = document.getElementById('btn-port');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Uploading...';
+
+            try {
+                let titleBase = document.getElementById('port-title').value.trim();
+                let descBase = document.getElementById('port-desc').value.trim();
+                let matBase = document.getElementById('port-material').value.trim();
+                const fileInput = document.getElementById('port-img');
+                const files = fileInput.files;
+
+                if (files.length === 0) {
+                    alert("Please select at least one portfolio image.");
+                    return;
+                }
+
+                let uploadPromises = Array.from(files).map(async (file, index) => {
+                    let pTitle = titleBase 
+                        ? (files.length > 1 ? `${titleBase} ${index + 1}` : titleBase) 
+                        : file.name.split('.')[0];
+                    
+                    const fileExt = file.name.split('.').pop();
+                    const uniqueFileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+
+                    const { error: uploadError } = await supabaseClient.storage.from('portfolio').upload(uniqueFileName, file);
+                    if (uploadError) throw uploadError;
+
+                    const { data: publicUrlData } = supabaseClient.storage.from('portfolio').getPublicUrl(uniqueFileName);
+                    const imageUrl = publicUrlData.publicUrl;
+
+                    const { data, error: dbError } = await supabaseClient.from('portfolio').insert([{
+                        title: pTitle,
+                        description: descBase,
+                        material: matBase,
+                        image_url: imageUrl
+                    }]).select();
+                    
+                    if (dbError) throw dbError;
+
+                    return data[0];
+                });
+
+                const results = await Promise.all(uploadPromises);
+                
+                appData.portfolioItems = [...results, ...appData.portfolioItems];
+
+                showToast(`${results.length} Portfolio Item(s) Uploaded!`);
+                document.getElementById('portfolio-form').reset();
+                renderPortfolioItems();
+
+            } catch (err) {
+                console.error("Upload error:", err.message);
+                alert("Error: " + err.message + "\n\nMake sure your 'portfolio' table has the 'description' and 'material' columns added!");
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Publish';
+            }
+        }
+
+        async function removePortfolioItem(id) {
+            if(!confirm("Are you sure you want to remove this portfolio item?")) return;
+            
+            const { error } = await supabaseClient.from('portfolio').delete().eq('id', id);
+            if(error) {
+                console.warn("Could not delete from Supabase: " + error.message);
+            }
+
+            appData.portfolioItems = appData.portfolioItems.filter(p => String(p.id) !== String(id));
+            renderPortfolioItems();
+            showToast("Portfolio Item Removed!");
+        }
+
+        async function handleTeamSubmit(e) {
+            e.preventDefault();
+            const submitBtn = document.getElementById('btn-team');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Uploading...';
+
+            try {
+                let name = document.getElementById('team-name').value.trim();
+                let role = document.getElementById('team-role').value.trim();
+                let icon = document.getElementById('team-icon').value.trim();
+                const fileInput = document.getElementById('team-img');
+                const file = fileInput.files[0];
+
+                if (!file) {
+                    alert("Please select a profile image.");
+                    return;
+                }
+
+                const fileExt = file.name.split('.').pop();
+                const uniqueFileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+
+                const { error: uploadError } = await supabaseClient.storage.from('team_images').upload(uniqueFileName, file);
+                if (uploadError) throw uploadError;
+
+                const { data: publicUrlData } = supabaseClient.storage.from('team_images').getPublicUrl(uniqueFileName);
+                const imageUrl = publicUrlData.publicUrl;
+
+                const { data, error: dbError } = await supabaseClient.from('team_members').insert([{
+                    name: name,
+                    role: role,
+                    icon: icon,
+                    image_url: imageUrl
+                }]).select();
+                
+                if (dbError) throw dbError;
+
+                appData.team.push(data[0]);
+                showToast(`Team Member Added!`);
+                document.getElementById('team-form').reset();
+                document.getElementById('team-icon').value = '👤';
+                renderTeamTable();
+
+            } catch (err) {
+                console.error("Upload error:", err.message);
+                alert("Error: " + err.message + "\n\nMake sure your 'team_members' table and 'team_images' bucket exist in Supabase!");
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Add Member';
+            }
+        }
+
+        async function removeTeamMember(id) {
+            if(!confirm("Are you sure you want to remove this team member?")) return;
+            
+            const { error } = await supabaseClient.from('team_members').delete().eq('id', id);
+            if(error) {
+                console.warn("Could not delete from Supabase: " + error.message);
+            }
+
+            appData.team = appData.team.filter(m => String(m.id) !== String(id));
+            renderTeamTable();
+            showToast("Team Member Removed!");
+        }
+
+        resetWorkRows();
+    </script>
+</body>
+</html>
