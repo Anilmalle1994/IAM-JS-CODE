@@ -968,7 +968,7 @@
            ============================================================ */
         const REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-        /* 1. Optimized Load sequence (No artificial delays) */
+        /* 1. Optimized Load sequence */
         (function () {
             const loader = document.getElementById('loader');
             if (!loader) return;
@@ -1140,60 +1140,6 @@
             }
         }
 
-        /* --- Dynamic Reviews Generator --- */
-        (function() {
-            const reviewContainer = document.getElementById('dynamic-reviews-container');
-            if (!reviewContainer) return;
-
-            // Array of realistic names and reviews that you can easily edit
-            const reviewsData = [
-                {
-                    name: "Rahul K.",
-                    rating: "★★★★★",
-                    text: "Excellent print quality and very professional graphic design services. Anil understood exactly what our brand needed.",
-                    link: "https://g.page/r/CZ_dgu0DZHsfEAE/review"
-                },
-                {
-                    name: "Priya V.",
-                    rating: "★★★★★",
-                    text: "Best printing service in Kakinada. Delivered our packaging materials on time and the colors were perfectly vibrant.",
-                    link: "https://g.page/r/CZ_dgu0DZHsfEAE/review"
-                },
-                {
-                    name: "Suresh Reddy",
-                    rating: "★★★★★",
-                    text: "Very creative logo design! The team is highly responsive and the final output exceeded our expectations.",
-                    link: "https://g.page/r/CZ_dgu0DZHsfEAE/review"
-                },
-                {
-                    name: "Meghana T.",
-                    rating: "★★★★★",
-                    text: "We rely on Sri Annapurna Graphics for all our commercial printing. Consistent quality and great pricing.",
-                    link: "https://g.page/r/CZ_dgu0DZHsfEAE/review"
-                }
-            ];
-
-            let reviewsHTML = '';
-            reviewsData.forEach(review => {
-                reviewsHTML += `
-                <div class="review-card">
-                    <div>
-                        <div class="review-author">
-                            <div class="review-author-info">
-                                <h4>${review.name}</h4>
-                            </div>
-                        </div>
-                        <span class="review-rating">${review.rating}</span>
-                        <p class="review-text">"${review.text}"</p>
-                    </div>
-                    <a href="${review.link}" target="_blank" rel="noopener noreferrer" style="font-size:12px; color:var(--primary); text-decoration:none; font-weight:700; text-transform:uppercase; letter-spacing:1px; margin-top:10px; display:inline-block;">Read on Google ↗</a>
-                </div>
-                `;
-            });
-            
-            reviewContainer.innerHTML = reviewsHTML;
-        })();
-
         /* ============================================================
            SITE LOGIC — Supabase content + Contact form + Split Lightbox
            ============================================================ */
@@ -1218,85 +1164,130 @@
             const btnPrev = document.getElementById('modal-prev-btn');
             const btnNext = document.getElementById('modal-next-btn');
 
-            /* Fetch Content */
+            /* Initialize Static Reviews */
+            function generateReviews() {
+                const reviewContainer = document.getElementById('dynamic-reviews-container');
+                if (!reviewContainer) return;
+
+                const reviewsData = [
+                    { name: "Srinivas Rao", rating: "★★★★★", text: "Excellent print quality for our commercial flex banners. Anil is highly professional.", link: "https://g.page/r/CZ_dgu0DZHsfEAE/review" },
+                    { name: "Priya V.", rating: "★★★★★", text: "Best printing service in Kakinada. The vinyl prints and roll-up standees were perfect for our event.", link: "https://g.page/r/CZ_dgu0DZHsfEAE/review" },
+                    { name: "Suresh Reddy", rating: "★★★★★", text: "Very creative logo design! The team is highly responsive and the final output exceeded our expectations.", link: "https://g.page/r/CZ_dgu0DZHsfEAE/review" },
+                    { name: "Meghana T.", rating: "★★★★★", text: "We rely on Sri Annapurna Graphics for our bill books and letterheads. Consistent quality and great pricing.", link: "https://g.page/r/CZ_dgu0DZHsfEAE/review" }
+                ];
+
+                let reviewsHTML = '';
+                reviewsData.forEach(review => {
+                    reviewsHTML += `
+                    <div class="review-card">
+                        <div>
+                            <div class="review-author">
+                                <div class="review-author-info">
+                                    <h4>${review.name}</h4>
+                                </div>
+                            </div>
+                            <span class="review-rating">${review.rating}</span>
+                            <p class="review-text">"${review.text}"</p>
+                        </div>
+                        <a href="${review.link}" target="_blank" rel="noopener noreferrer" style="font-size:12px; color:var(--primary); text-decoration:none; font-weight:700; text-transform:uppercase; letter-spacing:1px; margin-top:10px; display:inline-block;">Read on Google ↗</a>
+                    </div>
+                    `;
+                });
+                reviewContainer.innerHTML = reviewsHTML;
+            }
+            generateReviews();
+
+            /* Fetch Content with Fallbacks */
             async function loadWebContent() {
                 try {
                     // Fetch Team Members
-                    const { data: teamData } = await supabaseClient.from('team_members').select('*').order('id', { ascending: true });
-                    const teamContainer = document.getElementById('dynamic-team-container');
+                    let { data: teamData, error: teamErr } = await supabaseClient.from('team_members').select('*').order('id', { ascending: true });
                     
-                    if (teamData && teamData.length > 0) {
-                        teamContainer.innerHTML = '';
-                        const visibleTeam = teamData.slice(0, 3);
-                        teamContainer.classList.toggle('has-two', visibleTeam.length === 2);
-                        teamContainer.classList.toggle('has-three', visibleTeam.length >= 3);
-                        teamContainer.classList.toggle('has-four-plus', visibleTeam.length > 3);
-
-                        visibleTeam.forEach((member, i) => {
-                            const isActive = i === 0;
-                            const icon = member.icon || '👤';
-                            const name = member.name || 'Team Member';
-                            const role = member.role || 'Creative & Printing';
-                            const image = member.image_url || '';
-
-                            teamContainer.innerHTML += `
-                                <article
-                                    class="team-card ${isActive ? 'active' : ''}"
-                                    style="background-image:url('${image.replace(/'/g, "\\'")}')"
-                                    onclick="activateTeamCard(this)"
-                                    role="button"
-                                    tabindex="0"
-                                    aria-expanded="${isActive ? 'true' : 'false'}"
-                                    aria-label="${name}, ${role}"
-                                    onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();activateTeamCard(this)}">
-                                    <div class="collapsed-icon" aria-hidden="true">${icon}</div>
-                                    <div class="card-content">
-                                        <div class="card-icon" aria-hidden="true">${icon}</div>
-                                        <div class="card-info">
-                                            <h3>${name}</h3>
-                                            <p>${role}</p>
-                                        </div>
-                                    </div>
-                                </article>
-                            `;
-                        });
+                    // FALLBACK: If Supabase fails or is empty, use this data
+                    if (teamErr || !teamData || teamData.length === 0) {
+                        teamData = [
+                            { name: 'Anil Malle', role: 'Lead Graphic Designer', icon: '🎨', image_url: 'Landing Page _ copy.png' },
+                            { name: 'Production', role: 'Print Operations', icon: '🖨️', image_url: 'https://images.unsplash.com/photo-1563986768609-322da13575f3?q=80&w=800&auto=format&fit=crop' }
+                        ];
                     }
+
+                    const teamContainer = document.getElementById('dynamic-team-container');
+                    teamContainer.innerHTML = '';
+                    const visibleTeam = teamData.slice(0, 3);
+                    teamContainer.classList.toggle('has-two', visibleTeam.length === 2);
+                    teamContainer.classList.toggle('has-three', visibleTeam.length >= 3);
+                    teamContainer.classList.toggle('has-four-plus', visibleTeam.length > 3);
+
+                    visibleTeam.forEach((member, i) => {
+                        const isActive = i === 0;
+                        teamContainer.innerHTML += `
+                            <article
+                                class="team-card ${isActive ? 'active' : ''}"
+                                style="background-image:url('${(member.image_url || '').replace(/'/g, "\\'")}')"
+                                onclick="activateTeamCard(this)"
+                                role="button" tabindex="0"
+                                aria-expanded="${isActive ? 'true' : 'false'}">
+                                <div class="collapsed-icon" aria-hidden="true">${member.icon || '👤'}</div>
+                                <div class="card-content">
+                                    <div class="card-icon" aria-hidden="true">${member.icon || '👤'}</div>
+                                    <div class="card-info">
+                                        <h3>${member.name || 'Team Member'}</h3>
+                                        <p>${member.role || 'Staff'}</p>
+                                    </div>
+                                </div>
+                            </article>
+                        `;
+                    });
 
                     // Fetch Portfolio
-                    const { data: portfolio } = await supabaseClient.from('portfolio').select('*').order('id', { ascending: false });
-                    if (portfolio && portfolio.length > 0) {
-                        currentPortfolioData = portfolio;
-                        const grid = document.getElementById('dynamic-portfolio-grid');
-                        grid.innerHTML = '';
-                        
-                        portfolio.forEach((item, i) => {
-                            grid.innerHTML += `
-                                <article class="bento-item rv" style="--d:${(i % 4) * 80}ms" onclick="openPortfolioModal(${i})" tabindex="0" role="button" aria-label="View ${item.title || 'portfolio project'}">
-                                    <img class="bento-media" src="${item.image_url || ''}" alt="${item.alt_text || item.title || 'Graphic design and printing project by Anil Malle in Kakinada'}" loading="lazy" decoding="async">
-                                    <div class="bento-veil"></div>
-                                    <div class="bento-label"><strong>${item.title || 'Portfolio Project'}</strong>${item.description ? `<span style="display:block;font-size:12px;font-weight:400;margin-top:5px;opacity:.9;">${item.description}</span>` : ''}</div>
-                                </article>`;
-                        });
-                        watch(grid);
-                        grid.querySelectorAll('.bento-item').forEach(card => {
-                            card.addEventListener('keydown', e => {
-                                if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); card.click(); }
-                            });
-                        });
+                    let { data: portfolio, error: portErr } = await supabaseClient.from('portfolio').select('*').order('id', { ascending: false });
+                    
+                    // FALLBACK: If Supabase fails or is empty
+                    if (portErr || !portfolio || portfolio.length === 0) {
+                        portfolio = [
+                            { title: 'Commercial Stationery', description: 'Premium letterheads, bill books, and business cards.', image_url: 'https://images.unsplash.com/photo-1586075010923-2dd4570fb338?q=80&w=800&auto=format&fit=crop' },
+                            { title: 'Large Format Prints', description: 'High-durability flex banners and vinyl prints.', image_url: 'https://images.unsplash.com/photo-1563298723-dcfebaa392e3?q=80&w=800&auto=format&fit=crop' },
+                            { title: 'Event Signage', description: 'Roll-up standees and custom PVC boards.', image_url: 'https://images.unsplash.com/photo-1559028012-481c04fa702d?q=80&w=800&auto=format&fit=crop' },
+                            { title: 'Brand Packaging', description: 'Custom packaging and label design.', image_url: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?q=80&w=800&auto=format&fit=crop' }
+                        ];
                     }
 
+                    currentPortfolioData = portfolio;
+                    const grid = document.getElementById('dynamic-portfolio-grid');
+                    grid.innerHTML = '';
+                    
+                    portfolio.forEach((item, i) => {
+                        grid.innerHTML += `
+                            <article class="bento-item rv" style="--d:${(i % 4) * 80}ms" onclick="openPortfolioModal(${i})" tabindex="0" role="button">
+                                <img class="bento-media" src="${item.image_url || ''}" alt="${item.title}" loading="lazy" decoding="async">
+                                <div class="bento-veil"></div>
+                                <div class="bento-label"><strong>${item.title || 'Project'}</strong>${item.description ? `<span style="display:block;font-size:12px;font-weight:400;margin-top:5px;opacity:.9;">${item.description}</span>` : ''}</div>
+                            </article>`;
+                    });
+                    watch(grid);
+
                     // Fetch Clients Logos 
-                    const { data: clients } = await supabaseClient.from('clients').select('*').order('id', { ascending: false });
-                    if (clients && clients.length > 0) {
-                        let logosHtml = '';
-                        clients.forEach(c => {
-                            logosHtml += `<img class="client-logo" src="${c.logo_url}" alt="${c.name || 'Client logo'}" title="${c.name || 'Client'}" loading="lazy" decoding="async">`;
-                        });
-                        ['marquee-1', 'marquee-2', 'marquee-3', 'marquee-4'].forEach(id => {
-                            const row = document.getElementById(id);
-                            if (row) row.innerHTML = logosHtml;
-                        });
+                    let { data: clients, error: clientErr } = await supabaseClient.from('clients').select('*').order('id', { ascending: false });
+                    
+                    // FALLBACK: If Supabase fails or is empty
+                    if (clientErr || !clients || clients.length === 0) {
+                        clients = [
+                            { name: 'Brand 1', logo_url: 'https://via.placeholder.com/220x85/f9f9f9/232323?text=Client+Logo' },
+                            { name: 'Brand 2', logo_url: 'https://via.placeholder.com/220x85/f9f9f9/232323?text=Client+Logo' },
+                            { name: 'Brand 3', logo_url: 'https://via.placeholder.com/220x85/f9f9f9/232323?text=Client+Logo' },
+                            { name: 'Brand 4', logo_url: 'https://via.placeholder.com/220x85/f9f9f9/232323?text=Client+Logo' }
+                        ];
                     }
+
+                    let logosHtml = '';
+                    clients.forEach(c => {
+                        logosHtml += `<img class="client-logo" src="${c.logo_url}" alt="${c.name || 'Client logo'}" title="${c.name || 'Client'}" loading="lazy" decoding="async">`;
+                    });
+                    ['marquee-1', 'marquee-2', 'marquee-3', 'marquee-4'].forEach(id => {
+                        const row = document.getElementById(id);
+                        if (row) row.innerHTML = logosHtml;
+                    });
+                    
                 } catch (err) {
                     console.error("Failed to load web content:", err.message);
                 }
@@ -1304,26 +1295,15 @@
             loadWebContent();
 
             /* --- SPLIT-SCREEN LIGHTBOX (MODAL) LOGIC --- */
-            
             function updateModalContent() {
                 const item = currentPortfolioData[currentModalIndex];
                 if (!item) return;
                 
                 imgFull.src = item.image_url || '';
-                imgFull.alt = item.alt_text || item.title || 'Graphic design and printing portfolio project by Anil Malle in Kakinada';
+                imgFull.alt = item.alt_text || item.title || 'Portfolio project';
                 textTitle.textContent = item.title || 'Portfolio Item';
-                
-                if(item.description) {
-                    textDesc.textContent = item.description;
-                } else {
-                    textDesc.textContent = "Detailed description coming soon.";
-                }
-                
-                if(item.material) {
-                    textMaterial.textContent = item.material;
-                } else {
-                    textMaterial.textContent = "Standard material specifications.";
-                }
+                textDesc.textContent = item.description || "Detailed description coming soon.";
+                textMaterial.textContent = item.material || "Standard material specifications.";
                 
                 if (item.client_logo) {
                     logoClient.src = item.client_logo;
@@ -1349,12 +1329,9 @@
             function changeSlide(directionStep) {
                 const total = currentPortfolioData.length;
                 if (total <= 1) return;
-                
                 currentModalIndex += directionStep;
-                
                 if (currentModalIndex >= total) currentModalIndex = 0; 
                 else if (currentModalIndex < 0) currentModalIndex = total - 1; 
-                
                 updateModalContent();
             }
 
@@ -1363,9 +1340,7 @@
             btnNext.addEventListener('click', (e) => { e.stopPropagation(); changeSlide(1); });
             
             modal.addEventListener('click', (e) => {
-                if (e.target === modal) {
-                    closePortfolioModal();
-                }
+                if (e.target === modal) closePortfolioModal();
             });
 
             document.addEventListener('keydown', (e) => {
@@ -1375,7 +1350,7 @@
                 if (e.key === 'ArrowRight') changeSlide(1);
             });
 
-            /* Contact Form Logic (WhatsApp ONLY) */
+            /* Contact Form Logic */
             const contactForm = document.getElementById('contact-form');
             const contactFileInput = document.getElementById('contact-file');
             const contactFileName = document.getElementById('contact-file-name');
@@ -1397,7 +1372,6 @@
                 contactFileInput.addEventListener('change', function () {
                     if (this.files && this.files.length > 0) {
                         const file = this.files[0];
-                        
                         contactFileName.textContent = '✅ ' + file.name;
                         contactFileLabel.classList.add('has-file');
                         fileRemoveBtn.style.display = 'inline-block';
@@ -1439,7 +1413,6 @@
 
                         let attachmentUrl = null;
 
-                        // Keep file upload to Supabase so the file can be linked in the WhatsApp message
                         if (file) {
                             const fileExt = file.name.split('.').pop();
                             const fileName = `client_${Date.now()}.${fileExt}`;
@@ -1449,7 +1422,6 @@
                             attachmentUrl = data.publicUrl;
                         }
 
-                        // Backing up enquiry to your database 
                         const { error: dbError } = await supabaseClient.from('contact_messages').insert([{
                             name, email, phone, message,
                             attachment_url: attachmentUrl,
@@ -1457,7 +1429,6 @@
                         }]);
                         if (dbError) console.error("Database backup error:", dbError); 
 
-                        // Open WhatsApp with the complete enquiry details
                         const whatsappNumber = "919299999564";
                         const whatsappMessage = [
                             "*New Design & Printing Quote Request*",
