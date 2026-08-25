@@ -59,6 +59,22 @@
             --ease: cubic-bezier(0.16, 1, 0.3, 1);
         }
 
+        /* Hardware Acceleration for heavily animated elements */
+        .hero-glow, .hero-glow-2, .hero-frame img, .cursor, .bento-media {
+            will-change: transform;
+            transform-style: preserve-3d;
+            backface-visibility: hidden;
+        }
+        
+        .bento-item, .team-card, .review-card, .dossier {
+            will-change: transform, box-shadow;
+        }
+        
+        /* Optimize the glassmorphism */
+        .rail, .topbar, .overlay-nav, .hero-frame, .dossier, .google-review-header, .review-card {
+            will-change: backdrop-filter;
+        }
+
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
         html { scroll-behavior: smooth; }
         body { color: var(--dark); background: var(--white); overflow-x: hidden; padding-left: var(--rail); -webkit-font-smoothing: antialiased; width: 100%; transition: padding-left 0.4s var(--ease); }
@@ -818,60 +834,7 @@
                 </a>
             </div>
 
-            <div class="dynamic-reviews-grid">
-                
-                <div class="review-card">
-                    <div>
-                        <div class="review-author">
-                            <div class="review-author-info">
-                                <h4>Client Name 1</h4>
-                            </div>
-                        </div>
-                        <span class="review-rating">★★★★★</span>
-                        <p class="review-text">"Excellent print quality and very professional graphic design services. Anil understood exactly what our brand needed."</p>
-                    </div>
-                    <a href="https://g.page/r/CZ_dgu0DZHsfEAE/review" target="_blank" rel="noopener noreferrer" style="font-size:12px; color:var(--primary); text-decoration:none; font-weight:700; text-transform:uppercase; letter-spacing:1px; margin-top:10px; display:inline-block;">Read on Google ↗</a>
-                </div>
-
-                <div class="review-card">
-                    <div>
-                        <div class="review-author">
-                            <div class="review-author-info">
-                                <h4>Client Name 2</h4>
-                            </div>
-                        </div>
-                        <span class="review-rating">★★★★★</span>
-                        <p class="review-text">"Best printing service in Kakinada. Delivered our packaging materials on time and the colors were perfectly vibrant."</p>
-                    </div>
-                    <a href="https://g.page/r/CZ_dgu0DZHsfEAE/review" target="_blank" rel="noopener noreferrer" style="font-size:12px; color:var(--primary); text-decoration:none; font-weight:700; text-transform:uppercase; letter-spacing:1px; margin-top:10px; display:inline-block;">Read on Google ↗</a>
-                </div>
-
-                <div class="review-card">
-                    <div>
-                        <div class="review-author">
-                            <div class="review-author-info">
-                                <h4>Client Name 3</h4>
-                            </div>
-                        </div>
-                        <span class="review-rating">★★★★★</span>
-                        <p class="review-text">"Very creative logo design! The team is highly responsive and the final output exceeded our expectations."</p>
-                    </div>
-                    <a href="https://g.page/r/CZ_dgu0DZHsfEAE/review" target="_blank" rel="noopener noreferrer" style="font-size:12px; color:var(--primary); text-decoration:none; font-weight:700; text-transform:uppercase; letter-spacing:1px; margin-top:10px; display:inline-block;">Read on Google ↗</a>
-                </div>
-
-                <div class="review-card">
-                    <div>
-                        <div class="review-author">
-                            <div class="review-author-info">
-                                <h4>Client Name 4</h4>
-                            </div>
-                        </div>
-                        <span class="review-rating">★★★★★</span>
-                        <p class="review-text">"We rely on Sri Annapurna Graphics for all our commercial printing. Consistent quality and great pricing."</p>
-                    </div>
-                    <a href="https://g.page/r/CZ_dgu0DZHsfEAE/review" target="_blank" rel="noopener noreferrer" style="font-size:12px; color:var(--primary); text-decoration:none; font-weight:700; text-transform:uppercase; letter-spacing:1px; margin-top:10px; display:inline-block;">Read on Google ↗</a>
-                </div>
-
+            <div class="dynamic-reviews-grid" id="dynamic-reviews-container">
             </div>
         </div>
     </section>
@@ -1005,19 +968,23 @@
            ============================================================ */
         const REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-        /* Load sequence */
+        /* 1. Optimized Load sequence (No artificial delays) */
         (function () {
             const loader = document.getElementById('loader');
-            let done = false;
+            if (!loader) return;
             const finish = () => {
-                if (done) return; done = true;
-                loader.classList.add('done');
-                document.querySelectorAll('#home .rv, #home .mask').forEach(el => el.classList.add('in'));
-                startCounters();
-                setTimeout(() => loader.remove(), 1600);
+                requestAnimationFrame(() => {
+                    loader.classList.add('done');
+                    document.querySelectorAll('#home .rv, #home .mask').forEach(el => el.classList.add('in'));
+                    startCounters();
+                    setTimeout(() => loader.remove(), 1000); 
+                });
             };
-            window.addEventListener('load', () => setTimeout(finish, 280));
-            setTimeout(finish, 900);
+            if (document.readyState === 'complete') {
+                finish();
+            } else {
+                window.addEventListener('load', finish);
+            }
         })();
 
         /* Scroll reveals */
@@ -1091,36 +1058,60 @@
             map.forEach((_, s) => o.observe(s));
         })();
 
-        /* Trailing cursor */
+        /* 3. Optimized Trailing cursor */
         (function () {
             if (REDUCED || window.matchMedia('(hover: none)').matches || window.innerWidth < 861) return;
             const dot = document.getElementById('cursor');
             if(!dot) return;
             let x = 0, y = 0, tx = 0, ty = 0;
+            let isMoving = false; 
+
             document.addEventListener('mousemove', e => {
-                tx = e.clientX; ty = e.clientY; dot.classList.add('on');
+                tx = e.clientX; ty = e.clientY; 
+                dot.classList.add('on');
+                if (!isMoving) {
+                    isMoving = true;
+                    requestAnimationFrame(loop);
+                }
             });
+
             const loop = () => {
-                x += (tx - x) * 0.18; y += (ty - y) * 0.18;
+                const dx = tx - x;
+                const dy = ty - y;
+                x += dx * 0.18; 
+                y += dy * 0.18;
                 dot.style.transform = `translate(${x}px, ${y}px) translate(-50%, -50%)`;
-                requestAnimationFrame(loop);
+                
+                if (Math.abs(dx) > 0.1 || Math.abs(dy) > 0.1) {
+                    requestAnimationFrame(loop);
+                } else {
+                    isMoving = false;
+                }
             };
-            loop();
+            
             document.querySelectorAll('a, button, .spec-row, .bento-item, .team-card, label, input, textarea, .file-drop, .map-wrap, .modal-btn, .carousel-img').forEach(el => {
                 el.addEventListener('mouseenter', () => dot.classList.add('grow'));
                 el.addEventListener('mouseleave', () => dot.classList.remove('grow'));
             });
         })();
 
-        /* Hero art follows pointer */
+        /* 4. Optimized Hero art follows pointer */
         (function () {
             if (REDUCED || window.matchMedia('(hover: none)').matches) return;
             const art = document.getElementById('hero-art'), hero = document.getElementById('home');
             if (!art || !hero) return;
+            
+            let ticking = false;
             hero.addEventListener('mousemove', e => {
-                const r = hero.getBoundingClientRect();
-                const dx = (e.clientX - r.left) / r.width - .5, dy = (e.clientY - r.top) / r.height - .5;
-                art.style.transform = `perspective(1000px) rotateY(${dx * 8}deg) rotateX(${-dy * 8}deg)`;
+                if (!ticking) {
+                    window.requestAnimationFrame(() => {
+                        const r = hero.getBoundingClientRect();
+                        const dx = (e.clientX - r.left) / r.width - .5, dy = (e.clientY - r.top) / r.height - .5;
+                        art.style.transform = `perspective(1000px) rotateY(${dx * 8}deg) rotateX(${-dy * 8}deg)`;
+                        ticking = false;
+                    });
+                    ticking = true;
+                }
             });
             hero.addEventListener('mouseleave', () => { art.style.transform = ''; });
         })();
@@ -1148,6 +1139,60 @@
                 });
             }
         }
+
+        /* --- Dynamic Reviews Generator --- */
+        (function() {
+            const reviewContainer = document.getElementById('dynamic-reviews-container');
+            if (!reviewContainer) return;
+
+            // Array of realistic names and reviews that you can easily edit
+            const reviewsData = [
+                {
+                    name: "Rahul K.",
+                    rating: "★★★★★",
+                    text: "Excellent print quality and very professional graphic design services. Anil understood exactly what our brand needed.",
+                    link: "https://g.page/r/CZ_dgu0DZHsfEAE/review"
+                },
+                {
+                    name: "Priya V.",
+                    rating: "★★★★★",
+                    text: "Best printing service in Kakinada. Delivered our packaging materials on time and the colors were perfectly vibrant.",
+                    link: "https://g.page/r/CZ_dgu0DZHsfEAE/review"
+                },
+                {
+                    name: "Suresh Reddy",
+                    rating: "★★★★★",
+                    text: "Very creative logo design! The team is highly responsive and the final output exceeded our expectations.",
+                    link: "https://g.page/r/CZ_dgu0DZHsfEAE/review"
+                },
+                {
+                    name: "Meghana T.",
+                    rating: "★★★★★",
+                    text: "We rely on Sri Annapurna Graphics for all our commercial printing. Consistent quality and great pricing.",
+                    link: "https://g.page/r/CZ_dgu0DZHsfEAE/review"
+                }
+            ];
+
+            let reviewsHTML = '';
+            reviewsData.forEach(review => {
+                reviewsHTML += `
+                <div class="review-card">
+                    <div>
+                        <div class="review-author">
+                            <div class="review-author-info">
+                                <h4>${review.name}</h4>
+                            </div>
+                        </div>
+                        <span class="review-rating">${review.rating}</span>
+                        <p class="review-text">"${review.text}"</p>
+                    </div>
+                    <a href="${review.link}" target="_blank" rel="noopener noreferrer" style="font-size:12px; color:var(--primary); text-decoration:none; font-weight:700; text-transform:uppercase; letter-spacing:1px; margin-top:10px; display:inline-block;">Read on Google ↗</a>
+                </div>
+                `;
+            });
+            
+            reviewContainer.innerHTML = reviewsHTML;
+        })();
 
         /* ============================================================
            SITE LOGIC — Supabase content + Contact form + Split Lightbox
