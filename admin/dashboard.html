@@ -28,7 +28,7 @@
             --radius-md: 14px;
         }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
-        body { background-color: var(--light-gray); color: var(--dark); display: flex; height: 100vh; overflow: hidden; width: 100vw; }
+        body { background-color: var(--light-gray); color: var(--dark); display: flex; height: 100vh; overflow: hidden; width: 100vw; transition: background-color 0.3s ease; }
 
         /* Left Floating Icon Sidebar */
         .icon-sidebar {
@@ -44,7 +44,7 @@
             padding: 24px 0;
             position: fixed;
             z-index: 1000;
-            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s ease;
             overflow: visible; 
         }
         .sidebar-logo img { width: 38px; height: 38px; border-radius: 10px; margin-bottom: 30px; object-fit: cover; box-shadow: 0 4px 10px rgba(242,101,34,0.3); transition: transform 0.2s; cursor: pointer;}
@@ -72,12 +72,12 @@
         .main-content { margin-left: calc(var(--icon-sidebar-width) + 30px); flex: 1; display: flex; flex-direction: column; height: 100vh; overflow: hidden; width: calc(100% - var(--icon-sidebar-width) - 30px); transition: margin 0.3s ease;}
         
         /* Top Navigation Bar */
-        .topbar { background: transparent; padding: 20px 30px 10px 0; display: flex; justify-content: space-between; align-items: center; gap: 15px; flex-shrink: 0; }
+        .topbar { background: transparent; padding: 20px 30px 10px 0; display: flex; justify-content: space-between; align-items: center; gap: 15px; flex-shrink: 0; transition: background 0.3s ease; }
         .topbar-left { display: flex; align-items: center; gap: 12px; }
         .menu-toggle { display: none; background: var(--white); border: none; font-size: 20px; color: var(--dark); cursor: pointer; width: 42px; height: 42px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); align-items: center; justify-content: center;}
         
         /* Pill Navigation */
-        .top-nav { background: var(--white); padding: 5px; border-radius: 40px; display: flex; gap: 4px; box-shadow: 0 4px 20px rgba(0,0,0,0.02); overflow-x: auto; max-width: 60vw; -webkit-overflow-scrolling: touch; scrollbar-width: none;}
+        .top-nav { background: var(--white); padding: 5px; border-radius: 40px; display: flex; gap: 4px; box-shadow: 0 4px 20px rgba(0,0,0,0.02); overflow-x: auto; max-width: 60vw; -webkit-overflow-scrolling: touch; scrollbar-width: none; transition: background 0.3s ease;}
         .top-nav::-webkit-scrollbar { display: none; }
         .top-nav a { text-decoration: none; color: var(--gray); padding: 8px 16px; font-size: 13px; font-weight: 500; border-radius: 30px; transition: all 0.3s ease; white-space: nowrap; flex-shrink: 0; }
         .top-nav a:hover { color: var(--dark); }
@@ -85,15 +85,15 @@
 
         /* Profile Section */
         .admin-profile { display: flex; align-items: center; gap: 12px; flex-shrink: 0;}
-        .header-icon { background: var(--white); width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 10px rgba(0,0,0,0.02); font-size: 15px;}
-        .profile-chip { background: var(--white); display: flex; align-items: center; gap: 8px; padding: 5px 12px 5px 5px; border-radius: 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.02);}
+        .header-icon { background: var(--white); width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 10px rgba(0,0,0,0.02); font-size: 15px; transition: background 0.3s ease;}
+        .profile-chip { background: var(--white); display: flex; align-items: center; gap: 8px; padding: 5px 12px 5px 5px; border-radius: 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.02); transition: background 0.3s ease;}
         .profile-chip span.avatar { background: var(--primary); color: var(--white); width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; border-radius: 50%; font-weight: 600; font-size: 12px;}
         .profile-chip #user-email { font-size: 12px; font-weight: 500; color: var(--dark); max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;}
 
         /* Content Area & Dashboard */
         .content-area { padding: 15px 30px 30px 0; overflow-y: auto; flex: 1; -webkit-overflow-scrolling: touch; }
         .dashboard-header { margin-bottom: 24px; }
-        .dashboard-header h1 { font-family: 'Poppins', sans-serif; font-size: 26px; font-weight: 600; color: var(--dark); margin-bottom: 4px;}
+        .dashboard-header h1 { font-family: 'Poppins', sans-serif; font-size: 26px; font-weight: 600; color: var(--dark); margin-bottom: 4px; transition: color 0.3s ease;}
         .dashboard-header p { font-size: 13px; color: var(--gray); }
 
         /* Views & Cards */
@@ -101,7 +101,7 @@
         .view-section.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
         
-        .admin-card { background: var(--white); padding: 24px; border-radius: var(--radius-lg); margin-bottom: 20px; box-shadow: 0 5px 20px rgba(0,0,0,0.02); border: 1px solid #f1f2f4; overflow: hidden; }
+        .admin-card { background: var(--white); padding: 24px; border-radius: var(--radius-lg); margin-bottom: 20px; box-shadow: 0 5px 20px rgba(0,0,0,0.02); border: 1px solid #f1f2f4; overflow: hidden; transition: background 0.3s ease, border-color 0.3s ease; }
         .admin-card h3 { font-size: 15px; margin-bottom: 16px; color: var(--dark); font-weight: 600;}
         
         /* Forms & Inputs */
@@ -115,7 +115,7 @@
 
         /* Dashboard Stats Grid */
         .card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px; margin-bottom: 24px; }
-        .stat-card { background: var(--white); padding: 20px; border-radius: var(--radius-md); box-shadow: 0 4px 15px rgba(0,0,0,0.02); border: 1px solid #f1f2f4; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s, background 0.2s, color 0.2s; display: flex; flex-direction: column; justify-content: center;}
+        .stat-card { background: var(--white); padding: 20px; border-radius: var(--radius-md); box-shadow: 0 4px 15px rgba(0,0,0,0.02); border: 1px solid #f1f2f4; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s, background 0.3s, color 0.3s; display: flex; flex-direction: column; justify-content: center;}
         .stat-card:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.05); }
         .stat-card h4 { font-size: 12px; color: var(--gray); margin-bottom: 10px; font-weight: 500;}
         .stat-card p { font-size: 28px; font-family: 'Poppins', sans-serif; font-weight: 700; color: var(--dark); line-height: 1;}
@@ -139,7 +139,7 @@
         .btn-primary { background: var(--primary); color: var(--white); border: none; padding: 10px 22px; border-radius: 30px; font-weight: 500; cursor: pointer; transition: 0.3s; font-size: 13px; text-align: center;}
         .btn-primary:hover { background: #d9561a; box-shadow: 0 4px 12px rgba(242,101,34,0.3);}
         .btn-secondary { background: #f0f2f5; color: var(--dark); border: none; padding: 10px 22px; border-radius: 30px; font-weight: 500; cursor: pointer; transition: 0.3s; font-size: 13px; text-align: center;}
-        .btn-secondary:hover { background: #e5e7eb; }
+        .btn-secondary:hover { background: #e5e7eb; color: #111; }
         .btn-whatsapp { background: #25D366; color: var(--white); border: none; padding: 10px 22px; border-radius: 30px; font-weight: 500; cursor: pointer; transition: 0.3s; display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-size: 13px;}
         .btn-excel { background: #1D6F42; color: white; border: none; padding: 10px 22px; border-radius: 30px; font-weight: 500; cursor: pointer; transition: 0.3s; font-size: 13px;}
         .add-row-btn { background: none; border: none; color: var(--primary); font-weight: 500; cursor: pointer; margin-top: 4px; text-align: left; font-size: 13px;}
@@ -150,7 +150,7 @@
 
         /* Modals & Badges */
         .modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.4); backdrop-filter: blur(4px); align-items: center; justify-content: center; padding: 16px; }
-        .modal-content { background-color: var(--white); padding: 24px; border-radius: var(--radius-lg); width: 100%; max-width: 460px; position: relative; box-shadow: 0 25px 50px rgba(0,0,0,0.1); max-height: 90vh; overflow-y: auto; }
+        .modal-content { background-color: var(--white); padding: 24px; border-radius: var(--radius-lg); width: 100%; max-width: 460px; position: relative; box-shadow: 0 25px 50px rgba(0,0,0,0.1); max-height: 90vh; overflow-y: auto; transition: background 0.3s; }
         .close-modal { color: var(--gray); position: absolute; top: 14px; right: 18px; font-size: 26px; font-weight: bold; cursor: pointer; z-index: 10;}
         .qr-container { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 15px; background: var(--light-gray); border-radius: 14px; }
 
@@ -207,14 +207,6 @@
         .todo-input-row { display: flex; gap: 8px; }
         .todo-input-row input { flex: 1; padding: 10px; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 13px; background: #fff;}
         .todo-input-row button { background: var(--primary); color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-weight: bold;}
-
-        @media print {
-            @page { margin: 0; }
-            body { background-color: #fff; padding: 0; margin: 0; }
-            .icon-sidebar, .topbar, .no-print-app, .modal, .toast-notification, .notepad-fab, .notepad-popup { display: none !important; }
-            .print-container { display: block !important; }
-            .invoice-container { box-shadow: none; width: 100%; max-width: 800px; margin: 0 auto; }
-        }
 
         /* =========================================
            Tablet & Mobile Responsiveness Breakpoints 
@@ -283,6 +275,69 @@
             .data-table { min-width: 650px; }
             .filter-bar { flex-direction: column; align-items: stretch; }
             .filter-group { min-width: 100%; }
+        }
+
+        @media print {
+            @page { margin: 0; }
+            body { background-color: #fff; padding: 0; margin: 0; }
+            .icon-sidebar, .topbar, .no-print-app, .modal, .toast-notification, .notepad-fab, .notepad-popup, .top-nav, .content-area { display: none !important; }
+            .print-container { display: block !important; }
+            .invoice-container { box-shadow: none; width: 100%; max-width: 800px; margin: 0 auto; }
+        }
+
+        /* =========================================
+           Night Theme (Starry Sky) 
+           ========================================= */
+        body.night-theme {
+            --light-gray: #0b0c10;
+            --white: #15181f;
+            --dark: #f8f9fa;
+            --gray: #8892b0;
+            background-color: var(--light-gray);
+            /* Starry night gradient background */
+            background-image: 
+                radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 40px),
+                radial-gradient(white, rgba(255,255,255,.15) 1px, transparent 30px),
+                radial-gradient(white, rgba(255,255,255,.1) 2px, transparent 40px);
+            background-size: 550px 550px, 350px 350px, 250px 250px;
+            background-position: 0 0, 40px 60px, 130px 270px;
+            color: var(--dark);
+        }
+        body.night-theme .admin-card, 
+        body.night-theme .stat-card, 
+        body.night-theme .topbar, 
+        body.night-theme .top-nav, 
+        body.night-theme .submenu, 
+        body.night-theme .card,
+        body.night-theme .filter-bar,
+        body.night-theme .icon-sidebar {
+            background: var(--white);
+            border-color: #2d333b;
+            color: var(--dark);
+        }
+        body.night-theme .dashboard-header h1,
+        body.night-theme .admin-card h3,
+        body.night-theme .data-table th,
+        body.night-theme .data-table td { 
+            color: var(--dark); 
+            border-color: #2d333b; 
+        }
+        body.night-theme input, 
+        body.night-theme select, 
+        body.night-theme textarea,
+        body.night-theme .top-nav {
+            background: #2d333b; 
+            color: #fff; 
+            border-color: #444;
+        }
+        body.night-theme .stat-card {
+            background: #1e222b;
+            border-color: #2d333b;
+        }
+        body.night-theme .modal-content {
+            background-color: var(--white);
+            color: var(--dark);
+            border: 1px solid #2d333b;
         }
     </style>
 </head>
@@ -514,7 +569,7 @@
                 </div>
                 <div class="admin-card" id="pickup-result-card" style="display: none;">
                     <h3>Order Details</h3>
-                    <div style="background: #f8f9fa; padding: 16px; border-radius: 12px; margin: 12px 0;">
+                    <div style="background: #f8f9fa; padding: 16px; border-radius: 12px; margin: 12px 0; color: #111;">
                         <p style="margin-bottom: 6px;"><strong>Order ID:</strong> <span id="pick-oid"></span></p>
                         <p style="margin-bottom: 6px;"><strong>Client:</strong> <span id="pick-client"></span></p>
                         <p style="margin-bottom: 6px;"><strong>Work Type:</strong> <span id="pick-work"></span></p>
@@ -547,7 +602,7 @@
                 
                 <div class="admin-card" id="pay-result-card" style="display: none;">
                     <h3>Billing Summary</h3>
-                    <div style="background: #fcfcfd; padding: 16px; border-radius: 12px; border: 1px solid #eee; margin: 12px 0;">
+                    <div style="background: #fcfcfd; padding: 16px; border-radius: 12px; border: 1px solid #eee; margin: 12px 0; color: #111;">
                         <p style="margin-bottom: 6px; font-size: 15px;"><strong>Order ID:</strong> <span id="pa-oid"></span></p>
                         <p style="font-size: 17px;"><strong>Pending Balance:</strong> <span id="pa-bal" style="color:red; font-weight:bold;"></span></p>
                     </div>
@@ -574,7 +629,7 @@
                 </div>
                 <div class="admin-card" id="del-result-card" style="display: none;">
                     <h3>Order Details</h3>
-                    <div style="background: #f8f9fa; padding: 16px; border-radius: 12px; margin: 12px 0;">
+                    <div style="background: #f8f9fa; padding: 16px; border-radius: 12px; margin: 12px 0; color: #111;">
                         <p style="margin-bottom: 6px;"><strong>Order ID:</strong> <span id="res-oid"></span></p>
                         <p style="margin-bottom: 6px;"><strong>Client Name:</strong> <span id="del-client"></span></p>
                         <p style="margin-bottom: 6px;"><strong>Contact:</strong> <span id="res-phone"></span></p>
@@ -737,7 +792,7 @@
                                 </div>
                                 <div class="form-group">
                                     <label>Profile Image</label>
-                                    <input type="file" id="team-img" accept="image/*" required style="background: white;">
+                                    <input type="file" id="team-img" accept="image/*" required style="background: white; color: #111;">
                                 </div>
                                 <div class="action-row"><button type="submit" id="btn-team" class="btn-primary">Add Member</button></div>
                             </form>
@@ -786,7 +841,7 @@
                                 </div>
                                 <div class="form-group">
                                     <label>Upload Image(s)</label>
-                                    <input type="file" id="port-img" accept="image/*" multiple required style="background: white;">
+                                    <input type="file" id="port-img" accept="image/*" multiple required style="background: white; color: #111;">
                                 </div>
                                 <div class="action-row"><button type="submit" id="btn-port" class="btn-primary">Publish</button></div>
                             </form>
@@ -802,7 +857,7 @@
                                 </div>
                                 <div class="form-group">
                                     <label>Upload Logo(s)</label>
-                                    <input type="file" id="client-img" accept="image/*" multiple required style="background: white;">
+                                    <input type="file" id="client-img" accept="image/*" multiple required style="background: white; color: #111;">
                                 </div>
                                 <div class="action-row"><button type="submit" id="btn-client" class="btn-primary">Add Logos</button></div>
                             </form>
@@ -927,7 +982,7 @@
                         </table>
                         
                         <div class="bulk-payment-wrap" style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px; padding: 15px; background: #f9fafb; border-radius: 8px; flex-wrap: wrap; gap: 15px;">
-                            <div style="font-size: 18px;">
+                            <div style="font-size: 18px; color: #111;">
                                 <b>Total Selected: </b><span style="color: #ef4444; font-weight: bold;">₹<span id="bulk-selected-total">0.00</span></span>
                             </div>
                             <div style="display: flex; align-items: center; gap: 10px;">
@@ -1102,7 +1157,7 @@
                         <button type="button" class="btn-secondary" style="margin-top: 10px;" onclick="addSaleRow()">+ Add Row</button>
 
                         <div class="action-row" style="align-items: center; justify-content: space-between; background: #fafafa; padding: 15px; border-radius: 8px;">
-                            <div style="font-size: 13px; line-height: 1.6;">
+                            <div style="font-size: 13px; line-height: 1.6; color: #111;">
                                 <b>Sub Total: </b>₹<span id="s_sub">0.00</span> | 
                                 <b>Total Tax: </b>₹<span id="s_tax">0.00</span><br>
                                 <b style="color:var(--primary); font-size:16px;">Grand Total: ₹<span id="s_grand">0.00</span></b>
@@ -1155,7 +1210,7 @@
                         </div>
 
                         <div class="form-grid" style="margin-top: 15px; padding: 15px; background: #fafafa; border-radius: 8px; align-items: center;">
-                            <div style="font-size: 16px; font-weight: bold; color: var(--dark);">
+                            <div style="font-size: 16px; font-weight: bold; color: #111;">
                                 Grand Total Bill: ₹<span id="v_grand_total">0.00</span>
                             </div>
                         </div>
@@ -1189,7 +1244,7 @@
         <div class="modal-content">
             <span class="close-modal" onclick="closePaymentModal()">&times;</span>
             <h3 style="margin-bottom: 16px;">Receive Payment</h3>
-            <div style="background: #f8f9fa; padding: 14px; border-radius: 12px;">
+            <div style="background: #f8f9fa; padding: 14px; border-radius: 12px; color: #111;">
                 <p><strong>Order ID:</strong> <span id="modal-order-id"></span></p>
             </div>
             
@@ -1444,6 +1499,103 @@
                 await sendAutomatedWhatsApp(order.phone, msg);
             }
         }
+
+        const SUPABASE_URL = 'https://wrqkrpysvhtjenxyytfp.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_-DXwYtZ4x8XSt1DV_sQc-w_wA7Ir0N_';
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // ==========================================
+        // TIME-BASED GREETING & NIGHT THEME
+        // ==========================================
+        function applyTimeBasedThemeAndGreeting() {
+            const hour = new Date().getHours();
+            const greetingEl = document.getElementById('greeting-text');
+
+            if (hour >= 5 && hour < 12) {
+                greetingEl.innerText = 'Good Morning, Anil';
+                document.body.classList.remove('night-theme');
+            } else if (hour >= 12 && hour < 18) {
+                greetingEl.innerText = 'Good Afternoon, Anil';
+                document.body.classList.remove('night-theme');
+            } else {
+                greetingEl.innerText = 'Good Evening, Anil';
+                document.body.classList.add('night-theme');
+            }
+        }
+        
+        // Execute immediately on page load
+        applyTimeBasedThemeAndGreeting();
+
+        async function logout() {
+            await supabaseClient.auth.signOut();
+            sessionStorage.clear();
+            localStorage.clear();
+            window.location.replace('index.html'); 
+        }
+
+        async function checkAuth() {
+            const { data: { session }, error } = await supabaseClient.auth.getSession();
+            if (!session || error) {
+                window.location.replace('index.html');
+            } else {
+                const email = session.user.email;
+                document.getElementById('user-email').innerText = email;
+            }
+        }
+
+        checkAuth();
+
+        let appData = { vendors: [], orders: {}, vendorAllotmentsHistory: [], staff: [], trustedLogos: [], portfolioItems: [], team: [] };
+
+        async function loadAppData() {
+            try {
+                const { data: orders, error: oError } = await supabaseClient.from('orders').select('*');
+                if (oError) console.error("Orders fetch error:", oError.message);
+                appData.orders = {};
+                if (orders) orders.forEach(o => appData.orders[o.orderId] = o);
+
+                const { data: vendors, error: vError } = await supabaseClient.from('vendors').select('*');
+                if (vError) console.error("Vendors fetch error:", vError.message);
+                appData.vendors = vendors || [];
+
+                const { data: staff, error: sError } = await supabaseClient.from('staff').select('*');
+                if (sError) console.error("Staff fetch error:", sError.message);
+                appData.staff = staff || [];
+
+                const { data: history, error: hError } = await supabaseClient.from('vendor_allotments_history').select('*');
+                if (hError) console.error("History fetch error:", hError.message);
+                appData.vendorAllotmentsHistory = history || [];
+
+                const { data: logos, error: lError } = await supabaseClient.from('clients').select('*');
+                if (lError) console.error("Logos fetch error:", lError.message);
+                appData.trustedLogos = logos || [];
+
+                const { data: portfolio, error: pError } = await supabaseClient.from('portfolio').select('*').order('id', { ascending: false });
+                if (pError) console.error("Portfolio fetch error:", pError.message);
+                appData.portfolioItems = portfolio || [];
+
+                const { data: teamData, error: tError } = await supabaseClient.from('team_members').select('*').order('id', { ascending: true });
+                if (tError) console.error("Team fetch error:", tError.message);
+                appData.team = teamData || [];
+
+                updateDashboardStats();
+                renderAllOrders();
+                renderPRClient();
+                renderPRVendor();
+                renderVendorReport();
+                renderStaffTable();
+                updateAllVendorDropdowns();
+                populateClientDatalist();
+                renderTrustedLogos();
+                renderPortfolioItems();
+                renderTeamTable();
+                
+            } catch (err) {
+                console.error("Supabase Load Error:", err.message);
+                showToast("Error loading cloud data!");
+            }
+        }
+        loadAppData();
 
         // ==========================================
         // NEW: BULK WHATSAPP REMINDERS MODAL LOGIC
@@ -1904,81 +2056,6 @@
             return `https://wa.me/${cleanedPhone}?text=${encodeURIComponent(message)}`;
         }
 
-        const SUPABASE_URL = 'https://wrqkrpysvhtjenxyytfp.supabase.co';
-        const SUPABASE_ANON_KEY = 'sb_publishable_-DXwYtZ4x8XSt1DV_sQc-w_wA7Ir0N_';
-        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-        async function logout() {
-            await supabaseClient.auth.signOut();
-            sessionStorage.clear();
-            localStorage.clear();
-            window.location.replace('index.html'); 
-        }
-
-        async function checkAuth() {
-            const { data: { session }, error } = await supabaseClient.auth.getSession();
-            if (!session || error) {
-                window.location.replace('index.html');
-            } else {
-                const email = session.user.email;
-                document.getElementById('user-email').innerText = email;
-            }
-        }
-
-        checkAuth();
-
-        let appData = { vendors: [], orders: {}, vendorAllotmentsHistory: [], staff: [], trustedLogos: [], portfolioItems: [], team: [] };
-
-        async function loadAppData() {
-            try {
-                const { data: orders, error: oError } = await supabaseClient.from('orders').select('*');
-                if (oError) console.error("Orders fetch error:", oError.message);
-                appData.orders = {};
-                if (orders) orders.forEach(o => appData.orders[o.orderId] = o);
-
-                const { data: vendors, error: vError } = await supabaseClient.from('vendors').select('*');
-                if (vError) console.error("Vendors fetch error:", vError.message);
-                appData.vendors = vendors || [];
-
-                const { data: staff, error: sError } = await supabaseClient.from('staff').select('*');
-                if (sError) console.error("Staff fetch error:", sError.message);
-                appData.staff = staff || [];
-
-                const { data: history, error: hError } = await supabaseClient.from('vendor_allotments_history').select('*');
-                if (hError) console.error("History fetch error:", hError.message);
-                appData.vendorAllotmentsHistory = history || [];
-
-                const { data: logos, error: lError } = await supabaseClient.from('clients').select('*');
-                if (lError) console.error("Logos fetch error:", lError.message);
-                appData.trustedLogos = logos || [];
-
-                const { data: portfolio, error: pError } = await supabaseClient.from('portfolio').select('*').order('id', { ascending: false });
-                if (pError) console.error("Portfolio fetch error:", pError.message);
-                appData.portfolioItems = portfolio || [];
-
-                const { data: teamData, error: tError } = await supabaseClient.from('team_members').select('*').order('id', { ascending: true });
-                if (tError) console.error("Team fetch error:", tError.message);
-                appData.team = teamData || [];
-
-                updateDashboardStats();
-                renderAllOrders();
-                renderPRClient();
-                renderPRVendor();
-                renderVendorReport();
-                renderStaffTable();
-                updateAllVendorDropdowns();
-                populateClientDatalist();
-                renderTrustedLogos();
-                renderPortfolioItems();
-                renderTeamTable();
-                
-            } catch (err) {
-                console.error("Supabase Load Error:", err.message);
-                showToast("Error loading cloud data!");
-            }
-        }
-        loadAppData();
-
         let html5QrcodeScanner = null;
 
         function openQRScanner(targetInputId, callback) {
@@ -2387,7 +2464,28 @@
                 const { error } = await supabaseClient.from('orders').update({ advance: newAdvance, balance: newBalance }).eq('orderId', order.orderId);
                 if(error) return alert("Payment Error: " + error.message);
 
-                order.advance = newAdvance; order.balance = newBalance;
+                // --- SAVE PAYMENT HISTORY WITH TIME & DATE ---
+                const paymentDate = new Date().toISOString();
+                const paymentRecord = {
+                    orderId: order.orderId,
+                    amount: amt,
+                    method: method,
+                    date: paymentDate,
+                    roundoff: ro
+                };
+
+                // Insert to Supabase (Requires a 'payment_history' table to be created)
+                const { error: histError } = await supabaseClient.from('payment_history').insert([paymentRecord]);
+                if (histError) console.warn("Ensure 'payment_history' table exists in Supabase. Logging locally.");
+
+                // Save locally as a reliable fallback
+                let localPayments = JSON.parse(localStorage.getItem('iam_payment_history') || '[]');
+                localPayments.push(paymentRecord);
+                localStorage.setItem('iam_payment_history', JSON.stringify(localPayments));
+                // ---------------------------------------------
+
+                order.advance = newAdvance; 
+                order.balance = newBalance;
 
                 if (ro > 0) {
                     let disc = {};
@@ -2397,7 +2495,9 @@
                 }
 
                 showToast(`Payment of ₹${amt} via ${method} applied.`);
-                closePaymentModal(); searchPayment(); updateDashboardStats();
+                closePaymentModal(); 
+                searchPayment(); 
+                updateDashboardStats();
                 renderAllOrders();
                 renderPRClient();
 
