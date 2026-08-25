@@ -91,7 +91,6 @@
            ============================================================ */
         .rail { position: fixed; top: 0; left: 0; width: var(--rail); height: 100vh; z-index: 900; background: var(--glass-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-right: 1px solid var(--glass-border); display: flex; flex-direction: column; align-items: flex-start; justify-content: space-between; padding: 24px 0 28px 36px; box-shadow: 5px 0 30px rgba(0,0,0,0.02); transition: width 0.4s var(--ease), background 0.4s var(--ease); overflow: hidden; }
         
-        /* Hover to expand the rail */
         .rail:hover { width: 220px; background: rgba(255, 255, 255, 0.95); box-shadow: 10px 0 40px rgba(0,0,0,0.05); }
 
         .rail-logo { margin-left: -12px; }
@@ -102,16 +101,14 @@
         .rail-link { position: relative; display: flex; align-items: center; text-decoration: none; width: 100%; cursor: pointer; }
         .rail-dot { width: 24px; height: 1px; background: rgba(35,35,35,.25); transition: width .5s var(--ease), background .5s var(--ease), box-shadow .5s; flex-shrink: 0; }
         
-        /* The labels fade in and slide right when the menu expands */
         .rail-label { position: static; white-space: nowrap; color: var(--dark); padding-left: 16px; font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; opacity: 0; transform: translateX(-15px); transition: all .4s var(--ease); pointer-events: none; }
         .rail:hover .rail-label { opacity: 1; transform: translateX(0); transition-delay: 0.05s; }
         
-        /* Active & Hover states for the dot and text */
         .rail-link:hover .rail-dot, .rail-link.active .rail-dot { width: 36px; background: var(--primary); box-shadow: 0 0 8px var(--primary-glow); }
         .rail:hover .rail-link:hover .rail-label, .rail:hover .rail-link.active .rail-label { color: var(--primary); }
 
         .rail-meta { writing-mode: vertical-rl; color: rgba(35,35,35,.35); font-size: 10px; letter-spacing: 3.5px; text-transform: uppercase; font-weight: 600; margin-left: -4px; transition: opacity 0.3s; }
-        .rail:hover .rail-meta { opacity: 0; } /* Hide the vertical text when expanded */
+        .rail:hover .rail-meta { opacity: 0; } 
         .rail-progress { position: absolute; right: -1px; top: 0; width: 2px; height: 100%; background: var(--primary); transform: scaleY(0); transform-origin: 50% 0; box-shadow: -2px 0 10px var(--primary-glow); }
 
         /* Mobile bar */
@@ -243,137 +240,22 @@
         /* ============================================================
            TEAM UI ACCORDION 
            ============================================================ */
-        .team-container {
-            display: flex;
-            width: 100%;
-            height: 500px;
-            gap: 14px;
-            margin-top: 40px;
-            overflow: hidden;
-        }
-
-        .team-card {
-            position: relative;
-            flex: 1 1 0;
-            min-width: 0;
-            height: 100%;
-            border-radius: 30px;
-            background-color: #e9e9e9;
-            background-repeat: no-repeat;
-            background-size: cover;
-            background-position: center center;
-            cursor: pointer;
-            transition: flex 0.65s cubic-bezier(.22,1,.36,1),
-                        box-shadow 0.45s ease,
-                        background-position 0.65s ease;
-            overflow: hidden;
-            box-shadow: var(--shadow-soft);
-            isolation: isolate;
-        }
-
-        .team-card.active {
-            flex: 8 1 0;
-            background-position: center center;
-        }
-
-        .team-card::after {
-            content: '';
-            position: absolute;
-            inset: 0;
-            z-index: -1;
-            background: linear-gradient(
-                to top,
-                rgba(15,15,15,.86) 0%,
-                rgba(15,15,15,.30) 34%,
-                rgba(15,15,15,0) 66%
-            );
-            opacity: 0;
-            transition: opacity .45s ease;
-        }
-
+        .team-container { display: flex; width: 100%; height: 500px; gap: 14px; margin-top: 40px; overflow: hidden; }
+        .team-card { position: relative; flex: 1 1 0; min-width: 0; height: 100%; border-radius: 30px; background-color: #e9e9e9; background-repeat: no-repeat; background-size: cover; background-position: center center; cursor: pointer; transition: flex 0.65s cubic-bezier(.22,1,.36,1), box-shadow 0.45s ease, background-position 0.65s ease; overflow: hidden; box-shadow: var(--shadow-soft); isolation: isolate; }
+        .team-card.active { flex: 8 1 0; background-position: center center; }
+        .team-card::after { content: ''; position: absolute; inset: 0; z-index: -1; background: linear-gradient(to top, rgba(15,15,15,.86) 0%, rgba(15,15,15,.30) 34%, rgba(15,15,15,0) 66%); opacity: 0; transition: opacity .45s ease; }
         .team-card.active::after { opacity: 1; }
         .team-card:hover { box-shadow: var(--shadow-lift); }
-        .team-card:focus-visible {
-            outline: 3px solid var(--primary);
-            outline-offset: 4px;
-        }
-
-        .card-content {
-            position: absolute;
-            z-index: 2;
-            left: 28px;
-            bottom: 28px;
-            display: flex;
-            align-items: center;
-            gap: 18px;
-            opacity: 0;
-            transform: translateY(10px);
-            transition: opacity .4s ease .15s, transform .45s ease .15s;
-            pointer-events: none;
-            max-width: calc(100% - 56px);
-        }
-
-        .team-card.active .card-content {
-            opacity: 1;
-            transform: translateY(0);
-            pointer-events: auto;
-        }
-
-        .card-icon, .collapsed-icon {
-            width: 48px;
-            height: 48px;
-            min-width: 48px;
-            background: var(--white);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 22px;
-            box-shadow: 0 10px 25px rgba(0,0,0,.18);
-        }
-
-        .card-info {
-            color: #fff;
-            text-shadow: 0 2px 14px rgba(0,0,0,.55);
-        }
-
-        .card-info h3 {
-            margin: 0;
-            font-size: clamp(22px, 2vw, 30px);
-            font-weight: 800;
-            letter-spacing: -.6px;
-            line-height: 1.05;
-        }
-
-        .card-info p {
-            margin: 7px 0 0;
-            font-size: 13px;
-            font-weight: 700;
-            color: rgba(255,255,255,.92);
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-        }
-
-        .collapsed-icon {
-            position: absolute;
-            z-index: 2;
-            left: 50%;
-            bottom: 28px;
-            transform: translateX(-50%);
-            transition: opacity .3s ease, transform .3s ease;
-        }
-
-        .team-card.active .collapsed-icon {
-            opacity: 0;
-            transform: translate(-50%, 20px);
-            pointer-events: none;
-        }
-
-        @media (min-width: 769px) {
-            .team-container.has-two .team-card.active { flex: 8 1 0; }
-            .team-container.has-three .team-card.active { flex: 8 1 0; }
-            .team-container.has-four-plus .team-card.active { flex: 8 1 0; }
-        }
+        .team-card:focus-visible { outline: 3px solid var(--primary); outline-offset: 4px; }
+        .card-content { position: absolute; z-index: 2; left: 28px; bottom: 28px; display: flex; align-items: center; gap: 18px; opacity: 0; transform: translateY(10px); transition: opacity .4s ease .15s, transform .45s ease .15s; pointer-events: none; max-width: calc(100% - 56px); }
+        .team-card.active .card-content { opacity: 1; transform: translateY(0); pointer-events: auto; }
+        .card-icon, .collapsed-icon { width: 48px; height: 48px; min-width: 48px; background: var(--white); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 22px; box-shadow: 0 10px 25px rgba(0,0,0,.18); }
+        .card-info { color: #fff; text-shadow: 0 2px 14px rgba(0,0,0,.55); }
+        .card-info h3 { margin: 0; font-size: clamp(22px, 2vw, 30px); font-weight: 800; letter-spacing: -.6px; line-height: 1.05; }
+        .card-info p { margin: 7px 0 0; font-size: 13px; font-weight: 700; color: rgba(255,255,255,.92); text-transform: uppercase; letter-spacing: 1.5px; }
+        .collapsed-icon { position: absolute; z-index: 2; left: 50%; bottom: 28px; transform: translateX(-50%); transition: opacity .3s ease, transform .3s ease; }
+        .team-card.active .collapsed-icon { opacity: 0; transform: translate(-50%, 20px); pointer-events: none; }
+        @media (min-width: 769px) { .team-container.has-two .team-card.active { flex: 8 1 0; } .team-container.has-three .team-card.active { flex: 8 1 0; } .team-container.has-four-plus .team-card.active { flex: 8 1 0; } }
 
         /* PORTFOLIO GRID */
         .bento { display: grid; grid-template-columns: repeat(4, 1fr); grid-auto-rows: 250px; gap: 16px; grid-auto-flow: dense; }
@@ -388,59 +270,21 @@
         .bento-label { position: absolute; left: 22px; right: 22px; bottom: 20px; color: #fff; font-weight: 600; font-size: 16px; opacity: 0; transform: translateY(16px); transition: all .55s var(--ease); text-shadow: 0 2px 10px rgba(0,0,0,0.5); }
         .bento-item:hover .bento-label { opacity: 1; transform: none; }
 
-        /* ============================================================
-           NEW SPLIT-SCREEN PORTFOLIO MODAL (IMAGE + DETAILS)
-           ============================================================ */
-        .portfolio-modal {
-            display: none; position: fixed; z-index: 10000; left: 0; top: 0; width: 100vw; height: 100vh; 
-            background-color: rgba(10, 10, 10, 0.90); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); 
-            opacity: 0; transition: opacity 0.4s var(--ease); overflow: hidden;
-            align-items: center; justify-content: center;
-        }
+        /* NEW SPLIT-SCREEN PORTFOLIO MODAL (IMAGE + DETAILS) */
+        .portfolio-modal { display: none; position: fixed; z-index: 10000; left: 0; top: 0; width: 100vw; height: 100vh; background-color: rgba(10, 10, 10, 0.90); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); opacity: 0; transition: opacity 0.4s var(--ease); overflow: hidden; align-items: center; justify-content: center; }
         .portfolio-modal.show { display: flex; opacity: 1; }
-
-        /* The Main Split Container */
-        .modal-split-layout {
-            display: flex; width: 85vw; height: 85vh; max-width: 1400px;
-            background: var(--white); border-radius: 24px; overflow: hidden;
-            box-shadow: 0 30px 80px rgba(0,0,0,0.5);
-            transform: scale(0.95) translateY(20px); opacity: 0; transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-            position: relative;
-        }
+        .modal-split-layout { display: flex; width: 85vw; height: 85vh; max-width: 1400px; background: var(--white); border-radius: 24px; overflow: hidden; box-shadow: 0 30px 80px rgba(0,0,0,0.5); transform: scale(0.95) translateY(20px); opacity: 0; transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1); position: relative; }
         .portfolio-modal.show .modal-split-layout { transform: scale(1) translateY(0); opacity: 1; }
-
-        /* Left Side: Image Viewer */
-        .modal-left {
-            flex: 1.4; background: #f4f4f4; display: flex; align-items: center; justify-content: center;
-            position: relative; padding: 40px; border-right: 1px solid var(--line);
-        }
-        .modal-left img {
-            max-width: 100%; max-height: 100%; object-fit: contain;
-            filter: drop-shadow(0 20px 40px rgba(0,0,0,0.15));
-            border-radius: 8px;
-        }
-
-        /* Right Side: Details & Descriptions */
-        .modal-right {
-            flex: 1; display: flex; flex-direction: column; justify-content: center;
-            background: var(--white); padding: 50px; overflow-y: auto; position: relative;
-        }
+        .modal-left { flex: 1.4; background: #f4f4f4; display: flex; align-items: center; justify-content: center; position: relative; padding: 40px; border-right: 1px solid var(--line); }
+        .modal-left img { max-width: 100%; max-height: 100%; object-fit: contain; filter: drop-shadow(0 20px 40px rgba(0,0,0,0.15)); border-radius: 8px; }
+        .modal-right { flex: 1; display: flex; flex-direction: column; justify-content: center; background: var(--white); padding: 50px; overflow-y: auto; position: relative; }
         .modal-client-logo { max-width: 120px; max-height: 60px; object-fit: contain; margin-bottom: 24px; display: none; }
         .modal-right h3 { font-size: clamp(28px, 3vw, 36px); font-weight: 800; letter-spacing: -1px; margin-bottom: 24px; color: var(--dark); line-height: 1.1; }
-        
         .modal-detail-group { margin-bottom: 26px; }
         .modal-detail-group .tag { color: var(--primary); display: block; margin-bottom: 8px; }
         .modal-detail-group p { font-size: 15px; color: var(--gray); line-height: 1.8; margin: 0; }
-
-        /* Modal Navigation & Controls */
-        .modal-btn { 
-            background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(10px); border: 1px solid var(--line); 
-            border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--dark); 
-            transition: all 0.3s var(--ease); cursor: pointer; position: absolute; z-index: 100;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-        }
+        .modal-btn { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(10px); border: 1px solid var(--line); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--dark); transition: all 0.3s var(--ease); cursor: pointer; position: absolute; z-index: 100; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
         .modal-btn:hover { background: var(--primary); border-color: var(--primary); color: #fff; transform: scale(1.1); box-shadow: 0 10px 25px var(--primary-glow); }
-        
         .modal-close-btn { width: 44px; height: 44px; top: 24px; right: 24px; }
         .modal-slide-btn { width: 50px; height: 50px; top: 50%; transform: translateY(-50%); }
         .modal-slide-prev { left: 24px; }
@@ -458,15 +302,26 @@
         .client-logo { height: 85px; max-width: 220px; object-fit: contain; flex-shrink: 0; filter: grayscale(0); opacity: 1; transition: transform .5s var(--ease), drop-shadow .4s; }
         .client-logo:hover { transform: scale(1.1); drop-shadow: 0 10px 20px rgba(0,0,0,0.12); }
 
-        /* GOOGLE REVIEWS DIRECT LOGIC */
-        .google-review-wrap { position: relative; z-index: 2; display: flex; flex-direction: column; width: 100%; }
-        .google-review-card { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border: 1px solid var(--glass-border); border-radius: 28px; padding: 44px 50px; display: flex; align-items: center; justify-content: space-between; box-shadow: var(--shadow-soft); transition: transform 0.4s var(--ease), box-shadow 0.4s var(--ease); }
-        .google-review-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-lift); }
-        .google-brand { display: flex; align-items: center; gap: 26px; }
-        .google-brand svg { width: 64px; height: 64px; filter: drop-shadow(0 8px 16px rgba(0,0,0,0.08)); }
-        .google-stats h3 { font-size: 36px; font-weight: 800; color: var(--dark); display: flex; align-items: center; gap: 12px; margin-bottom: 2px; }
-        .google-stars { color: #fbbc04; font-size: 26px; letter-spacing: 2px; filter: drop-shadow(0 0 8px rgba(251, 188, 4, 0.3)); }
-        .google-stats p { color: var(--gray); font-size: 16px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
+        /* ============================================================
+           GOOGLE REVIEWS NATIVE API STYLES
+           ============================================================ */
+        .google-review-wrap { display: flex; flex-direction: column; gap: 30px; width: 100%; z-index: 2; position: relative; }
+        .google-review-header { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border: 1px solid var(--glass-border); border-radius: 24px; padding: 30px 40px; display: flex; align-items: center; justify-content: space-between; box-shadow: var(--shadow-soft); }
+        .google-brand { display: flex; align-items: center; gap: 20px; }
+        .google-brand svg { width: 50px; height: 50px; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.08)); }
+        .google-stats h3 { font-size: 32px; font-weight: 800; color: var(--dark); display: flex; align-items: center; gap: 10px; margin-bottom: 2px; font-variant-numeric: tabular-nums; }
+        .google-stars { color: #fbbc04; font-size: 22px; letter-spacing: 2px; text-shadow: 0 0 8px rgba(251, 188, 4, 0.4); }
+        .google-stats p { color: var(--gray); font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
+
+        .dynamic-reviews-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+        .review-card { background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid var(--glass-border); border-radius: 20px; padding: 26px; box-shadow: var(--shadow-soft); transition: transform 0.4s var(--ease), box-shadow 0.4s; display: flex; flex-direction: column; justify-content: space-between; }
+        .review-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-lift); }
+        .review-author { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; }
+        .review-author img { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .review-author-info h4 { font-size: 16px; font-weight: 700; color: var(--dark); margin-bottom: 2px; }
+        .review-author-info span { font-size: 12px; color: var(--gray); }
+        .review-text { font-size: 14.5px; line-height: 1.7; color: var(--gray); margin-bottom: 16px; flex-grow: 1; font-style: italic; }
+        .review-rating { color: #fbbc04; font-size: 16px; letter-spacing: 2px; margin-bottom: 10px; display: block; }
 
         /* CONTACT, MAP & FILE ATTACHMENT */
         .transmit { display: grid; grid-template-columns: .85fr 1.15fr; gap: 70px; }
@@ -484,13 +339,10 @@
         .form { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
         .field { position: relative; }
         .field.full { grid-column: 1 / -1; }
-        
         .form input[type="text"], .form input[type="email"], .form input[type="tel"], .form textarea { width: 100%; padding: 28px 20px 14px; border: 1px solid var(--line); border-radius: 14px; background: rgba(249, 249, 249, 0.7); backdrop-filter: blur(5px); font-family: inherit; font-size: 16px; color: var(--dark); transition: border-color .35s, background .35s, box-shadow .4s, transform .4s var(--ease); }
         .form textarea { height: 175px; resize: none; }
         .form input:focus, .form textarea:focus { outline: none; border-color: var(--primary); background: var(--white); box-shadow: 0 12px 30px rgba(242,101,34,.12), inset 0 0 0 1px var(--primary); transform: translateY(-2px); }
-        
         .field > label:not(.file-drop) { position: absolute; left: 21px; top: 22px; color: var(--gray); font-size: 15px; pointer-events: none; transition: all .32s var(--ease); }
-        
         .form input:focus + label:not(.file-drop), .form textarea:focus + label:not(.file-drop),
         .form input:not(:placeholder-shown) + label:not(.file-drop), .form textarea:not(:placeholder-shown) + label:not(.file-drop) { top: 10px; font-size: 10px; letter-spacing: 2.5px; text-transform: uppercase; color: var(--primary); font-weight: 700; text-shadow: 0 0 8px rgba(242,101,34,0.3); }
 
@@ -503,7 +355,6 @@
         
         #file-preview-container { margin-bottom: 15px; border-radius: 8px; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.1); display: none; background: #fff; padding: 4px; border: 1px solid var(--line); }
         #file-preview { display: block; max-height: 120px; max-width: 100%; object-fit: contain; border-radius: 4px; }
-        
         .file-remove-btn { margin-top: 12px; font-size: 12px; color: #ef4444; background: rgba(239, 68, 68, 0.1); padding: 6px 14px; border-radius: 20px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; display: none; transition: background .3s, color .3s; }
         .file-remove-btn:hover { background: #ef4444; color: white; }
 
@@ -589,9 +440,9 @@
             .form { grid-template-columns: 1fr; }
             footer { flex-direction: column; text-align: center; gap: 15px; }
 
-            /* Mobile tweaks for Google Review Card */
-            .google-review-card { flex-direction: column; text-align: center; gap: 30px; padding: 36px 24px; }
-            .google-brand { flex-direction: column; gap: 16px; }
+            /* Mobile tweaks for Google Review Header */
+            .google-review-header { flex-direction: column; text-align: center; gap: 24px; padding: 24px; }
+            .google-brand { flex-direction: column; gap: 12px; }
             .google-stats h3 { justify-content: center; }
             
             /* Modal Split -> Stacked Layout for Mobile */
@@ -913,7 +764,7 @@
         </div>
 
         <div class="team-container rv" id="dynamic-team-container" style="--d:250ms">
-            <!-- Supabase Data will populate here. See JavaScript below for placeholders if empty. -->
+            <!-- Supabase Data will populate here. -->
         </div>
     </section>
 
@@ -952,7 +803,7 @@
         </div>
     </section>
 
-    <!-- ===== LIVE TRUSTINDEX GOOGLE REVIEWS SECTION ===== -->
+    <!-- ===== LIVE GOOGLE REVIEWS SECTION (DIRECT API) ===== -->
     <section id="reviews" class="band band-mist">
         <div class="band-head">
             <div>
@@ -962,11 +813,10 @@
             <p class="band-note rv" style="--d:200ms">What people are saying about us on Google.</p>
         </div>
 
-        <!-- Google Direct Review Card -->
         <div class="google-review-wrap rv" style="--d:200ms">
-            <div class="google-review-card">
+            <!-- Live Google Stats Header -->
+            <div class="google-review-header" id="google-stats-header">
                 <div class="google-brand">
-                    <!-- Google 'G' Logo SVG -->
                     <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                         <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
                         <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
@@ -974,16 +824,21 @@
                         <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
                     </svg>
                     <div class="google-stats">
-                        <!-- Update your rating here -->
-                        <h3>4.9 <span class="google-stars">★★★★★</span></h3>
-                        <p>Based on Google Reviews</p>
+                        <h3><span id="g-rating">4.9</span> <span class="google-stars">★★★★★</span></h3>
+                        <p>Based on <span id="g-total-reviews">...</span> Google Reviews</p>
                     </div>
                 </div>
-                
-                <!-- INSERT YOUR DIRECT GOOGLE REVIEW LINK BELOW -->
-                <a href="YOUR_GOOGLE_REVIEW_LINK_HERE" target="_blank" rel="noopener noreferrer" class="btn btn-solid">
-                    Review us on Google →
+                <a href="#" id="g-write-review-btn" target="_blank" rel="noopener noreferrer" class="btn btn-solid">
+                    View on Google →
                 </a>
+            </div>
+
+            <!-- Dynamic Reviews Grid -->
+            <div class="dynamic-reviews-grid" id="google-reviews-container">
+                <div style="grid-column: 1 / -1; text-align:center; padding: 50px; color: var(--gray);">
+                    <div class="pulse" style="margin: 0 auto 15px; background: var(--primary);"></div>
+                    Fetching live reviews directly from Google Maps...
+                </div>
             </div>
         </div>
     </section>
@@ -1114,7 +969,72 @@
         </div>
     </footer>
 
+    <!-- LIVE REVIEWS API CONFIGURATION -->
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC8I85jp27g851Ymu6kwYd42coNrAAFwCQ&libraries=places&callback=initGoogleReviews"></script>
+
     <script>
+        /* ============================================================
+           LIVE GOOGLE REVIEWS NATIVE API INTEGRATION
+           ============================================================ */
+        window.initGoogleReviews = function() {
+            const container = document.getElementById('google-reviews-container');
+            if (!container) return;
+
+            const dummyDiv = document.createElement('div');
+            const service = new google.maps.places.PlacesService(dummyDiv);
+
+            const request = {
+                placeId: 'ChIJTRJU1t8nODoRn92C7QNkex8', 
+                fields: ['rating', 'user_ratings_total', 'reviews', 'url']
+            };
+
+            service.getDetails(request, (place, status) => {
+                if (status === google.maps.places.PlacesServiceStatus.OK) {
+                    
+                    // 1. Update Header Stats
+                    if (place.rating) document.getElementById('g-rating').innerText = place.rating.toFixed(1);
+                    if (place.user_ratings_total) document.getElementById('g-total-reviews').innerText = place.user_ratings_total;
+                    if (place.url) document.getElementById('g-write-review-btn').href = place.url;
+
+                    // 2. Render Reviews
+                    if (place.reviews && place.reviews.length > 0) {
+                        container.innerHTML = ''; // Clear the loading state
+                        
+                        // Show up to 4 highest rated / most recent reviews
+                        const reviewsToShow = place.reviews.slice(0, 4); 
+                        
+                        reviewsToShow.forEach(review => {
+                            const stars = '★'.repeat(review.rating) + '☆'.repeat(5 - review.rating);
+                            const reviewText = review.text.length > 160 ? review.text.substring(0, 160) + '...' : review.text;
+                            const avatar = review.profile_photo_url || 'https://via.placeholder.com/44?text=User';
+
+                            const cardHtml = `
+                                <div class="review-card">
+                                    <div>
+                                        <div class="review-author">
+                                            <img src="${avatar}" alt="${review.author_name}" loading="lazy">
+                                            <div class="review-author-info">
+                                                <h4>${review.author_name}</h4>
+                                                <span>${review.relative_time_description}</span>
+                                            </div>
+                                        </div>
+                                        <span class="review-rating">${stars}</span>
+                                        <p class="review-text">"${reviewText}"</p>
+                                    </div>
+                                    <a href="${review.author_url}" target="_blank" rel="noopener noreferrer" style="font-size:12px; color:var(--primary); text-decoration:none; font-weight:700; text-transform:uppercase; letter-spacing:1px; margin-top:10px; display:inline-block;">Read full review ↗</a>
+                                </div>
+                            `;
+                            container.innerHTML += cardHtml;
+                        });
+                    } else {
+                        container.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--gray);">No reviews available yet.</div>';
+                    }
+                } else {
+                    container.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--gray);">Unable to load live reviews automatically right now. <a href="#" style="color:var(--primary);">View them directly on Google Maps</a>.</div>`;
+                }
+            });
+        };
+
         /* ============================================================
            MOTION + INTERFACE
            ============================================================ */
@@ -1297,9 +1217,6 @@
                     
                     if (teamData && teamData.length > 0) {
                         teamContainer.innerHTML = '';
-
-                        // Keep the premium reference composition: three cards are
-                        // shown when available — one expanded card and two slim cards.
                         const visibleTeam = teamData.slice(0, 3);
                         teamContainer.classList.toggle('has-two', visibleTeam.length === 2);
                         teamContainer.classList.toggle('has-three', visibleTeam.length >= 3);
@@ -1333,15 +1250,6 @@
                                 </article>
                             `;
                         });
-                    } else {
-                        teamContainer.innerHTML = `
-                            <div class="team-empty" style="width:100%;display:flex;align-items:center;justify-content:center;text-align:center;padding:50px;border:1px solid var(--line);border-radius:30px;background:var(--light-gray);">
-                                <div>
-                                    <h3 style="font-size:28px;margin-bottom:12px;">A Family-Led Creative Team</h3>
-                                    <p style="color:var(--gray);line-height:1.8;max-width:620px;">Graphic design and printing expertise backed by more than four decades of family experience in Kakinada.</p>
-                                </div>
-                            </div>
-                        `;
                     }
 
                     // Fetch Portfolio
@@ -1391,28 +1299,22 @@
                 const item = currentPortfolioData[currentModalIndex];
                 if (!item) return;
                 
-                // Update Image
                 imgFull.src = item.image_url || '';
                 imgFull.alt = item.alt_text || item.title || 'Graphic design and printing portfolio project by Anil Malle in Kakinada';
-                
-                // Update Texts
                 textTitle.textContent = item.title || 'Portfolio Item';
                 
-                // Check if description column exists and is populated
                 if(item.description) {
                     textDesc.textContent = item.description;
                 } else {
                     textDesc.textContent = "Detailed description coming soon.";
                 }
                 
-                // Check if material column exists and is populated
                 if(item.material) {
                     textMaterial.textContent = item.material;
                 } else {
                     textMaterial.textContent = "Standard material specifications.";
                 }
                 
-                // Update Client Logo if present
                 if (item.client_logo) {
                     logoClient.src = item.client_logo;
                     logoClient.style.display = 'block';
@@ -1440,26 +1342,22 @@
                 
                 currentModalIndex += directionStep;
                 
-                // Wrap around edges
                 if (currentModalIndex >= total) currentModalIndex = 0; 
                 else if (currentModalIndex < 0) currentModalIndex = total - 1; 
                 
                 updateModalContent();
             }
 
-            // Click Listeners for Buttons
             btnClose.addEventListener('click', closePortfolioModal);
             btnPrev.addEventListener('click', (e) => { e.stopPropagation(); changeSlide(-1); });
             btnNext.addEventListener('click', (e) => { e.stopPropagation(); changeSlide(1); });
             
-            // Close when clicking empty dark space outside the split layout
             modal.addEventListener('click', (e) => {
                 if (e.target === modal) {
                     closePortfolioModal();
                 }
             });
 
-            // Keyboard navigation
             document.addEventListener('keydown', (e) => {
                 if (!modal.classList.contains('show')) return;
                 if (e.key === 'Escape') closePortfolioModal();
@@ -1467,7 +1365,7 @@
                 if (e.key === 'ArrowRight') changeSlide(1);
             });
 
-            /* Contact Form Logic */
+            /* Contact Form Logic (WhatsApp ONLY) */
             const contactForm = document.getElementById('contact-form');
             const contactFileInput = document.getElementById('contact-file');
             const contactFileName = document.getElementById('contact-file-name');
@@ -1531,7 +1429,7 @@
 
                         let attachmentUrl = null;
 
-                        // Optional: Keep file upload to Supabase so the file can be linked in the WhatsApp message
+                        // Keep file upload to Supabase so the file can be linked in the WhatsApp message
                         if (file) {
                             const fileExt = file.name.split('.').pop();
                             const fileName = `client_${Date.now()}.${fileExt}`;
@@ -1541,15 +1439,15 @@
                             attachmentUrl = data.publicUrl;
                         }
 
-                        // Optional: Keep backing up enquiry to your database 
+                        // Backing up enquiry to your database 
                         const { error: dbError } = await supabaseClient.from('contact_messages').insert([{
                             name, email, phone, message,
                             attachment_url: attachmentUrl,
                             date: new Date().toISOString()
                         }]);
-                        if (dbError) console.error("Database backup error:", dbError); // We don't need to block WhatsApp redirection if this fails.
+                        if (dbError) console.error("Database backup error:", dbError); 
 
-                        // Open WhatsApp with the complete enquiry details after successful submission.
+                        // Open WhatsApp with the complete enquiry details
                         const whatsappNumber = "919299999564";
                         const whatsappMessage = [
                             "*New Design & Printing Quote Request*",
@@ -1583,5 +1481,4 @@
         });
     </script>
 </body>
-
 </html>
