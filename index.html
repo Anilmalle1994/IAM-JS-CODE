@@ -243,11 +243,6 @@
         /* ============================================================
            TEAM UI ACCORDION 
            ============================================================ */
-        /* ============================================================
-           TEAM — PREMIUM EXPANDING CARD LAYOUT
-           Desktop: one large active card + two slim cards, matching
-           the supplied reference layout.
-           ============================================================ */
         .team-container {
             display: flex;
             width: 100%;
@@ -276,7 +271,6 @@
             isolation: isolate;
         }
 
-        /* The screenshot layout: active ≈ 8 parts, narrow cards ≈ 1 part */
         .team-card.active {
             flex: 8 1 0;
             background-position: center center;
@@ -464,8 +458,15 @@
         .client-logo { height: 85px; max-width: 220px; object-fit: contain; flex-shrink: 0; filter: grayscale(0); opacity: 1; transition: transform .5s var(--ease), drop-shadow .4s; }
         .client-logo:hover { transform: scale(1.1); drop-shadow: 0 10px 20px rgba(0,0,0,0.12); }
 
-        /* TRUSTINDEX REVIEWS WRAPPER */
-        .trustindex-wrap { width: 100%; min-height: 120px; position: relative; z-index: 2; }
+        /* GOOGLE REVIEWS DIRECT LOGIC */
+        .google-review-wrap { position: relative; z-index: 2; display: flex; flex-direction: column; width: 100%; }
+        .google-review-card { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border: 1px solid var(--glass-border); border-radius: 28px; padding: 44px 50px; display: flex; align-items: center; justify-content: space-between; box-shadow: var(--shadow-soft); transition: transform 0.4s var(--ease), box-shadow 0.4s var(--ease); }
+        .google-review-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-lift); }
+        .google-brand { display: flex; align-items: center; gap: 26px; }
+        .google-brand svg { width: 64px; height: 64px; filter: drop-shadow(0 8px 16px rgba(0,0,0,0.08)); }
+        .google-stats h3 { font-size: 36px; font-weight: 800; color: var(--dark); display: flex; align-items: center; gap: 12px; margin-bottom: 2px; }
+        .google-stars { color: #fbbc04; font-size: 26px; letter-spacing: 2px; filter: drop-shadow(0 0 8px rgba(251, 188, 4, 0.3)); }
+        .google-stats p { color: var(--gray); font-size: 16px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
 
         /* CONTACT, MAP & FILE ATTACHMENT */
         .transmit { display: grid; grid-template-columns: .85fr 1.15fr; gap: 70px; }
@@ -587,6 +588,11 @@
             
             .form { grid-template-columns: 1fr; }
             footer { flex-direction: column; text-align: center; gap: 15px; }
+
+            /* Mobile tweaks for Google Review Card */
+            .google-review-card { flex-direction: column; text-align: center; gap: 30px; padding: 36px 24px; }
+            .google-brand { flex-direction: column; gap: 16px; }
+            .google-stats h3 { justify-content: center; }
             
             /* Modal Split -> Stacked Layout for Mobile */
             .modal-split-layout { flex-direction: column; height: 90vh; overflow-y: auto; }
@@ -956,10 +962,29 @@
             <p class="band-note rv" style="--d:200ms">What people are saying about us on Google.</p>
         </div>
 
-        <!-- TrustIndex Embedded Live Reviews -->
-        <div class="trustindex-wrap rv" style="--d:200ms">
-            <!-- Provided TrustIndex Code -->
-            <script defer async src='https://cdn.trustindex.io/loader.js?d3a4afb79a6a08198406e55dcf3'></script>
+        <!-- Google Direct Review Card -->
+        <div class="google-review-wrap rv" style="--d:200ms">
+            <div class="google-review-card">
+                <div class="google-brand">
+                    <!-- Google 'G' Logo SVG -->
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                    </svg>
+                    <div class="google-stats">
+                        <!-- Update your rating here -->
+                        <h3>4.9 <span class="google-stars">★★★★★</span></h3>
+                        <p>Based on Google Reviews</p>
+                    </div>
+                </div>
+                
+                <!-- INSERT YOUR DIRECT GOOGLE REVIEW LINK BELOW -->
+                <a href="YOUR_GOOGLE_REVIEW_LINK_HERE" target="_blank" rel="noopener noreferrer" class="btn btn-solid">
+                    Review us on Google →
+                </a>
+            </div>
         </div>
     </section>
 
@@ -1494,7 +1519,7 @@
                 contactForm.addEventListener('submit', async (e) => {
                     e.preventDefault();
                     const submitBtn = document.getElementById('contact-submit');
-                    submitBtn.innerText = "Sending Message...";
+                    submitBtn.innerText = "Redirecting to WhatsApp...";
                     submitBtn.disabled = true;
 
                     try {
@@ -1506,6 +1531,7 @@
 
                         let attachmentUrl = null;
 
+                        // Optional: Keep file upload to Supabase so the file can be linked in the WhatsApp message
                         if (file) {
                             const fileExt = file.name.split('.').pop();
                             const fileName = `client_${Date.now()}.${fileExt}`;
@@ -1515,27 +1541,16 @@
                             attachmentUrl = data.publicUrl;
                         }
 
+                        // Optional: Keep backing up enquiry to your database 
                         const { error: dbError } = await supabaseClient.from('contact_messages').insert([{
                             name, email, phone, message,
                             attachment_url: attachmentUrl,
                             date: new Date().toISOString()
                         }]);
-                        if (dbError) throw dbError;
-
-                        const emailData = new FormData();
-                        emailData.append("Name", name);
-                        emailData.append("Email", email);
-                        emailData.append("Phone", phone);
-                        emailData.append("Message", message);
-                        if (attachmentUrl) emailData.append("Attachment Link", attachmentUrl);
-
-                        await fetch("https://formsubmit.co/ajax/anilmalle1994@gmail.com", {
-                            method: "POST",
-                            body: emailData
-                        });
+                        if (dbError) console.error("Database backup error:", dbError); // We don't need to block WhatsApp redirection if this fails.
 
                         // Open WhatsApp with the complete enquiry details after successful submission.
-                        const whatsappNumber = "919299995564";
+                        const whatsappNumber = "919299999564";
                         const whatsappMessage = [
                             "*New Design & Printing Quote Request*",
                             "",
@@ -1553,14 +1568,14 @@
                         const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(whatsappMessage)}`;
                         window.open(whatsappUrl, "_blank", "noopener,noreferrer");
 
-                        alert("Thank you! Your quote request has been submitted. WhatsApp will now open with your enquiry details.");
+                        alert("Thank you! Your quote request is ready. WhatsApp will now open with your enquiry details.");
                         contactForm.reset();
                         resetFileUI();
 
                     } catch (err) {
-                        alert("Error sending message: " + err.message);
+                        alert("Error generating quote request: " + err.message);
                     } finally {
-                        submitBtn.innerText = "Send Message →";
+                        submitBtn.innerText = "Get a Quote →";
                         submitBtn.disabled = false;
                     }
                 });
