@@ -802,32 +802,38 @@
                 </div>
             </div>
 
-            <div id="web-content" class="view-section admin-view">
-                
-                <div class="admin-card" style="margin-bottom: 20px; border-top: 4px solid var(--primary);">
-                    <h3>AVEO Poster Templates</h3>
-                    <p style="font-size: 13px; color: var(--gray); margin-bottom: 16px;">Upload blank background templates for the AVEO Poster Generator. They will automatically appear in their dashboard.</p>
-                    <form onsubmit="handleStyleSubmit(event)">
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label>Style Name</label>
-                                <input type="text" id="style-name" placeholder="e.g., Monthly Special 003" required>
-                            </div>
-                            <div class="form-group">
-                                <label>Upload Background Template</label>
-                                <input type="file" id="style-img" accept="image/png, image/jpeg" required style="background: white;">
-                            </div>
-                        </div>
-                        <div class="action-row"><button type="submit" id="btn-style" class="btn-primary">Upload Style</button></div>
-                    </form>
-                    
-                    <div class="table-responsive-wrapper" style="margin-top: 20px;">
-                        <table class="data-table" id="styles-table">
-                            <thead><tr><th>Template Preview</th><th>Style Name</th><th style="width: 100px; text-align: center;">Action</th></tr></thead>
-                            <tbody></tbody>
-                        </table>
-                    </div>
-                </div>
+            <div class="admin-card" style="border-top: 4px solid var(--primary); margin-bottom: 20px;">
+    <h3>AVEO Poster Templates</h3>
+    <p style="font-size: 13px; color: var(--gray); margin-bottom: 16px;">Upload blank background templates for the AVEO Poster Generator. It will automatically populate in their dropdown.</p>
+    <form onsubmit="handleStyleSubmit(event)">
+        <div class="form-grid">
+            <div class="form-group">
+                <label>Style Name</label>
+                <input type="text" id="style-name" placeholder="e.g., Monthly Special 003" required>
+            </div>
+            <div class="form-group">
+                <label>Upload Background Template</label>
+                <input type="file" id="style-img" accept="image/png, image/jpeg" required style="background: white; color: #111;">
+            </div>
+        </div>
+        <div class="action-row">
+            <button type="submit" id="btn-style" class="btn-primary">Upload Style</button>
+        </div>
+    </form>
+    
+    <div class="table-responsive-wrapper" style="margin-top: 20px;">
+        <table class="data-table" id="styles-table">
+            <thead>
+                <tr>
+                    <th>Preview</th>
+                    <th>Style Name</th>
+                    <th style="width: 100px; text-align: center;">Action</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
 
                 <div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start;">
                     <div style="flex: 1; min-width: 300px; display: flex; flex-direction: column; gap: 20px;">
@@ -1412,7 +1418,84 @@
     </div>
 
     <script>
+        // ==========================================
+// AVEO POSTER TEMPLATE MANAGEMENT (ADMIN)
+// ==========================================
+function loadPosterTemplates() {
+    const tpls = JSON.parse(localStorage.getItem('iam_poster_tpls')) || [];
+    const tbody = document.querySelector('#styles-table tbody');
+    if(tbody) {
+        tbody.innerHTML = '';
+        if(tpls.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;">No templates uploaded.</td></tr>';
+        } else {
+            tpls.forEach(t => {
+                const imgTag = t.data.startsWith('data:image') 
+                    ? `<img src="${t.data}" style="height: 50px; border-radius: 4px;">` 
+                    : `<span style="color:var(--gray); font-size:11px;">[Default]</span>`;
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${imgTag}</td>
+                        <td><strong>${t.name}</strong></td>
+                        <td style="text-align: center;">
+                            <button onclick="removeTemplate(${t.id})" class="btn-primary" style="background: #ef4444; padding: 6px 12px; font-size: 11px;">Remove</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+    }
+}
+
+function handleStyleSubmit(e) {
+    e.preventDefault();
+    const name = document.getElementById('style-name').value.trim();
+    const fileInput = document.getElementById('style-img');
+    const file = fileInput.files[0];
+
+    if(!file) return alert("Select an image.");
+
+    const btn = document.getElementById('btn-style');
+    btn.disabled = true; btn.innerText = "Saving...";
+
+    const reader = new FileReader();
+    reader.onload = function(evt) {
+        const base64Data = evt.target.result;
+        let tpls = JSON.parse(localStorage.getItem('iam_poster_tpls')) || [];
         
+        tpls.push({
+            id: Date.now(),
+            name: name,
+            data: base64Data
+        });
+
+        try {
+            localStorage.setItem('iam_poster_tpls', JSON.stringify(tpls));
+            showToast("New Template Added!");
+            document.getElementById('style-name').value = '';
+            fileInput.value = '';
+            loadPosterTemplates(); 
+        } catch(err) {
+            alert("Storage Limit Reached. Template image is too large for local cache.");
+        } finally {
+            btn.disabled = false; btn.innerText = "Upload Style";
+        }
+    };
+    reader.readAsDataURL(file);
+}
+
+function removeTemplate(id) {
+    if(!confirm("Delete this template? It will be removed from the Poster Generator dropdown.")) return;
+    let tpls = JSON.parse(localStorage.getItem('iam_poster_tpls')) || [];
+    tpls = tpls.filter(t => t.id !== id);
+    localStorage.setItem('iam_poster_tpls', JSON.stringify(tpls));
+    showToast("Template Removed.");
+    loadPosterTemplates();
+}
+
+// Call this function when the admin page loads so the table populates
+setTimeout(loadPosterTemplates, 1000);
         const MERCHANT_UPI_ID = "9133058685@ybl"; 
         const MERCHANT_UPI_NAME = "iam designs";
         const WA_BACKEND_URL = "http://localhost:3000"; 
