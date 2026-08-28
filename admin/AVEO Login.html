@@ -7,7 +7,7 @@
     <style>
         /* --- LIGHT THEME VARIABLES --- */
         :root {
-            --bg-main: #f4f5f7;        /* Light grayish-blue for the main app background */
+            --bg-main: #f4f5f7;        /* Light grayish-blue app background */
             --bg-sidebar: #ffffff;     /* Crisp white sidebar */
             --bg-card: #ffffff;        /* White cards */
             --bg-input: #f9fafb;       /* Very light gray for inputs */
@@ -32,6 +32,22 @@
             overflow: hidden;
         }
 
+        /* STRICT LOGIN OVERLAY STYLES */
+        #login-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: var(--bg-main); z-index: 10000; 
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        .login-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            width: 100%; max-width: 400px; text-align: center; 
+            padding: 40px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.05);
+        }
+
         /* Sidebar */
         .sidebar {
             width: 70px;
@@ -42,7 +58,7 @@
             align-items: center;
             padding-top: 20px;
             box-shadow: 2px 0 10px rgba(0,0,0,0.02);
-            z-index: 50;
+            z-index: 10;
         }
 
         .logo-box {
@@ -73,7 +89,7 @@
             align-items: center;
             justify-content: center;
         }
-        
+
         .sidebar-icon:hover, .sidebar-icon.active {
             background-color: #fff1eb;
             color: var(--accent);
@@ -93,7 +109,7 @@
             justify-content: flex-end;
             align-items: center;
             padding: 0 30px;
-            background-color: var(--bg-main);
+            background-color: transparent;
         }
 
         .user-profile {
@@ -222,9 +238,7 @@
         .card-footer {
             display: flex;
             justify-content: flex-end;
-            margin-top: 15px;
-            padding-top: 20px;
-            border-top: 1px solid var(--border-color);
+            margin-top: 10px;
         }
 
         .btn-accent {
@@ -244,7 +258,6 @@
 
         .btn-accent:hover {
             background-color: #d9561a;
-            box-shadow: 0 6px 15px rgba(242, 101, 34, 0.3);
             transform: translateY(-1px);
         }
 
@@ -285,10 +298,10 @@
 </head>
 <body>
 
-    <div id="login-overlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-main); z-index: 10000; display: flex; align-items: center; justify-content: center;">
-        <div class="card" style="width: 100%; max-width: 420px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.08); border: none;">
-            <div class="logo-box" style="display: inline-block; margin-bottom: 20px; font-size: 24px; padding: 15px 20px; border-radius: 12px;">iam<br>des!gns</div>
-            <h2 style="margin-bottom: 10px; color: var(--text-main); font-weight: 700;">Welcome to AVEO</h2>
+    <div id="login-overlay">
+        <div class="login-card">
+            <div class="logo-box" style="display: inline-block; margin-bottom: 20px; font-size: 20px; padding: 15px 20px; border-radius: 12px;">iam<br>des!gns</div>
+            <h2 style="margin-bottom: 10px; font-weight: 700;">Welcome to AVEO</h2>
             <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 30px;">Sign in securely to access the Poster Generator.</p>
             
             <form id="otp-login-form" onsubmit="requestOTP(event)">
@@ -298,7 +311,7 @@
                 </div>
                 
                 <div id="otp-request-area">
-                    <button type="submit" class="btn-accent" id="send-otp-btn" style="width: 100%; font-size: 15px; padding: 14px;">Send OTP</button>
+                    <button type="submit" class="btn-accent" id="send-otp-btn" style="width: 100%; padding: 14px;">Send OTP</button>
                 </div>
                 
                 <div id="otp-verify-area" style="display:none; margin-top:20px; text-align: left;">
@@ -306,8 +319,8 @@
                         <label class="form-label">Enter OTP</label>
                         <input type="text" id="login-otp" class="form-control" placeholder="6-digit OTP" maxlength="6" pattern="\d{6}">
                     </div>
-                    <button type="button" class="btn-accent" id="verify-otp-btn" onclick="verifyOTP()" style="width: 100%; margin-bottom: 10px; font-size: 15px; padding: 14px;">Verify OTP</button>
-                    <button type="button" class="btn-secondary" onclick="resetOTPLogin()" style="width: 100%; font-size: 14px; padding: 14px;">Change Email</button>
+                    <button type="button" class="btn-accent" id="verify-otp-btn" onclick="verifyOTP()" style="width: 100%; margin-bottom: 10px; padding: 14px;">Verify OTP</button>
+                    <button type="button" class="btn-secondary" onclick="resetOTPLogin()" style="width: 100%; padding: 14px;">Change Email</button>
                 </div>
             </form>
         </div>
@@ -317,15 +330,15 @@
         <div class="logo-box">iam<br>designs</div>
         <button class="sidebar-icon active" title="Poster Generator">🎨</button>
         <div style="flex: 1;"></div>
-        <button class="sidebar-icon" title="Logout" onclick="logout()" style="color: #ef4444; background: #fef2f2; margin-bottom: 30px;">🚪</button>
+        <button class="sidebar-icon" title="Logout" onclick="logout()" style="color: #ef4444; background: #fef2f2; margin-bottom: 25px;">🚪</button>
     </aside>
 
     <div class="main-wrapper">
         
         <header class="top-bar">
             <div class="user-profile">
-                <div class="avatar">V</div>
                 <span>AVEO Portal</span>
+                <div class="avatar">V</div>
             </div>
         </header>
 
@@ -347,7 +360,7 @@
                             </select>
                     </div>
                     <div class="form-group">
-                        <label class="form-label">Upload Group Photo</label>
+                        <label class="form-label">Upload Photo</label>
                         <input type="file" id="userPhoto" class="form-control" accept="image/png, image/jpeg">
                     </div>
                     <div class="form-group">
@@ -388,7 +401,7 @@
                 
                 <div class="preview-wrapper">
                     <canvas id="posterCanvas" width="1080" height="1350" style="display:none;"></canvas>
-                    <img id="finalImagePreview" src="" alt="Your generated poster will appear here." style="max-width: 100%; border-radius: 8px; color: var(--text-muted); font-size: 14px; text-align: center;"/>
+                    <img id="finalImagePreview" src="" alt="Your poster will appear here." style="max-width: 100%; border-radius: 8px; color: var(--text-muted); font-size: 14px; text-align: center;"/>
                 </div>
             </div>
 
@@ -401,7 +414,6 @@
         // ==========================================
         const AVEO_EMAIL = 'kj.apple9@gmail.com';
 
-        // NOTE: In production, replace these mock functions with real API fetch calls
         async function requestOTP(e) {
             e.preventDefault();
             const email = document.getElementById('login-email').value.trim().toLowerCase();
@@ -487,7 +499,6 @@
                 }
             }
         }
-
 
         // ==========================================
         // POSTER GENERATION ENGINE
