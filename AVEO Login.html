@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AVEO Login & Dashboard - iam des!gns</title>
+    
+    <link rel="icon" href="../LOGO.jpg" type="image/jpeg">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@400;600;700&family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        /* Variables & Base Setup */
+        :root { 
+            --primary: #f26522; 
+            --primary-grad: linear-gradient(135deg, #f26522, #fb8c00);
+            --dark: #111111; 
+            --gray: #6b7280; 
+            --light-gray: #f7f8fa; 
+            --white: #ffffff; 
+            --icon-sidebar-width: 76px; 
+            --radius-lg: 20px;
+            --radius-md: 14px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background-color: var(--light-gray); color: var(--dark); display: flex; height: 100vh; overflow: hidden; width: 100vw; transition: background-color 0.3s ease; }
+
+        /* Left Floating Icon Sidebar */
+        .icon-sidebar {
+            width: var(--icon-sidebar-width);
+            background: var(--white);
+            height: calc(100vh - 30px);
+            margin: 15px 0 15px 15px;
+            border-radius: var(--radius-lg);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.02);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 24px 0;
+            position: fixed;
+            z-index: 1000;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s ease;
+            overflow: visible; 
+        }
+        .sidebar-logo img { width: 38px; height: 38px; border-radius: 10px; margin-bottom: 30px; object-fit: cover; box-shadow: 0 4px 10px rgba(242,101,34,0.3); transition: transform 0.2s; cursor: pointer;}
+        .sidebar-logo:hover img { transform: scale(1.05); }
+        .icon-menu { flex: 1; width: 100%; display: flex; flex-direction: column; align-items: center; gap: 16px; list-style: none; overflow: visible; }
+        
+        .side-icon-btn {
+            width: 44px; height: 44px; border-radius: 12px; border: none; background: transparent; color: var(--gray);
+            font-size: 18px; cursor: pointer; display: flex; justify-content: center; align-items: center; transition: 0.3s;
+            text-decoration: none; position: relative; flex-shrink: 0;
+        }
+        .side-icon-btn:hover, .side-icon-btn.active { background: #f0f2f5; color: var(--dark); }
+        .logout-wrapper { margin-top: auto; padding-top: 15px; }
+
+        /* Main Content Area */
+        .main-content { margin-left: calc(var(--icon-sidebar-width) + 30px); flex: 1; display: flex; flex-direction: column; height: 100vh; overflow: hidden; width: calc(100% - var(--icon-sidebar-width) - 30px); transition: margin 0.3s ease;}
+        
+        /* Top Navigation Bar */
+        .topbar { background: transparent; padding: 20px 30px 10px 0; display: flex; justify-content: space-between; align-items: center; gap: 15px; flex-shrink: 0; transition: background 0.3s ease; }
+        .topbar-left { display: flex; align-items: center; gap: 12px; }
+        .menu-toggle { display: none; background: var(--white); border: none; font-size: 20px; color: var(--dark); cursor: pointer; width: 42px; height: 42px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); align-items: center; justify-content: center;}
+        
+        /* Profile Section */
+        .admin-profile { display: flex; align-items: center; gap: 12px; flex-shrink: 0;}
+        .profile-chip { background: var(--white); display: flex; align-items: center; gap: 8px; padding: 5px 12px 5px 5px; border-radius: 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.02); transition: background 0.3s ease;}
+        .profile-chip span.avatar { background: var(--primary); color: var(--white); width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; border-radius: 50%; font-weight: 600; font-size: 12px;}
+        .profile-chip #user-email { font-size: 12px; font-weight: 500; color: var(--dark); max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;}
+
+        /* Content Area & Dashboard */
+        .content-area { padding: 15px 30px 30px 0; overflow-y: auto; flex: 1; -webkit-overflow-scrolling: touch; }
+        .dashboard-header { margin-bottom: 24px; }
+        .dashboard-header h1 { font-family: 'Poppins', sans-serif; font-size: 26px; font-weight: 600; color: var(--dark); margin-bottom: 4px; transition: color 0.3s ease;}
+        .dashboard-header p { font-size: 13px; color: var(--gray); }
+
+        /* Views & Cards */
+        .view-section { display: none; animation: fadeIn 0.4s ease; }
+        .view-section.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .admin-card { background: var(--white); padding: 24px; border-radius: var(--radius-lg); margin-bottom: 20px; box-shadow: 0 5px 20px rgba(0,0,0,0.02); border: 1px solid #f1f2f4; overflow: hidden; transition: background 0.3s ease, border-color 0.3s ease; }
+        .admin-card h3 { font-size: 15px; margin-bottom: 16px; color: var(--dark); font-weight: 600;}
+        
+        /* Forms & Inputs */
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 16px; }
+        .form-group { display: flex; flex-direction: column; gap: 6px; }
+        .form-group label { font-size: 12px; font-weight: 600; color: var(--gray); }
+        .form-group input, .form-group select { width: 100%; padding: 12px 14px; border: 1px solid #e5e7eb; border-radius: 12px; font-family: inherit; font-size: 13px; background: #fcfcfd; transition: 0.3s;}
+        .form-group input:focus, .form-group select:focus { outline: none; border-color: var(--primary); background: var(--white); box-shadow: 0 0 0 3px rgba(242,101,34,0.1);}
+
+        /* Buttons & Notification */
+        .action-row { display: flex; gap: 12px; justify-content: flex-end; margin-top: 16px; padding-top: 16px; flex-wrap: wrap;}
+        .btn-primary { background: var(--primary); color: var(--white); border: none; padding: 10px 22px; border-radius: 30px; font-weight: 500; cursor: pointer; transition: 0.3s; font-size: 13px; text-align: center; text-decoration: none;}
+        .btn-primary:hover { background: #d9561a; box-shadow: 0 4px 12px rgba(242,101,34,0.3);}
+        .btn-secondary { background: #f0f2f5; color: var(--dark); border: none; padding: 10px 22px; border-radius: 30px; font-weight: 500; cursor: pointer; transition: 0.3s; font-size: 13px; text-align: center; text-decoration: none;}
+        .btn-secondary:hover { background: #e5e7eb; color: #111; }
+        
+        .toast-notification { position: fixed; bottom: 20px; right: 20px; background: var(--dark); color: var(--white); padding: 12px 20px; border-radius: 12px; font-weight: 500; font-size: 13px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); transform: translateY(100px); opacity: 0; transition: all 0.4s; z-index: 9999; display: flex; align-items: center; gap: 8px; }
+        .toast-notification.show { transform: translateY(0); opacity: 1; }
+
+        /* Mobile Sidebar Overlay */
+        .sidebar-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.4); z-index: 900; backdrop-filter: blur(2px); }
+        .sidebar-overlay.active { display: block; }
+
+        @media (max-width: 768px) {
+            body { overflow-y: auto; height: auto; display: block; overflow-x: hidden; }
+            .menu-toggle { display: flex; }
+            .icon-sidebar { transform: translateX(-120%); margin: 0; height: 100vh; border-radius: 0 20px 20px 0; top: 0; left: 0; z-index: 1000; padding-top: 15px; }
+            .icon-sidebar.open { transform: translateX(0); box-shadow: 10px 0 25px rgba(0,0,0,0.1); }
+            .main-content { margin-left: 0 !important; width: 100% !important; height: auto; overflow: visible; display: block;}
+            .topbar { padding: 12px 16px; flex-wrap: wrap; background: var(--white); position: sticky; top: 0; z-index: 90; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+            .content-area { padding: 15px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="login-overlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--light-gray); z-index: 10000; display: flex; align-items: center; justify-content: center;">
+        <div class="admin-card" style="width: 100%; max-width: 400px; padding: 40px; box-shadow: 0 20px 40px rgba(0,0,0,0.1);">
+            <div style="text-align: center; margin-bottom: 30px;">
+                <div style="background: var(--primary); display: inline-block; padding: 15px; border-radius: 12px; margin-bottom: 15px; color: white; font-weight: 900; font-size: 24px;">iam<br>des!gns</div>
+                <h2 style="font-size: 24px; color: var(--dark);">Welcome to AVEO</h2>
+                <p style="color: var(--gray); font-size: 14px;">Sign in securely with a one-time password.</p>
+            </div>
+            <form id="otp-login-form" onsubmit="requestOTP(event)">
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label>Email Address</label>
+                    <input type="email" id="login-email" value="kj.apple9@gmail.com"
+                           placeholder="kj.apple9@gmail.com" required>
+                </div>
+                <div id="otp-request-area">
+                    <button type="submit" class="btn-primary" id="send-otp-btn"
+                            style="width: 100%; padding: 14px; font-size: 15px;">Send OTP</button>
+                </div>
+                <div id="otp-verify-area" style="display:none; margin-top:20px;">
+                    <div class="form-group" style="margin-bottom: 12px;">
+                        <label>Enter OTP</label>
+                        <input type="text" id="login-otp" inputmode="numeric"
+                               autocomplete="one-time-code" maxlength="6"
+                               pattern="\d{6}" placeholder="6-digit OTP">
+                    </div>
+                    <button type="button" class="btn-primary" id="verify-otp-btn"
+                            onclick="verifyOTP()" style="width: 100%; padding: 14px; font-size: 15px;">Verify OTP</button>
+                    <button type="button" class="btn-secondary" onclick="resetOTPLogin()"
+                            style="width: 100%; margin-top: 10px;">Change Email</button>
+                    <p id="otp-status" style="font-size:12px; color:var(--gray);
+                       text-align:center; margin-top:12px;"></p>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="sidebar-overlay" class="sidebar-overlay"></div>
+
+    <aside class="icon-sidebar" id="sidebar">
+        <div class="sidebar-logo" style="cursor: pointer;" title="Home">
+            <img src="../LOGO.jpg" alt="Logo" onerror="this.src='https://ui-avatars.com/api/?name=ID&background=f26522&color=fff'">
+        </div>
+        
+        <ul class="icon-menu">
+            <li class="settings-wrapper" style="display: none;" id="mobile-close-li">
+                <button class="side-icon-btn" id="sidebar-close-btn">✖</button>
+            </li>
+            <li class="settings-wrapper" id="poster-menu-wrapper">
+                <button class="side-icon-btn nav-btn active" data-target="poster-generator" title="Poster Generator">🎨</button>
+            </li>
+        </ul>
+
+        <div class="logout-wrapper">
+            <button class="side-icon-btn" onclick="logout()" title="Logout" style="color: #ef4444;">🚪</button>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header class="topbar">
+            <div class="topbar-left">
+                <button id="mobile-menu-btn" class="menu-toggle" aria-label="Menu">☰</button>
+            </div>
+            
+            <div class="admin-profile">
+                <div class="profile-chip">
+                    <span class="avatar" id="avatar-initial">V</span>
+                    <div id="user-email">AVEO</div>
+                </div>
+            </div>
+        </header>
+
+        <div class="content-area">
+            <div id="poster-generator" class="view-section active">
+                <div class="dashboard-header">
+                    <h1>Poster Generator</h1>
+                    <p>Create customized meeting posters using available templates.</p>
+                </div>
+
+                <div class="admin-card" style="border-left: 4px solid var(--primary);">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Template Style</label>
+                            <select id="styleSelect" class="form-control">
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Upload Group Photo</label>
+                            <input type="file" id="userPhoto" accept="image/png, image/jpeg" style="background: var(--light-gray);">
+                        </div>
+                        <div class="form-group">
+                            <label>Meeting Number</label>
+                            <input type="text" id="meetingNum" placeholder="e.g. 39">
+                        </div>
+                        <div class="form-group">
+                            <label>Leads</label>
+                            <input type="text" id="leadsNum" placeholder="e.g. 40">
+                        </div>
+                        <div class="form-group">
+                            <label>Wealth Note (₹)</label>
+                            <input type="text" id="wealthNote" placeholder="e.g. 1,09,62,500/-">
+                        </div>
+                        <div class="form-group">
+                            <label>Face 2 Face</label>
+                            <input type="text" id="f2fNum" placeholder="e.g. 03">
+                        </div>
+                        <div class="form-group">
+                            <label>Visitors No.</label>
+                            <input type="text" id="visitorsNum" placeholder="e.g. 05">
+                        </div>
+                    </div>
+                    <div class="action-row">
+                        <button class="btn-primary" onclick="generateImage()">🎨 Generate Poster</button>
+                    </div>
+                </div>
+
+                <div class="admin-card">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <h3 style="margin-bottom: 0;">Live Preview</h3>
+                        <a id="downloadBtn" class="btn-primary" style="display:none; padding: 8px 16px; font-size: 12px; background: #10b981;">⬇ Download Image</a>
+                    </div>
+                    <div class="qr-container" style="margin-top: 15px; background: #e5e7eb; border-radius: 12px; padding: 20px;">
+                        <canvas id="posterCanvas" width="1080" height="1350" style="display:none;"></canvas>
+                        <img id="finalImagePreview" alt="Your generated poster will appear here." style="max-width: 100%; border-radius: 8px;"/>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div id="app-toast" class="toast-notification"><span>🔔</span> <span id="toast-message"></span></div>
+
+    <script>
+        const AVEO_EMAIL = 'kj.apple9@gmail.com';
+
+        async function requestOTP(e) {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value.trim().toLowerCase();
+            const sendBtn = document.getElementById('send-otp-btn');
+            const status = document.getElementById('otp-status');
+
+            if (email !== AVEO_EMAIL) {
+                alert('This login is available only for the AVEO account.');
+                return;
+            }
+
+            sendBtn.disabled = true;
+            sendBtn.innerText = 'Sending OTP...';
+
+            try {
+                const response = await fetch('/api/auth/send-otp', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email })
+                });
+                const data = await response.json();
+
+                if (!response.ok || !data.success) {
+                    throw new Error(data.message || 'Unable to send OTP.');
+                }
+
+                document.getElementById('otp-request-area').style.display = 'none';
+                document.getElementById('otp-verify-area').style.display = 'block';
+                status.innerText = 'OTP sent to your registered email address.';
+                document.getElementById('login-otp').focus();
+            } catch (err) {
+                alert(err.message || 'Unable to send OTP. Please try again.');
+                sendBtn.disabled = false;
+                sendBtn.innerText = 'Send OTP';
+            }
+        }
+
+        async function verifyOTP() {
+            const email = document.getElementById('login-email').value.trim().toLowerCase();
+            const otp = document.getElementById('login-otp').value.trim();
+            const verifyBtn = document.getElementById('verify-otp-btn');
+
+            if (!/^\d{6}$/.test(otp)) {
+                alert('Please enter the 6-digit OTP.');
+                return;
+            }
+
+            verifyBtn.disabled = true;
+            verifyBtn.innerText = 'Verifying...';
+
+            try {
+                const response = await fetch('/api/auth/verify-otp', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, otp })
+                });
+                const data = await response.json();
+
+                if (!response.ok || !data.success) {
+                    throw new Error(data.message || 'Invalid or expired OTP.');
+                }
+
+                sessionStorage.setItem('mock_user_email', email);
+                checkAuth();
+            } catch (err) {
+                alert(err.message || 'OTP verification failed.');
+                verifyBtn.disabled = false;
+                verifyBtn.innerText = 'Verify OTP';
+            }
+        }
+
+        function resetOTPLogin() {
+            document.getElementById('otp-request-area').style.display = 'block';
+            document.getElementById('otp-verify-area').style.display = 'none';
+            document.getElementById('login-otp').value = '';
+            document.getElementById('send-otp-btn').disabled = false;
+            document.getElementById('send-otp-btn').innerText = 'Send OTP';
+        }
+
+        function logout() {
+            sessionStorage.clear();
+            checkAuth(); 
+        }
+
+        function checkAuth() {
+            const sessionEmail = sessionStorage.getItem('mock_user_email');
+            const loginOverlay = document.getElementById('login-overlay');
+
+            if (sessionEmail === AVEO_EMAIL) {
+                loginOverlay.style.display = 'none';
+                document.getElementById('user-email').innerText = "AVEO";
+                document.getElementById('avatar-initial').innerText = "V";
+                loadPosterTemplates(); 
+            } else {
+                loginOverlay.style.display = 'flex';
+                resetOTPLogin();
+            }
+        }
+
+        function loadPosterTemplates() {
+            const tpls = JSON.parse(localStorage.getItem('iam_poster_tpls')) || [];
+            const select = document.getElementById('styleSelect');
+            if(select) {
+                select.innerHTML = '';
+                if(tpls.length === 0) {
+                    select.innerHTML = '<option value="">No templates available.</option>';
+                } else {
+                    tpls.forEach(t => {
+                        select.innerHTML += `<option value="${t.data}">${t.name}</option>`;
+                    });
+                }
+            }
+        }
+
+        function generateImage() {
+            const canvas = document.getElementById('posterCanvas');
+            const ctx = canvas.getContext('2d');
+            const styleValue = document.getElementById('styleSelect').value;
+            
+            if(!styleValue) return alert("Please ask your admin to upload a background template first.");
+
+            canvas.width = 1080;
+            canvas.height = 1350; 
+
+            const templateImg = new Image();
+            templateImg.src = styleValue; 
+            
+            templateImg.onload = () => {
+                ctx.drawImage(templateImg, 0, 0, canvas.width, canvas.height);
+                
+                const userPhotoInput = document.getElementById('userPhoto');
+                if (userPhotoInput.files && userPhotoInput.files[0]) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const userImg = new Image();
+                        userImg.src = e.target.result;
+                        
+                        userImg.onload = () => {
+                            // User Photo Coordinates (Adjust as needed)
+                            const photoX = 50; 
+                            const photoY = 400;
+                            const photoWidth = 980;
+                            const photoHeight = 500;
+                            
+                            ctx.drawImage(userImg, photoX, photoY, photoWidth, photoHeight);
+                            
+                            // TEXT RENDERING
+                            ctx.font = "bold 90px Arial";
+                            ctx.fillStyle = "#FFFFFF"; 
+                            ctx.fillText(document.getElementById('meetingNum').value, 180, 250); 
+                            
+                            ctx.font = "bold 35px Arial";
+                            ctx.fillStyle = "#d10000"; 
+                            
+                            ctx.fillText(document.getElementById('leadsNum').value, 230, 1050);
+                            ctx.fillText(document.getElementById('wealthNote').value, 350, 1110);
+                            ctx.fillText(document.getElementById('f2fNum').value, 300, 1170);
+                            ctx.fillText(document.getElementById('visitorsNum').value, 300, 1230);
+                            
+                            // Output
+                            const finalDataUrl = canvas.toDataURL("image/jpeg", 0.9);
+                            document.getElementById('finalImagePreview').src = finalDataUrl;
+                            
+                            const downloadBtn = document.getElementById('downloadBtn');
+                            downloadBtn.href = finalDataUrl;
+                            downloadBtn.download = document.getElementById('meetingNum').value + "_Meeting_Poster.jpg";
+                            downloadBtn.style.display = "block";
+
+                            showToast("Poster Generated Successfully!");
+                        }
+                    }
+                    reader.readAsDataURL(userPhotoInput.files[0]);
+                } else {
+                    alert("Please upload a group photo.");
+                }
+            };
+            
+            templateImg.onerror = function() {
+                alert("Could not load the template style.");
+            };
+        }
+
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebar-overlay');
+        
+        document.getElementById('mobile-menu-btn').addEventListener('click', () => { 
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('active'); 
+        });
+        
+        document.getElementById('sidebar-close-btn').addEventListener('click', () => { 
+            sidebar.classList.remove('open');
+            overlay.classList.remove('active'); 
+        });
+        
+        overlay.addEventListener('click', () => { 
+            sidebar.classList.remove('open');
+            overlay.classList.remove('active'); 
+        });
+
+        function showToast(message) {
+            document.getElementById('toast-message').innerText = message;
+            const toast = document.getElementById('app-toast');
+            toast.classList.add('show');
+            setTimeout(() => { toast.classList.remove('show'); }, 4000);
+        }
+
+        checkAuth();
+    </script>
+</body>
+</html>
