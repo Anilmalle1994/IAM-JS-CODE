@@ -208,18 +208,24 @@
         .todo-input-row input { flex: 1; padding: 10px; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 13px; background: #fff;}
         .todo-input-row button { background: var(--primary); color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-weight: bold;}
 
-        /* Tablet & Mobile Responsiveness Breakpoints */
+        /* =========================================
+           Tablet & Mobile Responsiveness Breakpoints 
+           ========================================= */
+        
         @media (max-width: 1024px) {
             .top-nav { max-width: 100%; padding-bottom: 10px; }
             .content-area { padding: 15px 20px 30px 15px; } 
             .summary-cards { grid-template-columns: repeat(2, 1fr); gap: 16px; } 
             .form-group.span-2 { grid-column: span 1; } 
             .card-grid { grid-template-columns: repeat(3, 1fr); }
+            
             .table-responsive-wrapper { border: 1px solid #f1f2f4; margin-bottom: 15px; }
         }
         
         @media (max-width: 768px) {
             body { overflow-y: auto; height: auto; display: block; overflow-x: hidden; }
+            
+            /* Sidebar & Top Navigation */
             .menu-toggle { display: flex; }
             .icon-sidebar { transform: translateX(-120%); margin: 0; height: 100vh; border-radius: 0 20px 20px 0; top: 0; left: 0; z-index: 1000; padding-top: 15px; }
             .icon-sidebar.open { transform: translateX(0); box-shadow: 10px 0 25px rgba(0,0,0,0.1); }
@@ -229,9 +235,11 @@
             
             .mobile-logo-top { display: block !important; }
             
+            /* Pill Navigation Horizontal Scroll */
             .top-nav { display: flex; width: 100%; max-width: 100%; border-radius: 0; box-shadow: none; padding: 10px 16px; background: var(--white); border-top: 1px solid #f1f2f4; overflow-x: auto; margin: 0 !important;}
             .top-nav a { padding: 8px 14px; font-size: 13px; }
             
+            /* Content Areas & Grids */
             .content-area { padding: 15px; overflow: visible; height: auto; }
             .form-grid { grid-template-columns: 1fr; gap: 12px; }
             .card-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
@@ -240,24 +248,30 @@
             .dashboard-header h1 { font-size: 22px; }
             .profile-chip #user-email { display: none; }
             
+            /* Submenus - Center them for mobile ease of use */
             .submenu { left: 50%; transform: translateX(-50%); top: auto; bottom: 80px; width: 220px; position: fixed; } 
             .submenu.open { animation: slideUpMobile 0.2s ease; }
             @keyframes slideUpMobile { from{ opacity:0; transform: translate(-50%, 10px); } to { opacity:1; transform: translate(-50%, 0); } }
             
+            /* Buttons & Actions (Full width on mobile) */
             .action-row { flex-direction: column; width: 100%; gap: 10px; align-items: stretch; }
             .action-row button { width: 100%; justify-content: center; }
             .btn-secondary, .btn-primary, .btn-whatsapp, .btn-excel { width: 100%; text-align: center; }
             
+            /* Bulk Payment Section */
             .bulk-payment-wrap { flex-direction: column; align-items: stretch !important; gap: 15px; }
             .bulk-payment-wrap > div { width: 100%; }
             #bulk-custom-pay-amt { width: 100% !important; margin-bottom: 10px;}
             
+            /* Modals (Prevent overflow) */
             .modal { padding: 10px; }
             .modal-content { max-width: 100%; padding: 20px 15px; margin: auto; }
             
+            /* Notepad App */
             .notepad-fab { bottom: 20px; right: 20px; width: 45px; height: 45px; font-size: 20px; } 
             .notepad-popup { right: 10px; left: 10px; width: auto; bottom: 80px; }
 
+            /* Ensure Data Tables don't break the layout */
             .data-table { min-width: 650px; }
             .filter-bar { flex-direction: column; align-items: stretch; }
             .filter-group { min-width: 100%; }
@@ -271,13 +285,16 @@
             .invoice-container { box-shadow: none; width: 100%; max-width: 800px; margin: 0 auto; }
         }
 
-        /* Night Theme (Starry Sky) */
+        /* =========================================
+           Night Theme (Starry Sky) 
+           ========================================= */
         body.night-theme {
             --light-gray: #0b0c10;
             --white: #15181f;
             --dark: #f8f9fa;
             --gray: #8892b0;
             background-color: var(--light-gray);
+            /* Starry night gradient background */
             background-image: 
                 radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 40px),
                 radial-gradient(white, rgba(255,255,255,.15) 1px, transparent 30px),
@@ -351,7 +368,6 @@
                     <li><a href="#" class="nav-btn" data-target="pending-reports">📑 Pending Reports</a></li>
                     <li><a href="#" class="nav-btn" data-target="vendor-reports">📈 Vendor Reports</a></li>
                     <li><a href="#" class="nav-btn" data-target="clients-data">📇 Clients Data</a></li>
-                    <li><a href="#" class="nav-btn" data-target="aveo-templates">AVEO Poster Templates</a></li>
                     <li><a href="#" class="nav-btn" data-target="whatsapp-auto">🤖 WhatsApp Auto</a></li>
                 </ul>
             </li>
@@ -400,46 +416,63 @@
 
         <div class="content-area">
             
-            <<div id="aveo-templates" class="view-section admin-view">
-    <div class="top-action-bar">
-        <h2>AVEO Poster Templates</h2>
-    </div>
+            <div id="dashboard" class="view-section active admin-view">
+                <div class="dashboard-header" id="dashboard-welcome">
+                    <h1 id="greeting-text">Good Morning, Admin</h1>
+                    <p>Stay on top of your printing workflows, monitor progress, and track status.</p>
+                </div>
 
-    <div class="admin-card" style="border-top: 4px solid var(--primary); margin-bottom: 20px;">
-        <h3>Upload New Template</h3>
-        <p style="font-size: 13px; color: var(--gray); margin-bottom: 16px;">Upload blank background templates for the AVEO Poster Generator. It will automatically populate in their dropdown.</p>
-        
-        <form onsubmit="handleStyleSubmit(event)">
-            <div class="form-grid">
-                <div class="form-group">
-                    <label>Template Name</label>
-                    <input type="text" id="style-name" placeholder="e.g., Weekly Meeting 01" required>
+                <div class="card-grid">
+                    <div class="stat-card" onclick="renderDashboardTable('active')" id="card-active"><h4>Active Orders</h4><p id="dash-active">0</p></div>
+                    <div class="stat-card" onclick="renderDashboardTable('designing')" id="card-designs"><h4>Designs Pending</h4><p id="dash-designs">0</p></div>
+                    <div class="stat-card" onclick="renderDashboardTable('payments')" id="card-payments"><h4>Payments Pending</h4><p id="dash-payments">0</p></div>
+                    <div class="stat-card" onclick="renderDashboardTable('staff_pickup')" id="card-pickup"><h4>Staff Pickup</h4><p id="dash-pickup">0</p></div>
+                    <div class="stat-card" onclick="renderDashboardTable('delivery')" id="card-delivery"><h4>Delivery Ready</h4><p id="dash-delivery">0</p></div>
                 </div>
-                <div class="form-group">
-                    <label>Upload Background (PNG/JPG)</label>
-                    <input type="file" id="style-img" accept="image/png, image/jpeg" required style="background: white; color: #111;">
+
+                <div class="admin-card" id="dashboard-list-container" style="display: none;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f2f4; padding-bottom: 12px; margin-bottom: 12px;">
+                        <h3 style="margin:0; border:none; padding:0;" id="dashboard-list-title">Order List</h3>
+                        <button class="btn-secondary" style="padding: 6px 12px; font-size: 11px; width: auto;" onclick="closeDashboardTable()">Close View</button>
+                    </div>
+                    <div class="table-responsive-wrapper">
+                        <table class="data-table" id="dashboard-table">
+                            <thead>
+                                <tr>
+                                    <th onclick="sortDashboard('date')">Date <span class="sort-icon">⇅</span></th>
+                                    <th onclick="sortDashboard('orderId')">Order ID <span class="sort-icon">⇅</span></th>
+                                    <th onclick="sortDashboard('client')">Client <span class="sort-icon">⇅</span></th>
+                                    <th onclick="sortDashboard('phone')">Contact <span class="sort-icon">⇅</span></th>
+                                    <th onclick="sortDashboard('work')">Work Details <span class="sort-icon">⇅</span></th>
+                                    <th onclick="sortDashboard('balance')">Balance (₹) <span class="sort-icon">⇅</span></th>
+                                    <th onclick="sortDashboard('status')">Status <span class="sort-icon">⇅</span></th>
+                                    <th>Action</th>
+                                </tr>
+                                <tr class="table-filter-row">
+                                    <th><input type="date" id="dash-filt-date" onchange="renderDashboardTable()" placeholder="Date..."></th>
+                                    <th><input type="text" id="dash-filt-id" onkeyup="renderDashboardTable()" placeholder="Filter ID..."></th>
+                                    <th><input type="text" id="dash-filt-client" onkeyup="renderDashboardTable()" placeholder="Filter Client..."></th>
+                                    <th><input type="text" id="dash-filt-phone" onkeyup="renderDashboardTable()" placeholder="Filter Phone..."></th>
+                                    <th><input type="text" id="dash-filt-work" onkeyup="renderDashboardTable()" placeholder="Filter Work..."></th>
+                                    <th><input type="number" id="dash-filt-bal" onkeyup="renderDashboardTable()" placeholder="Max Bal..."></th>
+                                    <th>
+                                        <select id="dash-filt-status" onchange="renderDashboardTable()">
+                                            <option value="">All</option>
+                                            <option value="designing">Designing</option>
+                                            <option value="processing">Processing</option>
+                                            <option value="vendor_allotted">Vendor Allotted</option>
+                                            <option value="ready_for_delivery">Ready Delivery</option>
+                                            <option value="delivered">Delivered</option>
+                                        </select>
+                                    </th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
-            <div class="action-row" style="margin-top: 15px;">
-                <button type="submit" id="btn-style" class="btn-primary">Upload Template</button>
-            </div>
-        </form>
-        
-        <div class="table-responsive-wrapper" style="margin-top: 30px;">
-            <table class="data-table" id="styles-table">
-                <thead>
-                    <tr>
-                        <th style="width: 80px;">Preview</th>
-                        <th>Template Name</th>
-                        <th style="width: 100px; text-align: center;">Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    </tbody>
-            </table>
-        </div>
-    </div>
-</div>
 
             <div id="designing" class="view-section admin-view">
                 <div class="admin-card">
@@ -786,39 +819,7 @@
                 </div>
             </div>
 
-            <div class="admin-card" style="border-top: 4px solid var(--primary); margin-bottom: 20px;">
-    <h3>AVEO Poster Templates</h3>
-    <p style="font-size: 13px; color: var(--gray); margin-bottom: 16px;">Upload blank background templates for the AVEO Poster Generator. It will automatically populate in their dropdown.</p>
-    <form onsubmit="handleStyleSubmit(event)">
-        <div class="form-grid">
-            <div class="form-group">
-                <label>Style Name</label>
-                <input type="text" id="style-name" placeholder="e.g., Monthly Special 003" required>
-            </div>
-            <div class="form-group">
-                <label>Upload Background Template</label>
-                <input type="file" id="style-img" accept="image/png, image/jpeg" required style="background: white; color: #111;">
-            </div>
-        </div>
-        <div class="action-row">
-            <button type="submit" id="btn-style" class="btn-primary">Upload Style</button>
-        </div>
-    </form>
-    
-    <div class="table-responsive-wrapper" style="margin-top: 20px;">
-        <table class="data-table" id="styles-table">
-            <thead>
-                <tr>
-                    <th>Preview</th>
-                    <th>Style Name</th>
-                    <th style="width: 100px; text-align: center;">Action</th>
-                </tr>
-            </thead>
-            <tbody></tbody>
-        </table>
-    </div>
-</div>
-
+            <div id="web-content" class="view-section admin-view">
                 <div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start;">
                     <div style="flex: 1; min-width: 300px; display: flex; flex-direction: column; gap: 20px;">
                         
@@ -1402,86 +1403,16 @@
     </div>
 
     <script>
-        // ==========================================
-// AVEO POSTER TEMPLATE MANAGEMENT (ADMIN)
-// ==========================================
-function loadPosterTemplates() {
-    const tpls = JSON.parse(localStorage.getItem('iam_poster_tpls')) || [];
-    const tbody = document.querySelector('#styles-table tbody');
-    if(tbody) {
-        tbody.innerHTML = '';
-        if(tpls.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; padding: 20px;">No templates uploaded yet.</td></tr>';
-        } else {
-            tpls.forEach(t => {
-                const imgTag = t.data.startsWith('data:image') 
-                    ? `<img src="${t.data}" style="height: 50px; border-radius: 4px; border: 1px solid #ddd;">` 
-                    : `<span style="color:var(--gray); font-size:11px;">[Default]</span>`;
-
-                tbody.innerHTML += `
-                    <tr>
-                        <td>${imgTag}</td>
-                        <td><strong>${t.name}</strong></td>
-                        <td style="text-align: center;">
-                            <button onclick="removeTemplate(${t.id})" class="btn-primary" style="background: #ef4444; padding: 6px 12px; font-size: 11px;">Remove</button>
-                        </td>
-                    </tr>
-                `;
-            });
-        }
-    }
-}
-
-function handleStyleSubmit(e) {
-    e.preventDefault();
-    const name = document.getElementById('style-name').value.trim();
-    const fileInput = document.getElementById('style-img');
-    const file = fileInput.files[0];
-
-    if(!file) return alert("Please select an image.");
-
-    const btn = document.getElementById('btn-style');
-    btn.disabled = true; btn.innerText = "Uploading...";
-
-    const reader = new FileReader();
-    reader.onload = function(evt) {
-        const base64Data = evt.target.result;
-        let tpls = JSON.parse(localStorage.getItem('iam_poster_tpls')) || [];
         
-        tpls.push({
-            id: Date.now(),
-            name: name,
-            data: base64Data
-        });
-
-        try {
-            localStorage.setItem('iam_poster_tpls', JSON.stringify(tpls));
-            showToast("New Template Published!");
-            document.getElementById('style-name').value = '';
-            fileInput.value = '';
-            loadPosterTemplates(); 
-        } catch(err) {
-            alert("Storage Limit Reached. Please upload a smaller image file.");
-        } finally {
-            btn.disabled = false; btn.innerText = "Upload Template";
-        }
-    };
-    reader.readAsDataURL(file);
-}
-
-function removeTemplate(id) {
-    if(!confirm("Are you sure you want to delete this template? It will be removed from the AVEO Poster Generator.")) return;
-    let tpls = JSON.parse(localStorage.getItem('iam_poster_tpls')) || [];
-    tpls = tpls.filter(t => t.id !== id);
-    localStorage.setItem('iam_poster_tpls', JSON.stringify(tpls));
-    showToast("Template Removed.");
-    loadPosterTemplates();
-}
-
-// Call this function when the admin page loads so the table populates
-setTimeout(loadPosterTemplates, 1000);
+        // ==========================================
+        // UPI & PAYMENT CONFIGURATION
+        // ==========================================
         const MERCHANT_UPI_ID = "9133058685@ybl"; 
         const MERCHANT_UPI_NAME = "iam designs";
+
+        // ==========================================
+        // WHATSAPP AUTOMATION
+        // ==========================================
         const WA_BACKEND_URL = "http://localhost:3000"; 
 
         async function connectWhatsAppServer() {
@@ -1564,7 +1495,7 @@ setTimeout(loadPosterTemplates, 1000);
 
             if (parseFloat(newBalance) <= 0) {
                 await autoIssueBill(order);
-                let msg = `Dear ${order.client},\nYour automated payment of ₹${amt} for Order${order.orderId} has been successfully received via PhonePe. Your pending balance is ₹0.00.\n\nThank you for choosing iam des!gns!`;
+                let msg = `Dear ${order.client},\nYour automated payment of ₹${amt} for Order ${order.orderId} has been successfully received via PhonePe. Your pending balance is ₹0.00.\n\nThank you for choosing iam des!gns!`;
                 await sendAutomatedWhatsApp(order.phone, msg);
             }
         }
@@ -1573,22 +1504,26 @@ setTimeout(loadPosterTemplates, 1000);
         const SUPABASE_ANON_KEY = 'sb_publishable_-DXwYtZ4x8XSt1DV_sQc-w_wA7Ir0N_';
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+        // ==========================================
+        // TIME-BASED GREETING & NIGHT THEME
+        // ==========================================
         function applyTimeBasedThemeAndGreeting() {
             const hour = new Date().getHours();
             const greetingEl = document.getElementById('greeting-text');
 
             if (hour >= 5 && hour < 12) {
-                greetingEl.innerText = 'Good Morning, Admin';
+                greetingEl.innerText = 'Good Morning, Anil';
                 document.body.classList.remove('night-theme');
             } else if (hour >= 12 && hour < 18) {
-                greetingEl.innerText = 'Good Afternoon, Admin';
+                greetingEl.innerText = 'Good Afternoon, Anil';
                 document.body.classList.remove('night-theme');
             } else {
-                greetingEl.innerText = 'Good Evening, Admin';
+                greetingEl.innerText = 'Good Evening, Anil';
                 document.body.classList.add('night-theme');
             }
         }
         
+        // Execute immediately on page load
         applyTimeBasedThemeAndGreeting();
 
         async function logout() {
@@ -1655,9 +1590,6 @@ setTimeout(loadPosterTemplates, 1000);
                 renderPortfolioItems();
                 renderTeamTable();
                 
-                // NEW: Load AVEO poster templates on boot
-                loadPosterTemplates();
-                
             } catch (err) {
                 console.error("Supabase Load Error:", err.message);
                 showToast("Error loading cloud data!");
@@ -1666,83 +1598,7 @@ setTimeout(loadPosterTemplates, 1000);
         loadAppData();
 
         // ==========================================
-        // AVEO POSTER TEMPLATE MANAGEMENT
-        // ==========================================
-        function loadPosterTemplates() {
-            const tpls = JSON.parse(localStorage.getItem('iam_poster_tpls')) || [];
-            const tbody = document.querySelector('#styles-table tbody');
-            if(tbody) {
-                tbody.innerHTML = '';
-                if(tpls.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;">No templates uploaded.</td></tr>';
-                } else {
-                    tpls.forEach(t => {
-                        const imgTag = t.data.startsWith('data:image') 
-                            ? `<img src="${t.data}" style="height: 50px; border-radius: 4px;">` 
-                            : `<span style="color:var(--gray); font-size:11px;">[Default]</span>`;
-
-                        tbody.innerHTML += `
-                            <tr>
-                                <td>${imgTag}</td>
-                                <td><strong>${t.name}</strong></td>
-                                <td style="text-align: center;">
-                                    <button onclick="removeTemplate(${t.id})" class="btn-primary" style="background: #ef4444; padding: 6px 12px; font-size: 11px;">Remove</button>
-                                </td>
-                            </tr>
-                        `;
-                    });
-                }
-            }
-        }
-
-        function handleStyleSubmit(e) {
-            e.preventDefault();
-            const name = document.getElementById('style-name').value.trim();
-            const fileInput = document.getElementById('style-img');
-            const file = fileInput.files[0];
-
-            if(!file) return alert("Select an image.");
-
-            const btn = document.getElementById('btn-style');
-            btn.disabled = true; btn.innerText = "Saving...";
-
-            const reader = new FileReader();
-            reader.onload = function(evt) {
-                const base64Data = evt.target.result;
-                let tpls = JSON.parse(localStorage.getItem('iam_poster_tpls')) || [];
-                
-                tpls.push({
-                    id: Date.now(),
-                    name: name,
-                    data: base64Data
-                });
-
-                try {
-                    localStorage.setItem('iam_poster_tpls', JSON.stringify(tpls));
-                    showToast("New Template Added!");
-                    document.getElementById('style-name').value = '';
-                    fileInput.value = '';
-                    loadPosterTemplates(); 
-                } catch(err) {
-                    alert("Storage Limit Reached. Use a smaller image footprint.");
-                } finally {
-                    btn.disabled = false; btn.innerText = "Upload Style";
-                }
-            };
-            reader.readAsDataURL(file);
-        }
-
-        function removeTemplate(id) {
-            if(!confirm("Delete this template? It will be removed from the Poster Generator.")) return;
-            let tpls = JSON.parse(localStorage.getItem('iam_poster_tpls')) || [];
-            tpls = tpls.filter(t => t.id !== id);
-            localStorage.setItem('iam_poster_tpls', JSON.stringify(tpls));
-            showToast("Template Removed.");
-            loadPosterTemplates();
-        }
-
-        // ==========================================
-        // BULK WHATSAPP REMINDERS MODAL LOGIC
+        // NEW: BULK WHATSAPP REMINDERS MODAL LOGIC
         // ==========================================
         let clientGroupsForReminders = {};
 
@@ -2166,24 +2022,18 @@ setTimeout(loadPosterTemplates, 1000);
 
                 closeAllSubmenus();
                 
-                // (Inside your .nav-btn click event listener)
-                
                 if(targetId === 'dashboard') updateDashboardStats();
                 if(targetId === 'new-order') initNewOrder();
                 if(targetId === 'staff-master') renderStaffTable();
                 if(targetId === 'pending-reports') { renderPRClient(); renderPRVendor(); }
                 if(targetId === 'vendor-reports') { renderVendorReport(); updateAllVendorDropdowns(); }
                 if(targetId === 'all-orders') renderAllOrders();
+                if(targetId === 'web-content') { renderTrustedLogos(); renderPortfolioItems(); }
                 if(targetId === 'team-master') { renderTeamTable(); }
                 if(targetId === 'gst-dashboard') loadLedger();
                 if(targetId === 'gst-sale') initSaleForm();
+                
                 if(targetId === 'whatsapp-auto') checkWhatsAppStatus();
-
-                // REMOVE this line if you still have it:
-                // if(targetId === 'web-content') { renderTrustedLogos(); renderPortfolioItems(); }
-
-                // ADD this new line:
-                if(targetId === 'aveo-templates') loadPosterTemplates();
 
                 if(window.innerWidth <= 768) {
                     sidebar.classList.remove('open'); 
