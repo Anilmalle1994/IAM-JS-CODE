@@ -1636,28 +1636,49 @@
     }
 
     function enforceRestrictedUserView() {
-        // 1. Hide Admin Layout Elements
-        document.getElementById('sidebar').style.display = 'none';
-        document.getElementById('main-top-nav').style.display = 'none';
-        document.querySelector('.topbar-left').style.display = 'none';
-        document.querySelector('.main-content').style.marginLeft = '0';
-        document.querySelector('.main-content').style.width = '100%';
+        // 1. Hide Admin Sidebar and Top Navigation Pills
+        const sidebar = document.getElementById('sidebar');
+        if (sidebar) sidebar.style.display = 'none';
         
-        // 2. Hide all existing admin views
-        document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+        const topNav = document.getElementById('main-top-nav');
+        if (topNav) topNav.style.display = 'none';
         
-        // 3. Force Light Theme (Overrides time-based theme)
+        const topbarLeft = document.querySelector('.topbar-left');
+        if (topbarLeft) topbarLeft.style.display = 'none';
+
+        // 2. Adjust Main Content to take full width
+        const mainContent = document.querySelector('.main-content');
+        if (mainContent) {
+            mainContent.style.marginLeft = '0';
+            mainContent.style.width = '100%';
+        }
+
+        // 3. Push profile chip to the left (matching your image)
+        const topbar = document.querySelector('.topbar');
+        if (topbar) {
+            topbar.style.justifyContent = 'flex-start';
+        }
+
+        // 4. Strictly hide all other views
+        document.querySelectorAll('.view-section').forEach(el => {
+            el.classList.remove('active');
+            el.style.display = 'none'; // Force hide inline to prevent CSS overrides
+        });
+
+        // 5. Force Light Theme (Overrides the time-based night theme)
         document.body.classList.remove('night-theme');
         window.applyTimeBasedThemeAndGreeting = function() {
-            document.getElementById('greeting-text').innerText = 'Welcome, ' + RESTRICTED_USER_EMAIL;
-            document.body.classList.remove('night-theme'); // Lock to light theme
+            document.body.classList.remove('night-theme'); // Lock to light theme permanently
         };
-        applyTimeBasedThemeAndGreeting();
-        
-        // 4. Show only the Poster Generator
-        document.getElementById('poster-generator-view').classList.add('active');
-        
-        // 5. Populate their dropdown with Admin styles
+
+        // 6. Show ONLY the Poster Generator View
+        const posterView = document.getElementById('poster-generator-view');
+        if (posterView) {
+            posterView.classList.add('active');
+            posterView.style.display = 'block'; // Force show
+        }
+
+        // 7. Load their styles
         loadPosterStyles();
     }
 
