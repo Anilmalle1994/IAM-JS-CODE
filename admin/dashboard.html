@@ -1224,27 +1224,28 @@
             </div>
 
             <!-- ADMIN: Upload Styles Section (Appended to Web Content View) -->
-            <div id="admin-styles-manager" class="view-section admin-view" style="display: none;">
-                <div class="admin-card">
-                    <h3>Upload Template Styles (For Poster Generator)</h3>
-                    <p style="font-size: 13px; color: var(--gray); margin-bottom: 16px;">Add styles here to populate the dropdown for kj.apple9@gmail.com.</p>
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label>New Style Name</label>
-                            <input type="text" id="new-style-name" placeholder="e.g. Style 001">
-                        </div>
-                        <!-- NEW: Image Upload Option -->
-                        <div class="form-group">
-                            <label>Upload Style Background</label>
-                            <input type="file" id="new-style-image" accept="image/*" style="background: white; color: #111;">
-                        </div>
-                        <div class="form-group" style="justify-content: flex-end;">
-                            <button type="button" class="btn-primary" onclick="addNewTemplateStyle()">Add Style</button>
-                        </div>
-                    </div>
-                    <ul id="admin-styles-list" style="margin-top: 15px; padding-left: 20px; font-size: 14px; list-style: none;"></ul>
-                </div>
+            <!-- ADMIN: Upload Styles Section -->
+<div id="admin-styles-manager" class="view-section admin-view">
+    <div class="admin-card">
+        <h3>Upload Template Styles (For Poster Generator)</h3>
+        <p style="font-size: 13px; color: var(--gray); margin-bottom: 16px;">Add styles here to populate the dropdown for kj.apple9@gmail.com.</p>
+        <div class="form-grid">
+            <div class="form-group">
+                <label>New Style Name</label>
+                <input type="text" id="new-style-name" placeholder="e.g. Style 001">
             </div>
+            <!-- Image Upload Option -->
+            <div class="form-group">
+                <label>Upload Style Background</label>
+                <input type="file" id="new-style-image" accept="image/*" style="background: white; color: #111;">
+            </div>
+            <div class="form-group" style="justify-content: flex-end;">
+                <button type="button" class="btn-primary" onclick="addNewTemplateStyle()">Add Style</button>
+            </div>
+        </div>
+        <ul id="admin-styles-list" style="margin-top: 15px; padding-left: 20px; font-size: 14px; list-style: none;"></ul>
+    </div>
+</div>
 
             <!-- RESTRICTED USER: Poster Generator View -->
             <div id="poster-generator-view" class="view-section">
