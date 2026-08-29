@@ -1247,54 +1247,56 @@
     </div>
 </div>
 
-            <!-- RESTRICTED USER: Poster Generator View -->
-            <div id="poster-generator-view" class="view-section">
-                <div class="admin-card">
-                    <h3>Create New Meeting Poster</h3>
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label>Template Style</label>
-                            <select id="user-template-style">
-                                <option value="">Loading styles...</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Upload Photo</label>
-                            <input type="file" id="user-poster-photo" accept="image/*" style="background: #fff;">
-                        </div>
-                        <div class="form-group">
-                            <label>Meeting Number</label>
-                            <input type="text" placeholder="e.g. 39">
-                        </div>
-                        <div class="form-group">
-                            <label>Leads</label>
-                            <input type="text" placeholder="e.g. 40">
-                        </div>
-                        <div class="form-group">
-                            <label>Wealth Note (₹)</label>
-                            <input type="text" placeholder="e.g. 1,09,62,500/-">
-                        </div>
-                        <div class="form-group">
-                            <label>Face 2 Face</label>
-                            <input type="text" placeholder="e.g. 03">
-                        </div>
-                        <div class="form-group">
-                            <label>Visitors No.</label>
-                            <input type="text" placeholder="e.g. 05">
-                        </div>
-                    </div>
-                    <div class="action-row">
-                        <button type="button" class="btn-primary">Generate & Preview</button>
-                    </div>
-                </div>
-                
-                <div class="admin-card">
-                    <h3>Live Preview</h3>
-                    <div style="width: 100%; min-height: 300px; background: #f0f2f5; display: flex; align-items: center; justify-content: center; border-radius: 8px;">
-                        <span style="color: #888;">Your poster will appear here.</span>
-                    </div>
-                </div>
+<!-- RESTRICTED USER: Poster Generator View -->
+<div id="poster-generator-view" class="view-section">
+    <div class="admin-card">
+        <h3>Create New Meeting Poster</h3>
+        <div class="form-grid">
+            <div class="form-group">
+                <label>Template Style</label>
+                <select id="user-template-style">
+                    <option value="">Loading styles...</option>
+                </select>
             </div>
+            <div class="form-group">
+                <label>Upload Photo</label>
+                <input type="file" id="user-poster-photo" accept="image/*" style="background: #fff;">
+            </div>
+            <div class="form-group">
+                <label>Meeting Number</label>
+                <input type="text" id="poster-meeting" placeholder="e.g. 39">
+            </div>
+            <div class="form-group">
+                <label>Leads</label>
+                <input type="text" id="poster-leads" placeholder="e.g. 40">
+            </div>
+            <div class="form-group">
+                <label>Wealth Note (₹)</label>
+                <input type="text" id="poster-wealth" placeholder="e.g. 1,09,62,500/-">
+            </div>
+            <div class="form-group">
+                <label>Face 2 Face</label>
+                <input type="text" id="poster-f2f" placeholder="e.g. 03">
+            </div>
+            <div class="form-group">
+                <label>Visitors No.</label>
+                <input type="text" id="poster-visitors" placeholder="e.g. 05">
+            </div>
+        </div>
+        <div class="action-row">
+            <!-- Added onclick handler -->
+            <button type="button" class="btn-primary" onclick="generatePoster()">Generate & Preview</button>
+        </div>
+    </div>
+    
+    <div class="admin-card">
+        <h3>Live Preview</h3>
+        <!-- Added ID to the preview container -->
+        <div id="poster-preview-container" style="width: 100%; min-height: 300px; background: #f0f2f5; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 8px; overflow: hidden; padding: 15px;">
+            <span style="color: #888;">Your poster will appear here.</span>
+        </div>
+    </div>
+</div>
 
         </div>
     </main>
@@ -1476,147 +1478,367 @@
         </div>
     </div>
 
-    <script>
+<script>
+    
+    // ==========================================
+    // CONSTANTS & RBAC configuration
+    // ==========================================
+    const ADMIN_EMAIL = 'iamdesign81@gmail.com';
+    const RESTRICTED_USER_EMAIL = 'kj.apple9@gmail.com';
+
+    // ==========================================
+    // UPI & PAYMENT CONFIGURATION
+    // ==========================================
+    const MERCHANT_UPI_ID = "9133058685@ybl"; 
+    const MERCHANT_UPI_NAME = "iam designs";
+
+    // ==========================================
+    // WHATSAPP AUTOMATION
+    // ==========================================
+    const WA_BACKEND_URL = "http://localhost:3000"; 
+
+    async function connectWhatsAppServer() {
+        const qrContainer = document.getElementById('wa-qrcode-container');
+        const statusBadge = document.getElementById('wa-status-badge');
         
-        // ==========================================
-        // CONSTANTS & RBAC configuration
-        // ==========================================
-        const ADMIN_EMAIL = 'iamdesign81@gmail.com';
-        const RESTRICTED_USER_EMAIL = 'kj.apple9@gmail.com';
+        statusBadge.innerHTML = "Status: Fetching QR...";
+        qrContainer.innerHTML = "Loading...";
 
-        // ==========================================
-        // UPI & PAYMENT CONFIGURATION
-        // ==========================================
-        const MERCHANT_UPI_ID = "9133058685@ybl"; 
-        const MERCHANT_UPI_NAME = "iam designs";
+        try {
+            const res = await fetch(`${WA_BACKEND_URL}/qr`);
+            const data = await res.json();
 
-        // ==========================================
-        // WHATSAPP AUTOMATION
-        // ==========================================
-        const WA_BACKEND_URL = "http://localhost:3000"; 
-
-        async function connectWhatsAppServer() {
-            const qrContainer = document.getElementById('wa-qrcode-container');
-            const statusBadge = document.getElementById('wa-status-badge');
-            
-            statusBadge.innerHTML = "Status: Fetching QR...";
-            qrContainer.innerHTML = "Loading...";
-
-            try {
-                const res = await fetch(`${WA_BACKEND_URL}/qr`);
-                const data = await res.json();
-
-                if (data.status === 'connected') {
-                    statusBadge.innerHTML = `<span style="color: #10b981; font-weight:bold;">Status: Connected & Ready</span>`;
-                    qrContainer.innerHTML = "<div style='font-size:40px;'>✅</div><div>WhatsApp Linked</div>";
-                } else if (data.qr) {
-                    statusBadge.innerHTML = `<span style="color: #f59e0b; font-weight:bold;">Status: Scan QR Code</span>`;
-                    qrContainer.innerHTML = "";
-                    new QRCode(qrContainer, {
-                        text: data.qr,
-                        width: 220,
-                        height: 220,
-                        colorDark : "#111111",
-                        colorLight : "#ffffff"
-                    });
-                }
-            } catch (error) {
-                statusBadge.innerHTML = `<span style="color: #ef4444; font-weight:bold;">Status: Server Offline</span>`;
-                qrContainer.innerHTML = "Could not connect to Node.js backend. Ensure it is running on port 3000.";
-            }
-        }
-
-        async function checkWhatsAppStatus() {
-            connectWhatsAppServer();
-        }
-
-        async function sendAutomatedWhatsApp(phone, message) {
-            let cleanedPhone = (phone || '').replace(/[^0-9]/g, '');
-            if (cleanedPhone.length === 10) { cleanedPhone = '91' + cleanedPhone; }
-
-            try {
-                const res = await fetch(`${WA_BACKEND_URL}/send`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ phone: cleanedPhone, message })
+            if (data.status === 'connected') {
+                statusBadge.innerHTML = `<span style="color: #10b981; font-weight:bold;">Status: Connected & Ready</span>`;
+                qrContainer.innerHTML = "<div style='font-size:40px;'>✅</div><div>WhatsApp Linked</div>";
+            } else if (data.qr) {
+                statusBadge.innerHTML = `<span style="color: #f59e0b; font-weight:bold;">Status: Scan QR Code</span>`;
+                qrContainer.innerHTML = "";
+                new QRCode(qrContainer, {
+                    text: data.qr,
+                    width: 220,
+                    height: 220,
+                    colorDark : "#111111",
+                    colorLight : "#ffffff"
                 });
-                
-                const data = await res.json();
-                
-                if (data.success) {
-                    showToast("✅ Automated WhatsApp Sent!");
-                    return true;
-                } else {
-                    throw new Error("Backend failed to send");
-                }
-            } catch (e) {
-                showToast("Server offline. Falling back to manual WA.");
-                window.open(getWhatsAppLink(phone, message), '_blank');
-                return false;
             }
+        } catch (error) {
+            statusBadge.innerHTML = `<span style="color: #ef4444; font-weight:bold;">Status: Server Offline</span>`;
+            qrContainer.innerHTML = "Could not connect to Node.js backend. Ensure it is running on port 3000.";
         }
+    }
 
-        window.processWebhookPayment = async function(orderId, amountPaid) {
-            const order = appData.orders[orderId];
-            if(!order || order.balance <= 0) return;
+    async function checkWhatsAppStatus() {
+        connectWhatsAppServer();
+    }
 
-            const amt = parseFloat(amountPaid) || 0;
-            const newAdvance = ((parseFloat(order.advance) || 0) + amt).toFixed(2);
-            const newBalance = ((parseFloat(order.balance) || 0) - amt).toFixed(2);
+    async function sendAutomatedWhatsApp(phone, message) {
+        let cleanedPhone = (phone || '').replace(/[^0-9]/g, '');
+        if (cleanedPhone.length === 10) { cleanedPhone = '91' + cleanedPhone; }
 
-            const { error } = await supabaseClient.from('orders').update({ advance: newAdvance, balance: newBalance }).eq('orderId', orderId);
-            if(error) { console.error("Webhook update failed", error); return; }
-
-            order.advance = newAdvance; 
-            order.balance = newBalance;
+        try {
+            const res = await fetch(`${WA_BACKEND_URL}/send`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ phone: cleanedPhone, message })
+            });
             
-            updateDashboardStats();
-            renderAllOrders();
+            const data = await res.json();
+            
+            if (data.success) {
+                showToast("✅ Automated WhatsApp Sent!");
+                return true;
+            } else {
+                throw new Error("Backend failed to send");
+            }
+        } catch (e) {
+            showToast("Server offline. Falling back to manual WA.");
+            window.open(getWhatsAppLink(phone, message), '_blank');
+            return false;
+        }
+    }
 
-            if (parseFloat(newBalance) <= 0) {
-                await autoIssueBill(order);
-                let msg = `Dear ${order.client},\nYour automated payment of ₹${amt} for Order ${order.orderId} has been successfully received via PhonePe. Your pending balance is ₹0.00.\n\nThank you for choosing iam des!gns!`;
-                await sendAutomatedWhatsApp(order.phone, msg);
+    window.processWebhookPayment = async function(orderId, amountPaid) {
+        const order = appData.orders[orderId];
+        if(!order || order.balance <= 0) return;
+
+        const amt = parseFloat(amountPaid) || 0;
+        const newAdvance = ((parseFloat(order.advance) || 0) + amt).toFixed(2);
+        const newBalance = ((parseFloat(order.balance) || 0) - amt).toFixed(2);
+
+        const { error } = await supabaseClient.from('orders').update({ advance: newAdvance, balance: newBalance }).eq('orderId', orderId);
+        if(error) { console.error("Webhook update failed", error); return; }
+
+        order.advance = newAdvance; 
+        order.balance = newBalance;
+        
+        updateDashboardStats();
+        renderAllOrders();
+
+        if (parseFloat(newBalance) <= 0) {
+            await autoIssueBill(order);
+            let msg = `Dear ${order.client},\nYour automated payment of ₹${amt} for Order ${order.orderId} has been successfully received via PhonePe. Your pending balance is ₹0.00.\n\nThank you for choosing iam des!gns!`;
+            await sendAutomatedWhatsApp(order.phone, msg);
+        }
+    }
+
+    const SUPABASE_URL = 'https://wrqkrpysvhtjenxyytfp.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_-DXwYtZ4x8XSt1DV_sQc-w_wA7Ir0N_';
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // ==========================================
+    // TIME-BASED GREETING & NIGHT THEME
+    // ==========================================
+    window.applyTimeBasedThemeAndGreeting = function() {
+        const hour = new Date().getHours();
+        const greetingEl = document.getElementById('greeting-text');
+
+        if (hour >= 5 && hour < 12) {
+            greetingEl.innerText = 'Good Morning, Admin';
+            document.body.classList.remove('night-theme');
+        } else if (hour >= 12 && hour < 18) {
+            greetingEl.innerText = 'Good Afternoon, Admin';
+            document.body.classList.remove('night-theme');
+        } else {
+            greetingEl.innerText = 'Good Evening, Admin';
+            document.body.classList.add('night-theme');
+        }
+    };
+    
+    // Execute immediately on page load
+    applyTimeBasedThemeAndGreeting();
+
+    async function logout() {
+        await supabaseClient.auth.signOut();
+        sessionStorage.clear();
+        localStorage.clear();
+        window.location.replace('index.html'); 
+    }
+
+    // ==========================================
+    // RBAC / AUTH CHECK
+    // ==========================================
+    async function checkAuth() {
+        const { data: { session }, error } = await supabaseClient.auth.getSession();
+        if (!session || error) {
+            // window.location.replace('index.html'); // Uncomment in production
+        } else {
+            const email = session.user.email;
+            document.getElementById('user-email').innerText = email;
+
+            if (email === RESTRICTED_USER_EMAIL) {
+                enforceRestrictedUserView();
+            } else {
+                // Admin or general user: load the poster styles just in case
+                loadPosterStyles(); 
             }
         }
+    }
 
-        const SUPABASE_URL = 'https://wrqkrpysvhtjenxyytfp.supabase.co';
-        const SUPABASE_ANON_KEY = 'sb_publishable_-DXwYtZ4x8XSt1DV_sQc-w_wA7Ir0N_';
-        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-        // ==========================================
-        // TIME-BASED GREETING & NIGHT THEME
-        // ==========================================
+    function enforceRestrictedUserView() {
+        // 1. Hide Admin Layout Elements
+        document.getElementById('sidebar').style.display = 'none';
+        document.getElementById('main-top-nav').style.display = 'none';
+        document.querySelector('.topbar-left').style.display = 'none';
+        document.querySelector('.main-content').style.marginLeft = '0';
+        document.querySelector('.main-content').style.width = '100%';
+        
+        // 2. Hide all existing admin views
+        document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+        
+        // 3. Force Light Theme (Overrides time-based theme)
+        document.body.classList.remove('night-theme');
         window.applyTimeBasedThemeAndGreeting = function() {
-            const hour = new Date().getHours();
-            const greetingEl = document.getElementById('greeting-text');
+            document.getElementById('greeting-text').innerText = 'Welcome, ' + RESTRICTED_USER_EMAIL;
+            document.body.classList.remove('night-theme'); // Lock to light theme
+        };
+        applyTimeBasedThemeAndGreeting();
+        
+        // 4. Show only the Poster Generator
+        document.getElementById('poster-generator-view').classList.add('active');
+        
+        // 5. Populate their dropdown with Admin styles
+        loadPosterStyles();
+    }
 
-            if (hour >= 5 && hour < 12) {
-                greetingEl.innerText = 'Good Morning, Admin';
-                document.body.classList.remove('night-theme');
-            } else if (hour >= 12 && hour < 18) {
-                greetingEl.innerText = 'Good Afternoon, Admin';
-                document.body.classList.remove('night-theme');
-            } else {
-                greetingEl.innerText = 'Good Evening, Admin';
-                document.body.classList.add('night-theme');
-            }
+    // ==========================================
+    // POSTER GENERATOR & STYLES MANAGER LOGIC
+    // ==========================================
+    function addNewTemplateStyle() {
+        const styleName = document.getElementById('new-style-name').value.trim();
+        const fileInput = document.getElementById('new-style-image');
+        
+        if(!styleName) return alert("Enter a style name");
+        if(!fileInput || fileInput.files.length === 0) return alert("Please select a background image for this style.");
+        
+        const file = fileInput.files[0];
+        const reader = new FileReader();
+        
+        // Read the file as a Base64 string to store locally
+        reader.onload = function(e) {
+            const base64Image = e.target.result;
+            
+            // Retrieve existing styles or start empty
+            let styles = JSON.parse(localStorage.getItem('poster_template_styles') || '[]');
+            
+            // Save as an object containing both name and image
+            styles.push({ name: styleName, image: base64Image });
+            localStorage.setItem('poster_template_styles', JSON.stringify(styles));
+            
+            // Clear inputs
+            document.getElementById('new-style-name').value = '';
+            if(fileInput) fileInput.value = '';
+            showToast("Template Style & Image Added!");
+            loadPosterStyles();
         };
         
-        // Execute immediately on page load
-        applyTimeBasedThemeAndGreeting();
+        if (file) {
+            reader.readAsDataURL(file);
+        }
+    }
 
-        async function logout() {
-            await supabaseClient.auth.signOut();
-            sessionStorage.clear();
-            localStorage.clear();
-            window.location.replace('index.html'); 
+    function loadPosterStyles() {
+        // Parse the saved objects
+        let rawStyles = JSON.parse(localStorage.getItem('poster_template_styles') || '[]');
+        
+        // Fallback handler in case older string-only styles exist
+        let styles = rawStyles.map(s => typeof s === 'string' ? { name: s, image: '' } : s);
+        
+        // 1. Populate User Dropdown
+        const userSelect = document.getElementById('user-template-style');
+        if(userSelect) {
+            userSelect.innerHTML = '<option value="">Select a Template Style...</option>';
+            styles.forEach((s, index) => {
+                // Store the image data in a custom data-img attribute
+                userSelect.innerHTML += `<option value="${index}" data-img="${s.image}">${s.name}</option>`;
+            });
         }
 
-        // ==========================================
-        // RBAC / AUTH CHECK
-        // ==========================================
-        async function checkAuth() {
+        // 2. Populate Admin Management List with image preview
+        const adminList = document.getElementById('admin-styles-list');
+        if(adminList) {
+            adminList.innerHTML = '';
+            styles.forEach((s, index) => {
+                let imgTag = s.image ? `<img src="${s.image}" style="width:35px; height:35px; object-fit:cover; border-radius:6px;">` : '📄';
+                adminList.innerHTML += `
+                    <li style="margin-bottom: 10px; display: flex; align-items: center; gap: 12px; background: #f8f9fa; padding: 8px; border-radius: 8px; border: 1px solid #e5e7eb;">
+                        ${imgTag}
+                        <strong style="flex: 1;">${s.name}</strong>
+                        <button onclick="deleteTemplateStyle(${index})" class="remove-btn" style="font-size: 12px;">✖ Remove</button>
+                    </li>`;
+            });
+        }
+    }
+
+    function deleteTemplateStyle(index) {
+        let styles = JSON.parse(localStorage.getItem('poster_template_styles') || '[]');
+        styles.splice(index, 1);
+        localStorage.setItem('poster_template_styles', JSON.stringify(styles));
+        loadPosterStyles();
+    }
+
+    function generatePoster() {
+        const styleSelect = document.getElementById('user-template-style');
+        const selectedOption = styleSelect.options[styleSelect.selectedIndex];
+        
+        if (!selectedOption || !selectedOption.value) {
+            return alert("Please select a Template Style first.");
+        }
+        
+        const templateBgBase64 = selectedOption.getAttribute('data-img');
+        if (!templateBgBase64 || templateBgBase64 === "undefined") {
+            return alert("The selected template does not have a background image.");
+        }
+
+        // Get input values
+        const photoInput = document.getElementById('user-poster-photo');
+        const meetingNo = document.getElementById('poster-meeting').value || '';
+        const leads = document.getElementById('poster-leads').value || '';
+        const wealth = document.getElementById('poster-wealth').value || '';
+        const f2f = document.getElementById('poster-f2f').value || '';
+        const visitors = document.getElementById('poster-visitors').value || '';
+
+        const previewContainer = document.getElementById('poster-preview-container');
+        previewContainer.innerHTML = '<span style="color:var(--primary);font-weight:bold;">Rendering Poster...</span>';
+
+        // 1. Load Background Template Image
+        const bgImg = new Image();
+        bgImg.onload = function() {
+            // Create an HTML5 Canvas matching the background's original size
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = bgImg.width;
+            canvas.height = bgImg.height;
+
+            // Draw Background
+            ctx.drawImage(bgImg, 0, 0, canvas.width, canvas.height);
+
+            // Function to draw text overlay
+            const finalizeAndDrawText = () => {
+                // ----- TEXT SETTINGS -----
+                ctx.fillStyle = "#ffffff"; // Text Color (White)
+                ctx.font = "bold 40px Arial"; // Font size and family
+                ctx.textAlign = "left"; // Alignment
+
+                // NOTE: Adjust X (horizontal) and Y (vertical) coordinates based on your template design
+                ctx.fillText(meetingNo, 200, 300); 
+                ctx.fillText(leads, 200, 400);     
+                ctx.fillText(wealth, 200, 500);    
+                ctx.fillText(f2f, 200, 600);       
+                ctx.fillText(visitors, 200, 700);  
+
+                // Show canvas in the preview area
+                canvas.style.width = "100%";
+                canvas.style.height = "auto";
+                canvas.style.maxHeight = "700px";
+                canvas.style.objectFit = "contain";
+                canvas.style.boxShadow = "0 10px 30px rgba(0,0,0,0.1)";
+                
+                previewContainer.innerHTML = '';
+                previewContainer.appendChild(canvas);
+                
+                // Add a Download Button below the poster
+                const downloadBtn = document.createElement('button');
+                downloadBtn.className = "btn-primary";
+                downloadBtn.style.marginTop = "20px";
+                downloadBtn.innerHTML = "📥 Download Poster";
+                downloadBtn.onclick = () => {
+                    const link = document.createElement('a');
+                    link.download = `Meeting_Poster_${meetingNo}.png`;
+                    link.href = canvas.toDataURL("image/png");
+                    link.click();
+                };
+                previewContainer.appendChild(downloadBtn);
+            };
+
+            // 2. Load User Photo if uploaded
+            if (photoInput.files && photoInput.files[0]) {
+                const userPhotoReader = new FileReader();
+                userPhotoReader.onload = function(e) {
+                    const userImg = new Image();
+                    userImg.onload = function() {
+                        // NOTE: Adjust X, Y, Width, Height to fit the photo inside the template's picture box
+                        ctx.drawImage(userImg, 600, 200, 350, 350); 
+                        
+                        finalizeAndDrawText();
+                    };
+                    userImg.src = e.target.result;
+                };
+                userPhotoReader.readAsDataURL(photoInput.files[0]);
+            } else {
+                // No photo uploaded, just draw the text
+                finalizeAndDrawText(); 
+            }
+        };
+        bgImg.src = templateBgBase64;
+    }
+
+    checkAuth();
+
+    let appData = { vendors: [], orders: {}, vendorAllotmentsHistory: [], staff: [], trustedLogos: [], portfolioItems: [], team: [] };
+
+    async function loadAppData() {
+        
             const { data: { session }, error } = await supabaseClient.auth.getSession();
             if (!session || error) {
                 // window.location.replace('index.html'); // Uncomment in production
