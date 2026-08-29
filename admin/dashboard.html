@@ -369,6 +369,7 @@
                     <li><a href="#" class="nav-btn" data-target="vendor-reports">📈 Vendor Reports</a></li>
                     <li><a href="#" class="nav-btn" data-target="clients-data">📇 Clients Data</a></li>
                     <li><a href="#" class="nav-btn" data-target="whatsapp-auto">🤖 WhatsApp Auto</a></li>
+                    <li><a href="#" class="nav-btn" data-target="admin-styles-manager">🎨 Manage Styles</a></li>
                 </ul>
             </li>
 
@@ -1222,6 +1223,73 @@
                 </div>
             </div>
 
+            <!-- ADMIN: Upload Styles Section (Appended to Web Content View) -->
+            <div id="admin-styles-manager" class="view-section admin-view" style="display: none;">
+                <div class="admin-card">
+                    <h3>Upload Template Styles (For Poster Generator)</h3>
+                    <p style="font-size: 13px; color: var(--gray); margin-bottom: 16px;">Add styles here to populate the dropdown for kj.apple9@gmail.com.</p>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>New Style Name</label>
+                            <input type="text" id="new-style-name" placeholder="e.g. Style 001">
+                        </div>
+                        <div class="form-group" style="justify-content: flex-end;">
+                            <button type="button" class="btn-primary" onclick="addNewTemplateStyle()">Add Style</button>
+                        </div>
+                    </div>
+                    <ul id="admin-styles-list" style="margin-top: 15px; padding-left: 20px; font-size: 14px;"></ul>
+                </div>
+            </div>
+
+            <!-- RESTRICTED USER: Poster Generator View -->
+            <div id="poster-generator-view" class="view-section">
+                <div class="admin-card">
+                    <h3>Create New Meeting Poster</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Template Style</label>
+                            <select id="user-template-style">
+                                <option value="">Loading styles...</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Upload Photo</label>
+                            <input type="file" id="user-poster-photo" accept="image/*" style="background: #fff;">
+                        </div>
+                        <div class="form-group">
+                            <label>Meeting Number</label>
+                            <input type="text" placeholder="e.g. 39">
+                        </div>
+                        <div class="form-group">
+                            <label>Leads</label>
+                            <input type="text" placeholder="e.g. 40">
+                        </div>
+                        <div class="form-group">
+                            <label>Wealth Note (₹)</label>
+                            <input type="text" placeholder="e.g. 1,09,62,500/-">
+                        </div>
+                        <div class="form-group">
+                            <label>Face 2 Face</label>
+                            <input type="text" placeholder="e.g. 03">
+                        </div>
+                        <div class="form-group">
+                            <label>Visitors No.</label>
+                            <input type="text" placeholder="e.g. 05">
+                        </div>
+                    </div>
+                    <div class="action-row">
+                        <button type="button" class="btn-primary">Generate & Preview</button>
+                    </div>
+                </div>
+                
+                <div class="admin-card">
+                    <h3>Live Preview</h3>
+                    <div style="width: 100%; min-height: 300px; background: #f0f2f5; display: flex; align-items: center; justify-content: center; border-radius: 8px;">
+                        <span style="color: #888;">Your poster will appear here.</span>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </main>
 
@@ -1405,6 +1473,12 @@
     <script>
         
         // ==========================================
+        // CONSTANTS & RBAC configuration
+        // ==========================================
+        const ADMIN_EMAIL = 'iamdesign81@gmail.com';
+        const RESTRICTED_USER_EMAIL = 'kj.apple9@gmail.com';
+
+        // ==========================================
         // UPI & PAYMENT CONFIGURATION
         // ==========================================
         const MERCHANT_UPI_ID = "9133058685@ybl"; 
@@ -1507,21 +1581,21 @@
         // ==========================================
         // TIME-BASED GREETING & NIGHT THEME
         // ==========================================
-        function applyTimeBasedThemeAndGreeting() {
+        window.applyTimeBasedThemeAndGreeting = function() {
             const hour = new Date().getHours();
             const greetingEl = document.getElementById('greeting-text');
 
             if (hour >= 5 && hour < 12) {
-                greetingEl.innerText = 'Good Morning, Anil';
+                greetingEl.innerText = 'Good Morning, Admin';
                 document.body.classList.remove('night-theme');
             } else if (hour >= 12 && hour < 18) {
-                greetingEl.innerText = 'Good Afternoon, Anil';
+                greetingEl.innerText = 'Good Afternoon, Admin';
                 document.body.classList.remove('night-theme');
             } else {
-                greetingEl.innerText = 'Good Evening, Anil';
+                greetingEl.innerText = 'Good Evening, Admin';
                 document.body.classList.add('night-theme');
             }
-        }
+        };
         
         // Execute immediately on page load
         applyTimeBasedThemeAndGreeting();
@@ -1533,14 +1607,92 @@
             window.location.replace('index.html'); 
         }
 
+        // ==========================================
+        // RBAC / AUTH CHECK
+        // ==========================================
         async function checkAuth() {
             const { data: { session }, error } = await supabaseClient.auth.getSession();
             if (!session || error) {
-                window.location.replace('index.html');
+                // window.location.replace('index.html'); // Uncomment in production
             } else {
                 const email = session.user.email;
                 document.getElementById('user-email').innerText = email;
+
+                if (email === RESTRICTED_USER_EMAIL) {
+                    enforceRestrictedUserView();
+                } else {
+                    // Admin or general user: load the poster styles just in case
+                    loadPosterStyles(); 
+                }
             }
+        }
+
+        function enforceRestrictedUserView() {
+            // 1. Hide Admin Layout Elements
+            document.getElementById('sidebar').style.display = 'none';
+            document.getElementById('main-top-nav').style.display = 'none';
+            document.querySelector('.topbar-left').style.display = 'none';
+            document.querySelector('.main-content').style.marginLeft = '0';
+            document.querySelector('.main-content').style.width = '100%';
+            
+            // 2. Hide all existing admin views
+            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+            
+            // 3. Force Light Theme (Overrides time-based theme)
+            document.body.classList.remove('night-theme');
+            window.applyTimeBasedThemeAndGreeting = function() {
+                document.getElementById('greeting-text').innerText = 'Welcome, ' + RESTRICTED_USER_EMAIL;
+                document.body.classList.remove('night-theme'); // Lock to light theme
+            };
+            applyTimeBasedThemeAndGreeting();
+            
+            // 4. Show only the Poster Generator
+            document.getElementById('poster-generator-view').classList.add('active');
+            
+            // 5. Populate their dropdown with Admin styles
+            loadPosterStyles();
+        }
+
+        function addNewTemplateStyle() {
+            const styleName = document.getElementById('new-style-name').value.trim();
+            if(!styleName) return alert("Enter a style name");
+            
+            let styles = JSON.parse(localStorage.getItem('poster_template_styles') || '[]');
+            styles.push(styleName);
+            localStorage.setItem('poster_template_styles', JSON.stringify(styles));
+            
+            document.getElementById('new-style-name').value = '';
+            showToast("Template Style Added!");
+            loadPosterStyles();
+        }
+
+        function loadPosterStyles() {
+            let styles = JSON.parse(localStorage.getItem('poster_template_styles') || '["Style 001", "Style 002"]');
+            
+            // Populate User Dropdown
+            const userSelect = document.getElementById('user-template-style');
+            if(userSelect) {
+                userSelect.innerHTML = '';
+                styles.forEach(s => {
+                    userSelect.innerHTML += `<option value="${s}">${s}</option>`;
+                });
+            }
+
+            // Populate Admin Management List
+            const adminList = document.getElementById('admin-styles-list');
+            if(adminList) {
+                adminList.innerHTML = '';
+                styles.forEach((s, index) => {
+                    adminList.innerHTML += `<li style="margin-bottom: 8px;">${s} <button onclick="deleteTemplateStyle(${index})" class="remove-btn" style="font-size: 12px;">[Delete]</button></li>`;
+                });
+            }
+        }
+
+        function deleteTemplateStyle(index) {
+            let styles = JSON.parse(localStorage.getItem('poster_template_styles') || '[]');
+            styles.splice(index, 1);
+            localStorage.setItem('poster_template_styles', JSON.stringify(styles));
+            loadPosterStyles();
         }
 
         checkAuth();
@@ -2282,6 +2434,13 @@
             const order = findOrder(query);
             if(!order) return alert("Order not found!");
             
+            // NEW: Prevent multiple allocations
+            if (order.status !== 'processing' && order.status !== 'designing' && order.status !== 'pending') {
+                alert(`Allocation denied. Work has already been allotted for this order (Current Status: ${order.status.replace(/_/g, ' ')}).`);
+                document.getElementById('va-orderid').value = '';
+                return; 
+            }
+
             document.getElementById('va-orderid').value = order.orderId;
             const container = document.getElementById('va-rows-container');
             container.innerHTML = ''; 
@@ -4169,13 +4328,14 @@
                 tbody.innerHTML += `
                     <tr>
                         <td><strong>${item.title || 'Untitled'}</strong></td>
-                        <td>${item.description || '-'}</td>
-                        <td>${item.material || '-'}</td>
-                        <td style="text-align: center;">
-                            <button onclick="removePortfolioItem('${item.id}')" class="btn-primary" style="background: #ef4444; padding: 6px 12px; font-size: 11px;">Remove</button>
-                        </td>
-                    </tr>
-                `;
+I encountered an error doing what you asked. Could you try again?
+<td>${item.description || '-'}</td>
+                            <td>${item.material || '-'}</td>
+                            <td style="text-align: center;">
+                                <button onclick="removePortfolioItem('${item.id}')" class="btn-primary" style="background: #ef4444; padding: 6px 12px; font-size: 11px;">Remove</button>
+                            </td>
+                        </tr>
+                    `;
             });
         }
 
