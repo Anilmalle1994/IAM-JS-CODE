@@ -1751,39 +1751,7 @@
         // ==========================================
         // POSTER GENERATOR & STYLES MANAGER LOGIC
         // ==========================================
-        function addNewTemplateStyle() {
-            const styleName = document.getElementById('new-style-name').value.trim();
-            const fileInput = document.getElementById('new-style-image');
-            
-            if(!styleName) return alert("Enter a style name");
-            if(!fileInput || fileInput.files.length === 0) return alert("Please select a background image for this style.");
-            
-            const file = fileInput.files[0];
-            const reader = new FileReader();
-            
-            // Read the file as a Base64 string to store locally
-            reader.onload = function(e) {
-                const base64Image = e.target.result;
-                
-                // Retrieve existing styles or start empty
-                let styles = JSON.parse(localStorage.getItem('poster_template_styles') || '[]');
-                
-                // Save as an object containing both name and image
-                styles.push({ name: styleName, image: base64Image });
-                localStorage.setItem('poster_template_styles', JSON.stringify(styles));
-                
-                // Clear inputs
-                document.getElementById('new-style-name').value = '';
-                if(fileInput) fileInput.value = '';
-                showToast("Template Style & Image Added!");
-                loadPosterStyles();
-            };
-            
-            if (file) {
-                reader.readAsDataURL(file);
-            }
-        }
-
+        
         function loadPosterStyles() {
             // Parse the saved objects
             let rawStyles = JSON.parse(localStorage.getItem('poster_template_styles') || '[]');
