@@ -1555,7 +1555,23 @@
                 return false;
             }
         }
-
+async function logout() {
+        try {
+            // 1. Tell Supabase to end the session (clears its own auth tokens automatically)
+            await supabaseClient.auth.signOut();
+        } catch (error) {
+            console.warn("Supabase signout issue (safe to ignore):", error.message);
+        } finally {
+            // 2. Clear only session data so we DON'T delete your local vendors/styles
+            sessionStorage.clear();
+            
+            // 3. Force redirect. 
+            // If your login page is in the main folder, use '../index.html'
+            // If your login page is called 'AVEO Login.html' and in the same folder, use that instead.
+            window.location.replace('../index.html'); 
+        }
+    }
+        
         window.processWebhookPayment = async function(orderId, amountPaid) {
             const order = appData.orders[orderId];
             if(!order || order.balance <= 0) return;
@@ -1584,6 +1600,7 @@
         const SUPABASE_ANON_KEY = 'sb_publishable_-DXwYtZ4x8XSt1DV_sQc-w_wA7Ir0N_';
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+        
 // ==========================================
     // TIME-BASED GREETING & NIGHT THEME
     // ==========================================
