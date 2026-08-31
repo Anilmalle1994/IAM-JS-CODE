@@ -2602,7 +2602,8 @@ async function logout() {
             const adv = parseFloat(document.getElementById('nw-advance').value) || 0;
             document.getElementById('nw-balance').value = Math.max(0, amt - adv);
         }
-
+        
+        //[cite: 4]
         async function saveNewOrder() {
             const orderId = document.getElementById('nw-orderid').value;
             const client = document.getElementById('nw-client').value.trim();
@@ -2612,6 +2613,9 @@ async function logout() {
 
             const items = collectOrderItems();
             const workString = items.map(i => i.desc).join(", ");
+            
+            // NEW: Detailed work format for WhatsApp message
+            const workDetailsForWA = items.map(i => `🔹 ${i.desc} ${i.size ? '| Size: ' + i.size : ''} | Copies: ${i.qty}`).join("\n");
 
             let payload = {
                 orderId, client, phone,
@@ -2643,7 +2647,8 @@ async function logout() {
             let upiLink = `upi://pay?pa=${MERCHANT_UPI_ID}&pn=${encodeURIComponent(MERCHANT_UPI_NAME)}&am=${payload.balance}&cu=INR&tn=${orderId}`;
             let qrUrl = `https://quickchart.io/qr?text=${encodeURIComponent(upiLink)}&size=300`;
 
-            let msg = `Hello ${client},\nYour order ${orderId} has been successfully placed with iam des!gns.\n\nWork : ${workString}\nTotal Amount: ₹${payload.amount}\nPaid: ₹${payload.advance}\nBalance Due: ₹${payload.balance}\n\n`;
+            // NEW: Send detailed itemized list via WhatsApp
+            let msg = `Hello ${client},\nYour order *${orderId}* has been successfully placed with iam des!gns.\n\n*Order Details:*\n${workDetailsForWA}\n\nTotal Amount: ₹${payload.amount}\nPaid: ₹${payload.advance}\nBalance Due: ₹${payload.balance}\n\n`;
             
             if(payload.balance > 0) {
                 msg += `💳 *Pay exact balance securely via PhonePe / UPI:* \n${upiLink}\n\n🖼️ *Scan QR to Pay:* \n${qrUrl}\n\n`;
@@ -2930,6 +2935,7 @@ async function logout() {
             return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
         }
 
+        //[cite: 3]
         function getIamBillItems(order) {
             let raw = order.items;
             if (typeof raw === 'string') { try { raw = JSON.parse(raw); } catch (e) { raw = null; } }
@@ -2939,6 +2945,7 @@ async function logout() {
                     desc: it.desc || it.work || '',
                     size: it.size || '',
                     qty: (it.qty || it.qty === 0) ? it.qty : '',
+                    rate: (it.rate || it.rate === 0) ? parseFloat(it.rate) : '', // Now capturing individual price
                     amount: (it.amount || it.amount === 0) ? parseFloat(it.amount) : ''
                 }));
             }
@@ -2951,6 +2958,7 @@ async function logout() {
                     desc: seg[0].trim(),
                     size: seg.slice(1).join(' - ').trim(),
                     qty: '',
+                    rate: '',
                     amount: parts.length === 1 ? total : ''
                 };
             });
@@ -2993,7 +3001,8 @@ async function logout() {
             try { disc = JSON.parse(localStorage.getItem('iam_bill_discounts') || '{}'); } catch (e) { disc = {}; }
             return parseFloat(disc[orderId]) || 0;
         }
-
+        
+        //[cite: 2]
         function buildIamBillHTML(order, billNo, logoBlock) {
             const items = getIamBillItems(order);
             const summed = items.reduce((t, i) => t + (parseFloat(i.amount) || 0), 0);
@@ -3011,13 +3020,16 @@ async function logout() {
                     <td style="${cellL}">${iamEsc(it.desc)}</td>
                     <td style="${cellC}">${iamEsc(it.size)}</td>
                     <td style="${cellC}">${it.qty === '' ? '' : iamEsc(it.qty)}</td>
+                    <td style="${cellR}">${(it.rate === '' || isNaN(parseFloat(it.rate))) ? '' : '₹' + parseFloat(it.rate).toFixed(2)}</td>
                     <td style="${cellR}">${(it.amount === '' || isNaN(parseFloat(it.amount))) ? '' : '₹' + parseFloat(it.amount).toFixed(2)}</td>
                 </tr>`;
             });
             for (let i = items.length; i < 2; i++) {
-                rows += `<tr><td style="${cellL}">&nbsp;</td><td style="${cellC}">&nbsp;</td><td style="${cellC}">&nbsp;</td><td style="${cellR}">&nbsp;</td></tr>`;
+                // Generates blank spacing rows to keep formatting neat
+                rows += `<tr><td style="${cellL}">&nbsp;</td><td style="${cellC}">&nbsp;</td><td style="${cellC}">&nbsp;</td><td style="${cellR}">&nbsp;</td><td style="${cellR}">&nbsp;</td></tr>`;
             }
             rows += `<tr>
+                <td style="background:#ffffff;"></td>
                 <td style="background:#ffffff;"></td>
                 <td style="background:#ffffff;"></td>
                 <td style="${cellC}font-weight:800;">Total</td>
@@ -3030,10 +3042,12 @@ async function logout() {
                 rows += `<tr>
                     <td style="background:#ffffff;"></td>
                     <td style="background:#ffffff;"></td>
+                    <td style="background:#ffffff;"></td>
                     <td style="${cellC}font-weight:800;">Discount</td>
                     <td style="${cellR}font-weight:800;color:#c0392b;">- ₹${discount.toFixed(2)}</td>
                 </tr>
                 <tr>
+                    <td style="background:#ffffff;"></td>
                     <td style="background:#ffffff;"></td>
                     <td style="background:#ffffff;"></td>
                     <td style="${cellC}font-weight:800;">Net Paid</td>
@@ -3070,10 +3084,11 @@ async function logout() {
                     <table style="width:100%;border-collapse:separate;border-spacing:3px;">
                         <thead>
                             <tr>
-                                <th style="${head}text-align:left;width:52%;">Description</th>
-                                <th style="${head}text-align:center;width:16%;">Size</th>
-                                <th style="${head}text-align:center;width:16%;">Copies</th>
-                                <th style="${head}text-align:center;width:16%;">Total</th>
+                                <th style="${head}text-align:left;width:40%;">Description</th>
+                                <th style="${head}text-align:center;width:15%;">Size</th>
+                                <th style="${head}text-align:center;width:15%;">Copies</th>
+                                <th style="${head}text-align:right;width:15%;">Price</th>
+                                <th style="${head}text-align:right;width:15%;">Total</th>
                             </tr>
                         </thead>
                         <tbody>${rows}</tbody>
@@ -4345,7 +4360,7 @@ async function logout() {
             });
 
             pdfDiv.innerHTML = `
-                <div style="text-align: center; margin-bottom: 20px;">
+<div style="text-align: center; margin-bottom: 20px;">
                     <h2 style="color: #f26522; margin-bottom: 5px; font-size: 24px;">GST Financial Ledger</h2>
                     <p style="color: #666; margin-top: 0; font-size: 14px;">Period: ${monthText}</p>
                 </div>
@@ -4372,8 +4387,7 @@ async function logout() {
                             <th style="padding: 10px; border: 1px solid #333; font-size: 12px; text-align:left;">Particulars</th>
                             <th style="padding: 10px; border: 1px solid #333; font-size: 12px; text-align:right;">Credit (In)</th>
                             <th style="padding: 10px; border: 1px solid #333; font-size: 12px; text-align:right;">Debit (Out)</th>
-                            <th style="padding: 10px; border: 1px solid #333; font-size: 12px; text-align:rightI'm having a hard time fulfilling your request. Can I help you with something else instead?
-;">Balance</th>
+                            <th style="padding: 10px; border: 1px solid #333; font-size: 12px; text-align:right;">Balance</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -4400,7 +4414,7 @@ async function logout() {
             }).save().then(() => {
                 document.body.removeChild(pdfDiv);
             });
-        }
+        }[cite: 1]
 
         function initSaleForm() {
             const today = new Date().toISOString().split('T')[0];
@@ -4408,7 +4422,7 @@ async function logout() {
             const sInv = document.getElementById('s_inv');
             if(sDate) sDate.value = today;
             if(sInv) sInv.value = getFYInvoiceNo();
-        }
+        }[cite: 1]
 
         function addSaleRow() {
             const tbody = document.querySelector('#saleItems tbody');
@@ -4432,20 +4446,20 @@ async function logout() {
             `;
             if(tbody) tbody.appendChild(tr);
             updateRowNumbers();
-        }
+        }[cite: 1]
 
         function updateRowNumbers() {
             const rows = document.querySelectorAll('#saleItems tbody tr');
             rows.forEach((row, index) => {
                 row.querySelector('.sl-number').innerText = index + 1;
             });
-        }
+        }[cite: 1]
         
         function removeRow(btn) {
             btn.closest('tr').remove();
             updateRowNumbers();
             calcSale();
-        }
+        }[cite: 1]
 
         function calcSale() {
             let subTotal = 0, totalTax = 0;
@@ -4465,7 +4479,7 @@ async function logout() {
             if(sSub) sSub.innerText = subTotal.toFixed(2);
             if(sTax) sTax.innerText = totalTax.toFixed(2);
             if(sGrand) sGrand.innerText = (subTotal + totalTax).toFixed(2);
-        }
+        }[cite: 1]
 
         function generateAndPrintSale() {
             let client = document.getElementById('s_client').value;
@@ -4528,7 +4542,7 @@ async function logout() {
             document.getElementById('p_total').innerText = document.getElementById('s_grand').innerText;
 
             window.print();
-        }
+        }[cite: 1]
 
         function renderTrustedLogos() {
             const tbody = document.querySelector('#trusted-logos-table tbody');
@@ -4550,7 +4564,7 @@ async function logout() {
                     </tr>
                 `;
             });
-        }
+        }[cite: 1]
 
         function renderPortfolioItems() {
             const tbody = document.querySelector('#portfolio-table tbody');
@@ -4574,7 +4588,7 @@ async function logout() {
                     </tr>
                 `;
             });
-        }
+        }[cite: 1]
 
         function renderTeamTable() {
             const tbody = document.querySelector('#team-table tbody');
@@ -4598,7 +4612,7 @@ async function logout() {
                     </tr>
                 `;
             });
-        }
+        }[cite: 1]
 
         async function handleClientLogoSubmit(e) {
             e.preventDefault();
@@ -4650,7 +4664,7 @@ async function logout() {
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'Add Logos';
             }
-        }
+        }[cite: 1]
 
         async function removeTrustedLogo(id) {
             if(!confirm("Are you sure you want to remove this client logo?")) return;
@@ -4663,7 +4677,7 @@ async function logout() {
             appData.trustedLogos = appData.trustedLogos.filter(l => String(l.id) !== String(id));
             renderTrustedLogos();
             showToast("Trusted Logo Removed!");
-        }
+        }[cite: 1]
 
         async function handlePortfolioSubmit(e) {
             e.preventDefault();
@@ -4724,7 +4738,7 @@ async function logout() {
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'Publish';
             }
-        }
+        }[cite: 1]
 
         async function removePortfolioItem(id) {
             if(!confirm("Are you sure you want to remove this portfolio item?")) return;
@@ -4737,7 +4751,7 @@ async function logout() {
             appData.portfolioItems = appData.portfolioItems.filter(p => String(p.id) !== String(id));
             renderPortfolioItems();
             showToast("Portfolio Item Removed!");
-        }
+        }[cite: 1]
 
         async function handleTeamSubmit(e) {
             e.preventDefault();
@@ -4788,7 +4802,7 @@ async function logout() {
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'Add Member';
             }
-        }
+        }[cite: 1]
 
         async function removeTeamMember(id) {
             if(!confirm("Are you sure you want to remove this team member?")) return;
@@ -4801,7 +4815,7 @@ async function logout() {
             appData.team = appData.team.filter(m => String(m.id) !== String(id));
             renderTeamTable();
             showToast("Team Member Removed!");
-        }
+        }[cite: 1]
 
         resetWorkRows();
     </script>
