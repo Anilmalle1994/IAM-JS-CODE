@@ -2474,6 +2474,16 @@ if(profileToggle) {
         closeAllSubmenus(); // Ensure other menus close when this opens
     });
 }
+// Toggle profile dropdown
+const profileToggle = document.getElementById('profile-menu-toggle');
+if(profileToggle) {
+    profileToggle.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        document.getElementById('profile-dropdown').classList.toggle('open');
+        closeAllSubmenus(); // Ensure other menus close when this opens
+    });
+}
 
 // Close menus when clicking outside
 document.addEventListener('click', function(e) {
