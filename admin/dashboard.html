@@ -1768,61 +1768,54 @@
         // ==========================================
         // POSTER GENERATOR & STYLES MANAGER LOGIC
         // ==========================================
-        async function addNewTemplateStyle() {
-            const styleName = document.getElementById('new-style-name').value.trim();
-            const fileInput = document.getElementById('new-style-image');
-            const submitBtn = document.querySelector('#admin-styles-manager .btn-primary');
-            
-            if(!styleName) return alert("Enter a style name");
-            if(!fileInput || fileInput.files.length === 0) return alert("Please select a background image for this style.");
-            
-            submitBtn.disabled = true;
-            submitBtn.textContent = 'Uploading...';
+async function addNewTemplateStyle() {
+    const styleName = document.getElementById('new-style-name').value.trim();
+    const fileInput = document.getElementById('new-style-image');
+    const submitBtn = document.querySelector('#admin-styles-manager .btn-primary');
+    
+    if(!styleName) return alert("Enter a style name");
+    if(!fileInput || fileInput.files.length === 0) return alert("Please select a background image for this style.");
+    
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Uploading...';
 
-            try {
-                const file = fileInput.files[0];
-                const fileExt = file.name.split('.').pop();
-                const uniqueFileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+    try {
+        const file = fileInput.files[0];
+        const fileExt = file.name.split('.').pop();
+        const uniqueFileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
 
-                const { error: uploadError } = await supabaseClient.storage.from('poster_backgrounds').upload(uniqueFileName, file);
-                if (uploadError) throw uploadError;
+        // 1. Upload image to Supabase Storage
+        const { error: uploadError } = await supabaseClient.storage.from('poster_backgrounds').upload(uniqueFileName, file);
+        if (uploadError) throw uploadError;
 
-                const { data: publicUrlData } = supabaseClient.storage.from('poster_backgrounds').getPublicUrl(uniqueFileName);
-                const imageUrl = publicUrlData.publicUrl;
+        // 2. Get the public URL
+        const { data: publicUrlData } = supabaseClient.storage.from('poster_backgrounds').getPublicUrl(uniqueFileName);
+        const imageUrl = publicUrlData.publicUrl;
 
-                const { error: dbError } = await supabaseClient.from('poster_styles').insert([{
-                    style_name: styleName,
-                    image_url: imageUrl
-                }]);
-                
-                if (dbError) throw dbError;
+        // 3. Insert into database WITH manually generated UUID
+        const { error: dbError } = await supabaseClient.from('poster_styles').insert([{
+            id: crypto.randomUUID(), // Generates a valid UUID format for Supabase
+            style_name: styleName,
+            image_url: imageUrl
+        }]);
+        
+        if (dbError) throw dbError;
 
-                document.getElementById('new-style-name').value = '';
-                fileInput.value = '';
-                showToast("Template Style Added to Cloud!");
-                
-                loadPosterStyles();
+        // 4. Reset UI
+        document.getElementById('new-style-name').value = '';
+        fileInput.value = '';
+        showToast("Template Style Added to Cloud!");
+        
+        loadPosterStyles();
 
-            } catch (err) {
-                console.error("Upload error:", err.message);
-                alert("Error: " + err.message + "\n\nDid you create the 'poster_styles' table and 'poster_backgrounds' bucket in Supabase?");
-            } finally {
-                submitBtn.disabled = false;
-                submitBtn.textContent = 'Add Style';
-            }
-        }
-
-        async function loadPosterStyles() {
-            let finalStyles = [];
-            try {
-                const { data: styles, error } = await supabaseClient.from('poster_styles').select('*');
-                if (error) throw error;
-                finalStyles = styles || [];
-            } catch(err) {
-                console.warn("Cloud styles blocked or missing, falling back to local storage.", err.message);
-                let rawStyles = JSON.parse(localStorage.getItem('poster_template_styles') || '[]');
-                finalStyles = rawStyles.map((s, idx) => ({ id: 'local_' + idx, style_name: s.name || s, image_url: s.image || '' }));
-            }
+    } catch (err) {
+        console.error("Upload error:", err.message);
+        alert("Error: " + err.message + "\n\nDid you create the 'poster_styles' table and 'poster_backgrounds' bucket in Supabase?");
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Add Style';
+    }
+}
 
             const userSelect = document.getElementById('user-template-style');
             if(userSelect) {
