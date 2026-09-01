@@ -16,44 +16,45 @@
 
     <style>
         /* Profile Dropdown Styling */
-.profile-dropdown { 
-    position: absolute; 
-    top: 55px; 
-    right: 0; 
-    background: var(--white); 
-    border-radius: var(--radius-md); 
-    box-shadow: 0 10px 30px rgba(0,0,0,0.1); 
-    width: 150px; 
-    display: none; 
-    flex-direction: column; 
-    z-index: 2000; 
-    border: 1px solid #f0f0f0; 
-    padding: 8px;
-}
-.profile-dropdown.open { 
-    display: flex; 
-    animation: slideDown 0.2s ease; 
-}
-@keyframes slideDown { 
-    from { opacity: 0; transform: translateY(-10px); } 
-    to { opacity: 1; transform: translateY(0); } 
-}
-.profile-dropdown button { 
-    background: none; 
-    border: none; 
-    padding: 10px; 
-    width: 100%; 
-    text-align: left; 
-    cursor: pointer; 
-    font-size: 13px; 
-    font-weight: 500; 
-    color: #ef4444; 
-    border-radius: 6px; 
-    transition: 0.2s; 
-}
-.profile-dropdown button:hover { 
-    background: #f4f5f7; 
-}
+        .profile-dropdown { 
+            position: absolute; 
+            top: 55px; 
+            right: 0; 
+            background: var(--white); 
+            border-radius: var(--radius-md); 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1); 
+            width: 150px; 
+            display: none; 
+            flex-direction: column; 
+            z-index: 2000; 
+            border: 1px solid #f0f0f0; 
+            padding: 8px;
+        }
+        .profile-dropdown.open { 
+            display: flex; 
+            animation: slideDown 0.2s ease; 
+        }
+        @keyframes slideDown { 
+            from { opacity: 0; transform: translateY(-10px); } 
+            to { opacity: 1; transform: translateY(0); } 
+        }
+        .profile-dropdown button { 
+            background: none; 
+            border: none; 
+            padding: 10px; 
+            width: 100%; 
+            text-align: left; 
+            cursor: pointer; 
+            font-size: 13px; 
+            font-weight: 500; 
+            color: #ef4444; 
+            border-radius: 6px; 
+            transition: 0.2s; 
+        }
+        .profile-dropdown button:hover { 
+            background: #f4f5f7; 
+        }
+
         /* Variables & Base Setup */
         :root { 
             --primary: #f26522; 
@@ -435,20 +436,20 @@
             </div>
             
             <div class="admin-profile">
-    <div class="header-icon admin-nav-item" title="Search">🔍</div>
-    <div class="header-icon admin-nav-item" title="Notifications">🔔</div>
-    
-    <!-- Updated Profile Chip with Dropdown -->
-    <div class="profile-wrapper" id="profile-menu-toggle" style="position: relative; cursor: pointer;">
-        <div class="profile-chip">
-            <span class="avatar">A</span>
-            <div id="user-email">iamdesign81@gmail.com</div>
-        </div>
-        <div class="profile-dropdown" id="profile-dropdown">
-            <button onclick="logout()">🚪 Logout</button>
-        </div>
-    </div>
-</div>
+                <div class="header-icon admin-nav-item" title="Search">🔍</div>
+                <div class="header-icon admin-nav-item" title="Notifications">🔔</div>
+                
+                <!-- Updated Profile Chip with Dropdown -->
+                <div class="profile-wrapper" id="profile-menu-toggle" style="position: relative; cursor: pointer;">
+                    <div class="profile-chip">
+                        <span class="avatar">A</span>
+                        <div id="user-email">iamdesign81@gmail.com</div>
+                    </div>
+                    <div class="profile-dropdown" id="profile-dropdown">
+                        <button onclick="logout()">🚪 Logout</button>
+                    </div>
+                </div>
+            </div>
         </header>
 
         <nav class="top-nav" id="main-top-nav" style="margin: 0 30px 10px 0;">
@@ -1601,22 +1602,20 @@
                 return false;
             }
         }
-async function logout() {
-        try {
-            // 1. Tell Supabase to end the session (clears its own auth tokens automatically)
-            await supabaseClient.auth.signOut();
-        } catch (error) {
-            console.warn("Supabase signout issue (safe to ignore):", error.message);
-        } finally {
-            // 2. Clear only session data so we DON'T delete your local vendors/styles
-            sessionStorage.clear();
-            
-            // 3. Force redirect. 
-            // If your login page is in the main folder, use '../index.html'
-            // If your login page is called 'AVEO Login.html' and in the same folder, use that instead.
-            window.location.replace('../index.html'); 
+        
+        async function logout() {
+            try {
+                // 1. Tell Supabase to end the session
+                await supabaseClient.auth.signOut();
+            } catch (error) {
+                console.warn("Supabase signout issue:", error.message);
+            } finally {
+                // 2. Clear only session data so we DON'T delete your local vendors/styles
+                sessionStorage.clear();
+                // 3. Force redirect
+                window.location.replace('../index.html'); 
+            }
         }
-    }
         
         window.processWebhookPayment = async function(orderId, amountPaid) {
             const order = appData.orders[orderId];
@@ -1647,319 +1646,319 @@ async function logout() {
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         
-// ==========================================
-    // TIME-BASED GREETING & NIGHT THEME
-    // ==========================================
-    window.applyTimeBasedThemeAndGreeting = function(name = 'Anil Malle') {
-        const hour = new Date().getHours();
-        const greetingEl = document.getElementById('greeting-text');
-        if (!greetingEl) return;
+        // ==========================================
+        // TIME-BASED GREETING & NIGHT THEME
+        // ==========================================
+        window.applyTimeBasedThemeAndGreeting = function(name = 'Anil Malle') {
+            const hour = new Date().getHours();
+            const greetingEl = document.getElementById('greeting-text');
+            if (!greetingEl) return;
 
-        if (hour >= 5 && hour < 12) {
-            greetingEl.innerText = `Good Morning, ${name}`;
-            document.body.classList.remove('night-theme');
-        } else if (hour >= 12 && hour < 18) {
-            greetingEl.innerText = `Good Afternoon, ${name}`;
-            document.body.classList.remove('night-theme');
-        } else {
-            greetingEl.innerText = `Good Evening, ${name}`;
-            document.body.classList.add('night-theme');
-        }
-    };
-    
-    applyTimeBasedThemeAndGreeting();
-
-    // ==========================================
-    // RBAC / AUTH CHECK & DISPLAY NAMES
-    // ==========================================
-async function checkAuth() {
-    const { data: { session }, error } = await supabaseClient.auth.getSession();
-    if (!session || error) {
-        window.location.replace('../index.html'); 
-    } else {
-            const email = session.user.email;
-            const nameDisplay = document.getElementById('user-email');
-            const avatarDisplay = document.querySelector('.profile-chip .avatar');
-
-            if (email === 'kj.apple9@gmail.com') { // RESTRICTED USER
-                if(nameDisplay) nameDisplay.innerText = "AVEO";
-                if(avatarDisplay) avatarDisplay.innerText = "A";
-                enforceRestrictedUserView();
-            } else { // ADMIN
-                if(nameDisplay) nameDisplay.innerText = "Anil Malle";
-                if(avatarDisplay) avatarDisplay.innerText = "A";
-                enforceAdminView();
+            if (hour >= 5 && hour < 12) {
+                greetingEl.innerText = `Good Morning, ${name}`;
+                document.body.classList.remove('night-theme');
+            } else if (hour >= 12 && hour < 18) {
+                greetingEl.innerText = `Good Afternoon, ${name}`;
+                document.body.classList.remove('night-theme');
+            } else {
+                greetingEl.innerText = `Good Evening, ${name}`;
+                document.body.classList.add('night-theme');
             }
-        }
-    }
-
-    function enforceAdminView() {
-        const sidebar = document.getElementById('sidebar');
-        if (sidebar) sidebar.style.display = 'flex';
-        const topNav = document.getElementById('main-top-nav');
-        if (topNav) topNav.style.display = 'flex';
-        const topbarLeft = document.querySelector('.topbar-left');
-        if (topbarLeft) topbarLeft.style.display = 'flex';
-
-        const mainContent = document.querySelector('.main-content');
-        if (mainContent) {
-            mainContent.style.marginLeft = 'calc(var(--icon-sidebar-width) + 30px)';
-            mainContent.style.width = 'calc(100% - var(--icon-sidebar-width) - 30px)';
-        }
-
-        const topbar = document.querySelector('.topbar');
-        if (topbar) topbar.style.justifyContent = 'space-between';
-
+        };
+        
         applyTimeBasedThemeAndGreeting();
 
-        document.querySelectorAll('.view-section').forEach(el => {
-            el.classList.remove('active');
-            el.style.display = ''; 
-        });
-        
-        const dashboardView = document.getElementById('dashboard');
-        if (dashboardView) {
-            dashboardView.classList.add('active');
-            dashboardView.style.display = 'block';
-        }
-
-        loadPosterStyles();
-    }
-
-    function enforceRestrictedUserView() {
-        const sidebar = document.getElementById('sidebar');
-        if (sidebar) sidebar.style.display = 'none';
-        const topNav = document.getElementById('main-top-nav');
-        if (topNav) topNav.style.display = 'none';
-        const topbarLeft = document.querySelector('.topbar-left');
-        if (topbarLeft) topbarLeft.style.display = 'none';
-
-        const mainContent = document.querySelector('.main-content');
-        if (mainContent) {
-            mainContent.style.marginLeft = '0';
-            mainContent.style.width = '100%';
-        }
-
-        const topbar = document.querySelector('.topbar');
-        if (topbar) topbar.style.justifyContent = 'flex-start';
-
-        document.querySelectorAll('.view-section').forEach(el => {
-            el.classList.remove('active');
-            el.style.display = 'none'; 
-        });
-
-        document.body.classList.remove('night-theme');
-        window.applyTimeBasedThemeAndGreeting = function() {
-            document.body.classList.remove('night-theme'); 
-        };
-        
-        const greetingEl = document.getElementById('greeting-text');
-        if (greetingEl) {
-            greetingEl.innerText = 'Welcome, AVEO';
-            greetingEl.style.display = 'none'; 
-        }
-
-        const posterView = document.getElementById('poster-generator-view');
-        if (posterView) {
-            posterView.classList.add('active');
-            posterView.style.display = 'block'; 
-        }
-
-        loadPosterStyles();
-    }
-
-    // ==========================================
-    // POSTER GENERATOR & STYLES MANAGER LOGIC
-    // ==========================================
-    async function addNewTemplateStyle() {
-        const styleName = document.getElementById('new-style-name').value.trim();
-        const fileInput = document.getElementById('new-style-image');
-        const submitBtn = document.querySelector('#admin-styles-manager .btn-primary');
-        
-        if(!styleName) return alert("Enter a style name");
-        if(!fileInput || fileInput.files.length === 0) return alert("Please select a background image for this style.");
-        
-        submitBtn.disabled = true;
-        submitBtn.textContent = 'Uploading...';
-
-        try {
-            const file = fileInput.files[0];
-            const fileExt = file.name.split('.').pop();
-            const uniqueFileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
-
-            const { error: uploadError } = await supabaseClient.storage.from('poster_backgrounds').upload(uniqueFileName, file);
-            if (uploadError) throw uploadError;
-
-            const { data: publicUrlData } = supabaseClient.storage.from('poster_backgrounds').getPublicUrl(uniqueFileName);
-            const imageUrl = publicUrlData.publicUrl;
-
-            const { error: dbError } = await supabaseClient.from('poster_styles').insert([{
-                style_name: styleName,
-                image_url: imageUrl
-            }]);
-            
-            if (dbError) throw dbError;
-
-            document.getElementById('new-style-name').value = '';
-            fileInput.value = '';
-            showToast("Template Style Added to Cloud!");
-            
-            loadPosterStyles();
-
-        } catch (err) {
-            console.error("Upload error:", err.message);
-            alert("Error: " + err.message + "\n\nDid you create the 'poster_styles' table and 'poster_backgrounds' bucket in Supabase?");
-        } finally {
-            submitBtn.disabled = false;
-            submitBtn.textContent = 'Add Style';
-        }
-    }
-
-    async function loadPosterStyles() {
-        let finalStyles = [];
-        try {
-            const { data: styles, error } = await supabaseClient.from('poster_styles').select('*');
-            if (error) throw error;
-            finalStyles = styles || [];
-        } catch(err) {
-            console.warn("Cloud styles blocked or missing, falling back to local storage.", err.message);
-            let rawStyles = JSON.parse(localStorage.getItem('poster_template_styles') || '[]');
-            finalStyles = rawStyles.map((s, idx) => ({ id: 'local_' + idx, style_name: s.name || s, image_url: s.image || '' }));
-        }
-
-        const userSelect = document.getElementById('user-template-style');
-        if(userSelect) {
-            userSelect.innerHTML = '<option value="">Select a Template Style...</option>';
-            finalStyles.forEach(s => {
-                userSelect.innerHTML += `<option value="${s.id}" data-img="${s.image_url}">${s.style_name}</option>`;
-            });
-        }
-
-        const adminList = document.getElementById('admin-styles-list');
-        if(adminList) {
-            adminList.innerHTML = '';
-            finalStyles.forEach(s => {
-                let imgTag = s.image_url ? `<img src="${s.image_url}" style="width:35px; height:35px; object-fit:cover; border-radius:6px;">` : '📄';
-                adminList.innerHTML += `
-                    <li style="margin-bottom: 10px; display: flex; align-items: center; gap: 12px; background: #f8f9fa; padding: 8px; border-radius: 8px; border: 1px solid #e5e7eb;">
-                        ${imgTag}
-                        <strong style="flex: 1;">${s.style_name}</strong>
-                        <button onclick="deleteTemplateStyle('${s.id}')" class="remove-btn" style="font-size: 12px;">✖ Remove</button>
-                    </li>`;
-            });
-        }
-    }
-
-    async function deleteTemplateStyle(id) {
-        if(!confirm("Are you sure you want to delete this template style?")) return;
-        
-        if (String(id).startsWith('local_')) {
-            let idx = parseInt(id.split('_')[1]);
-            let styles = JSON.parse(localStorage.getItem('poster_template_styles') || '[]');
-            styles.splice(idx, 1);
-            localStorage.setItem('poster_template_styles', JSON.stringify(styles));
-            showToast("Local Style Removed!");
-            loadPosterStyles();
-            return;
-        }
-        
-        try {
-            const { error } = await supabaseClient.from('poster_styles').delete().eq('id', id);
-            if (error) throw error;
-            showToast("Cloud Template Style Removed!");
-            loadPosterStyles();
-        } catch (err) {
-            alert("Error deleting style: " + err.message);
-        }
-    }
-
-    function generatePoster() {
-        const styleSelect = document.getElementById('user-template-style');
-        const selectedOption = styleSelect.options[styleSelect.selectedIndex];
-        
-        if (!selectedOption || !selectedOption.value) return alert("Please select a Template Style first.");
-        
-        const templateBgUrl = selectedOption.getAttribute('data-img');
-        if (!templateBgUrl || templateBgUrl === "undefined") return alert("The selected template does not have a background image.");
-
-        const photoInput = document.getElementById('user-poster-photo');
-        const meetingNo = document.getElementById('poster-meeting').value || '';
-        const leads = document.getElementById('poster-leads').value || '';
-        const wealth = document.getElementById('poster-wealth').value || '';
-        const f2f = document.getElementById('poster-f2f').value || '';
-        const visitors = document.getElementById('poster-visitors').value || '';
-
-        const previewContainer = document.getElementById('poster-preview-container');
-        previewContainer.innerHTML = '<span style="color:var(--primary);font-weight:bold;">Rendering Poster...</span>';
-
-        const bgImg = new Image();
-        bgImg.crossOrigin = "Anonymous"; 
-        
-        bgImg.onload = function() {
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            canvas.width = bgImg.width;
-            canvas.height = bgImg.height;
-
-            ctx.drawImage(bgImg, 0, 0, canvas.width, canvas.height);
-
-            const finalizeAndDrawText = () => {
-                ctx.fillStyle = "#ffffff"; 
-                ctx.font = "bold 40px Arial"; 
-                ctx.textAlign = "left"; 
-
-                // UPDATE THESE COORDINATES based on your background image design
-                ctx.fillText(meetingNo, 200, 300); 
-                ctx.fillText(leads, 200, 400);     
-                ctx.fillText(wealth, 200, 500);    
-                ctx.fillText(f2f, 200, 600);       
-                ctx.fillText(visitors, 200, 700);  
-
-                canvas.style.width = "100%";
-                canvas.style.height = "auto";
-                canvas.style.maxHeight = "700px";
-                canvas.style.objectFit = "contain";
-                canvas.style.boxShadow = "0 10px 30px rgba(0,0,0,0.1)";
-                
-                previewContainer.innerHTML = '';
-                previewContainer.appendChild(canvas);
-                
-                const downloadBtn = document.createElement('button');
-                downloadBtn.className = "btn-primary";
-                downloadBtn.style.marginTop = "20px";
-                downloadBtn.innerHTML = "📥 Download Poster";
-                downloadBtn.onclick = () => {
-                    const link = document.createElement('a');
-                    link.download = `Meeting_Poster_${meetingNo || 'Generated'}.png`;
-                    link.href = canvas.toDataURL("image/png");
-                    link.click();
-                };
-                previewContainer.appendChild(downloadBtn);
-            };
-
-            if (photoInput.files && photoInput.files[0]) {
-                const userPhotoReader = new FileReader();
-                userPhotoReader.onload = function(e) {
-                    const userImg = new Image();
-                    userImg.onload = function() {
-                        // UPDATE THESE COORDINATES for the User Photo
-                        ctx.drawImage(userImg, 600, 200, 350, 350); 
-                        finalizeAndDrawText();
-                    };
-                    userImg.src = e.target.result;
-                };
-                userPhotoReader.readAsDataURL(photoInput.files[0]);
+        // ==========================================
+        // RBAC / AUTH CHECK & DISPLAY NAMES
+        // ==========================================
+        async function checkAuth() {
+            const { data: { session }, error } = await supabaseClient.auth.getSession();
+            if (!session || error) {
+                window.location.replace('../index.html'); 
             } else {
-                finalizeAndDrawText(); 
+                const email = session.user.email;
+                const nameDisplay = document.getElementById('user-email');
+                const avatarDisplay = document.querySelector('.profile-chip .avatar');
+
+                if (email === 'kj.apple9@gmail.com') { // RESTRICTED USER
+                    if(nameDisplay) nameDisplay.innerText = "AVEO";
+                    if(avatarDisplay) avatarDisplay.innerText = "A";
+                    enforceRestrictedUserView();
+                } else { // ADMIN
+                    if(nameDisplay) nameDisplay.innerText = "Anil Malle";
+                    if(avatarDisplay) avatarDisplay.innerText = "A";
+                    enforceAdminView();
+                }
             }
-        };
-        
-        bgImg.onerror = function() {
-            previewContainer.innerHTML = '<span style="color:red;">Error loading template image. Check CORS/Supabase settings.</span>';
-        };
-        
-        bgImg.src = templateBgUrl;
-    }
+        }
+
+        function enforceAdminView() {
+            const sidebar = document.getElementById('sidebar');
+            if (sidebar) sidebar.style.display = 'flex';
+            const topNav = document.getElementById('main-top-nav');
+            if (topNav) topNav.style.display = 'flex';
+            const topbarLeft = document.querySelector('.topbar-left');
+            if (topbarLeft) topbarLeft.style.display = 'flex';
+
+            const mainContent = document.querySelector('.main-content');
+            if (mainContent) {
+                mainContent.style.marginLeft = 'calc(var(--icon-sidebar-width) + 30px)';
+                mainContent.style.width = 'calc(100% - var(--icon-sidebar-width) - 30px)';
+            }
+
+            const topbar = document.querySelector('.topbar');
+            if (topbar) topbar.style.justifyContent = 'space-between';
+
+            applyTimeBasedThemeAndGreeting();
+
+            document.querySelectorAll('.view-section').forEach(el => {
+                el.classList.remove('active');
+                el.style.display = ''; 
+            });
+            
+            const dashboardView = document.getElementById('dashboard');
+            if (dashboardView) {
+                dashboardView.classList.add('active');
+                dashboardView.style.display = 'block';
+            }
+
+            loadPosterStyles();
+        }
+
+        function enforceRestrictedUserView() {
+            const sidebar = document.getElementById('sidebar');
+            if (sidebar) sidebar.style.display = 'none';
+            const topNav = document.getElementById('main-top-nav');
+            if (topNav) topNav.style.display = 'none';
+            const topbarLeft = document.querySelector('.topbar-left');
+            if (topbarLeft) topbarLeft.style.display = 'none';
+
+            const mainContent = document.querySelector('.main-content');
+            if (mainContent) {
+                mainContent.style.marginLeft = '0';
+                mainContent.style.width = '100%';
+            }
+
+            const topbar = document.querySelector('.topbar');
+            if (topbar) topbar.style.justifyContent = 'flex-start';
+
+            document.querySelectorAll('.view-section').forEach(el => {
+                el.classList.remove('active');
+                el.style.display = 'none'; 
+            });
+
+            document.body.classList.remove('night-theme');
+            window.applyTimeBasedThemeAndGreeting = function() {
+                document.body.classList.remove('night-theme'); 
+            };
+            
+            const greetingEl = document.getElementById('greeting-text');
+            if (greetingEl) {
+                greetingEl.innerText = 'Welcome, AVEO';
+                greetingEl.style.display = 'none'; 
+            }
+
+            const posterView = document.getElementById('poster-generator-view');
+            if (posterView) {
+                posterView.classList.add('active');
+                posterView.style.display = 'block'; 
+            }
+
+            loadPosterStyles();
+        }
+
+        // ==========================================
+        // POSTER GENERATOR & STYLES MANAGER LOGIC
+        // ==========================================
+        async function addNewTemplateStyle() {
+            const styleName = document.getElementById('new-style-name').value.trim();
+            const fileInput = document.getElementById('new-style-image');
+            const submitBtn = document.querySelector('#admin-styles-manager .btn-primary');
+            
+            if(!styleName) return alert("Enter a style name");
+            if(!fileInput || fileInput.files.length === 0) return alert("Please select a background image for this style.");
+            
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Uploading...';
+
+            try {
+                const file = fileInput.files[0];
+                const fileExt = file.name.split('.').pop();
+                const uniqueFileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+
+                const { error: uploadError } = await supabaseClient.storage.from('poster_backgrounds').upload(uniqueFileName, file);
+                if (uploadError) throw uploadError;
+
+                const { data: publicUrlData } = supabaseClient.storage.from('poster_backgrounds').getPublicUrl(uniqueFileName);
+                const imageUrl = publicUrlData.publicUrl;
+
+                const { error: dbError } = await supabaseClient.from('poster_styles').insert([{
+                    style_name: styleName,
+                    image_url: imageUrl
+                }]);
+                
+                if (dbError) throw dbError;
+
+                document.getElementById('new-style-name').value = '';
+                fileInput.value = '';
+                showToast("Template Style Added to Cloud!");
+                
+                loadPosterStyles();
+
+            } catch (err) {
+                console.error("Upload error:", err.message);
+                alert("Error: " + err.message + "\n\nDid you create the 'poster_styles' table and 'poster_backgrounds' bucket in Supabase?");
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Add Style';
+            }
+        }
+
+        async function loadPosterStyles() {
+            let finalStyles = [];
+            try {
+                const { data: styles, error } = await supabaseClient.from('poster_styles').select('*');
+                if (error) throw error;
+                finalStyles = styles || [];
+            } catch(err) {
+                console.warn("Cloud styles blocked or missing, falling back to local storage.", err.message);
+                let rawStyles = JSON.parse(localStorage.getItem('poster_template_styles') || '[]');
+                finalStyles = rawStyles.map((s, idx) => ({ id: 'local_' + idx, style_name: s.name || s, image_url: s.image || '' }));
+            }
+
+            const userSelect = document.getElementById('user-template-style');
+            if(userSelect) {
+                userSelect.innerHTML = '<option value="">Select a Template Style...</option>';
+                finalStyles.forEach(s => {
+                    userSelect.innerHTML += `<option value="${s.id}" data-img="${s.image_url}">${s.style_name}</option>`;
+                });
+            }
+
+            const adminList = document.getElementById('admin-styles-list');
+            if(adminList) {
+                adminList.innerHTML = '';
+                finalStyles.forEach(s => {
+                    let imgTag = s.image_url ? `<img src="${s.image_url}" style="width:35px; height:35px; object-fit:cover; border-radius:6px;">` : '📄';
+                    adminList.innerHTML += `
+                        <li style="margin-bottom: 10px; display: flex; align-items: center; gap: 12px; background: #f8f9fa; padding: 8px; border-radius: 8px; border: 1px solid #e5e7eb;">
+                            ${imgTag}
+                            <strong style="flex: 1;">${s.style_name}</strong>
+                            <button onclick="deleteTemplateStyle('${s.id}')" class="remove-btn" style="font-size: 12px;">✖ Remove</button>
+                        </li>`;
+                });
+            }
+        }
+
+        async function deleteTemplateStyle(id) {
+            if(!confirm("Are you sure you want to delete this template style?")) return;
+            
+            if (String(id).startsWith('local_')) {
+                let idx = parseInt(id.split('_')[1]);
+                let styles = JSON.parse(localStorage.getItem('poster_template_styles') || '[]');
+                styles.splice(idx, 1);
+                localStorage.setItem('poster_template_styles', JSON.stringify(styles));
+                showToast("Local Style Removed!");
+                loadPosterStyles();
+                return;
+            }
+            
+            try {
+                const { error } = await supabaseClient.from('poster_styles').delete().eq('id', id);
+                if (error) throw error;
+                showToast("Cloud Template Style Removed!");
+                loadPosterStyles();
+            } catch (err) {
+                alert("Error deleting style: " + err.message);
+            }
+        }
+
+        function generatePoster() {
+            const styleSelect = document.getElementById('user-template-style');
+            const selectedOption = styleSelect.options[styleSelect.selectedIndex];
+            
+            if (!selectedOption || !selectedOption.value) return alert("Please select a Template Style first.");
+            
+            const templateBgUrl = selectedOption.getAttribute('data-img');
+            if (!templateBgUrl || templateBgUrl === "undefined") return alert("The selected template does not have a background image.");
+
+            const photoInput = document.getElementById('user-poster-photo');
+            const meetingNo = document.getElementById('poster-meeting').value || '';
+            const leads = document.getElementById('poster-leads').value || '';
+            const wealth = document.getElementById('poster-wealth').value || '';
+            const f2f = document.getElementById('poster-f2f').value || '';
+            const visitors = document.getElementById('poster-visitors').value || '';
+
+            const previewContainer = document.getElementById('poster-preview-container');
+            previewContainer.innerHTML = '<span style="color:var(--primary);font-weight:bold;">Rendering Poster...</span>';
+
+            const bgImg = new Image();
+            bgImg.crossOrigin = "Anonymous"; 
+            
+            bgImg.onload = function() {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                canvas.width = bgImg.width;
+                canvas.height = bgImg.height;
+
+                ctx.drawImage(bgImg, 0, 0, canvas.width, canvas.height);
+
+                const finalizeAndDrawText = () => {
+                    ctx.fillStyle = "#ffffff"; 
+                    ctx.font = "bold 40px Arial"; 
+                    ctx.textAlign = "left"; 
+
+                    // UPDATE THESE COORDINATES based on your background image design
+                    ctx.fillText(meetingNo, 200, 300); 
+                    ctx.fillText(leads, 200, 400);     
+                    ctx.fillText(wealth, 200, 500);    
+                    ctx.fillText(f2f, 200, 600);       
+                    ctx.fillText(visitors, 200, 700);  
+
+                    canvas.style.width = "100%";
+                    canvas.style.height = "auto";
+                    canvas.style.maxHeight = "700px";
+                    canvas.style.objectFit = "contain";
+                    canvas.style.boxShadow = "0 10px 30px rgba(0,0,0,0.1)";
+                    
+                    previewContainer.innerHTML = '';
+                    previewContainer.appendChild(canvas);
+                    
+                    const downloadBtn = document.createElement('button');
+                    downloadBtn.className = "btn-primary";
+                    downloadBtn.style.marginTop = "20px";
+                    downloadBtn.innerHTML = "📥 Download Poster";
+                    downloadBtn.onclick = () => {
+                        const link = document.createElement('a');
+                        link.download = `Meeting_Poster_${meetingNo || 'Generated'}.png`;
+                        link.href = canvas.toDataURL("image/png");
+                        link.click();
+                    };
+                    previewContainer.appendChild(downloadBtn);
+                };
+
+                if (photoInput.files && photoInput.files[0]) {
+                    const userPhotoReader = new FileReader();
+                    userPhotoReader.onload = function(e) {
+                        const userImg = new Image();
+                        userImg.onload = function() {
+                            // UPDATE THESE COORDINATES for the User Photo
+                            ctx.drawImage(userImg, 600, 200, 350, 350); 
+                            finalizeAndDrawText();
+                        };
+                        userImg.src = e.target.result;
+                    };
+                    userPhotoReader.readAsDataURL(photoInput.files[0]);
+                } else {
+                    finalizeAndDrawText(); 
+                }
+            };
+            
+            bgImg.onerror = function() {
+                previewContainer.innerHTML = '<span style="color:red;">Error loading template image. Check CORS/Supabase settings.</span>';
+            };
+            
+            bgImg.src = templateBgUrl;
+        }
 
         // ==========================================
         // FIXED TAB NAVIGATION LOGIC
@@ -2464,58 +2463,37 @@ async function checkAuth() {
             });
         }
 
-// Toggle profile dropdown
-const profileToggle = document.getElementById('profile-menu-toggle');
-if(profileToggle) {
-    profileToggle.addEventListener('click', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        document.getElementById('profile-dropdown').classList.toggle('open');
-        closeAllSubmenus(); // Ensure other menus close when this opens
-    });
-}
+        // Toggle profile dropdown
+        const profileToggle = document.getElementById('profile-menu-toggle');
+        if(profileToggle) {
+            profileToggle.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                document.getElementById('profile-dropdown').classList.toggle('open');
+                closeAllSubmenus(); // Ensure other menus close when this opens
+            });
+        }
 
-// Close menus when clicking outside
-document.addEventListener('click', function(e) {
-    const sub1 = document.getElementById('settings-submenu');
-    const sub2 = document.getElementById('gst-submenu');
-    const profileDrop = document.getElementById('profile-dropdown');
-    // ...
-    const tog1 = document.getElementById('settings-menu-toggle');
-    const tog2 = document.getElementById('gst-menu-toggle');
-    const togProfile = document.getElementById('profile-menu-toggle');
-    
-    if(sub1 && sub1.classList.contains('open') && !sub1.contains(e.target) && (!tog1 || !tog1.contains(e.target))) {
-        sub1.classList.remove('open');
-    }
-    if(sub2 && sub2.classList.contains('open') && !sub2.contains(e.target) && (!tog2 || !tog2.contains(e.target))) {
-        sub2.classList.remove('open');
-    }
-    if(profileDrop && profileDrop.classList.contains('open') && !profileDrop.contains(e.target) && (!togProfile || !togProfile.contains(e.target))) {
-        profileDrop.classList.remove('open');
-    }
-});
-
-// Close menus when clicking outside
-document.addEventListener('click', function(e) {
-    const sub1 = document.getElementById('settings-submenu');
-    const sub2 = document.getElementById('gst-submenu');
-    const profileDrop = document.getElementById('profile-dropdown');
-    
-    const tog1 = document.getElementById('settings-menu-toggle');
-    const tog2 = document.getElementById('gst-menu-toggle');
-    const togProfile = document.getElementById('profile-menu-toggle');
-    
-    if(sub1 && sub1.classList.contains('open') && !sub1.contains(e.target) && (!tog1 || !tog1.contains(e.target))) {
-        sub1.classList.remove('open');
-    }
-    if(sub2 && sub2.classList.contains('open') && !sub2.contains(e.target) && (!tog2 || !tog2.contains(e.target))) {
-        sub2.classList.remove('open');
-    }
-    if(profileDrop && profileDrop.classList.contains('open') && !profileDrop.contains(e.target) && (!togProfile || !togProfile.contains(e.target))) {
-        profileDrop.classList.remove('open');
-    }
-});
+        // Close menus when clicking outside
+        document.addEventListener('click', function(e) {
+            const sub1 = document.getElementById('settings-submenu');
+            const sub2 = document.getElementById('gst-submenu');
+            const profileDrop = document.getElementById('profile-dropdown');
+            
+            const tog1 = document.getElementById('settings-menu-toggle');
+            const tog2 = document.getElementById('gst-menu-toggle');
+            const togProfile = document.getElementById('profile-menu-toggle');
+            
+            if(sub1 && sub1.classList.contains('open') && !sub1.contains(e.target) && (!tog1 || !tog1.contains(e.target))) {
+                sub1.classList.remove('open');
+            }
+            if(sub2 && sub2.classList.contains('open') && !sub2.contains(e.target) && (!tog2 || !tog2.contains(e.target))) {
+                sub2.classList.remove('open');
+            }
+            if(profileDrop && profileDrop.classList.contains('open') && !profileDrop.contains(e.target) && (!togProfile || !togProfile.contains(e.target))) {
+                profileDrop.classList.remove('open');
+            }
+        });
 
         function showToast(message) {
             document.getElementById('toast-message').innerText = message;
@@ -2688,7 +2666,6 @@ document.addEventListener('click', function(e) {
             document.getElementById('nw-balance').value = Math.max(0, amt - adv);
         }
         
-        //[cite: 4]
         async function saveNewOrder() {
             const orderId = document.getElementById('nw-orderid').value;
             const client = document.getElementById('nw-client').value.trim();
@@ -3020,7 +2997,6 @@ document.addEventListener('click', function(e) {
             return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
         }
 
-        //[cite: 3]
         function getIamBillItems(order) {
             let raw = order.items;
             if (typeof raw === 'string') { try { raw = JSON.parse(raw); } catch (e) { raw = null; } }
@@ -3030,7 +3006,7 @@ document.addEventListener('click', function(e) {
                     desc: it.desc || it.work || '',
                     size: it.size || '',
                     qty: (it.qty || it.qty === 0) ? it.qty : '',
-                    rate: (it.rate || it.rate === 0) ? parseFloat(it.rate) : '', // Now capturing individual price
+                    rate: (it.rate || it.rate === 0) ? parseFloat(it.rate) : '', 
                     amount: (it.amount || it.amount === 0) ? parseFloat(it.amount) : ''
                 }));
             }
@@ -3087,7 +3063,6 @@ document.addEventListener('click', function(e) {
             return parseFloat(disc[orderId]) || 0;
         }
         
-        //[cite: 2]
         function buildIamBillHTML(order, billNo, logoBlock) {
             const items = getIamBillItems(order);
             const summed = items.reduce((t, i) => t + (parseFloat(i.amount) || 0), 0);
@@ -3110,7 +3085,6 @@ document.addEventListener('click', function(e) {
                 </tr>`;
             });
             for (let i = items.length; i < 2; i++) {
-                // Generates blank spacing rows to keep formatting neat
                 rows += `<tr><td style="${cellL}">&nbsp;</td><td style="${cellC}">&nbsp;</td><td style="${cellC}">&nbsp;</td><td style="${cellR}">&nbsp;</td><td style="${cellR}">&nbsp;</td></tr>`;
             }
             rows += `<tr>
@@ -4460,7 +4434,8 @@ document.addEventListener('click', function(e) {
                     </div>
                     <div style="text-align: center; flex: 1;">
                         <strong style="color: #666; font-size: 12px; text-transform: uppercase;">Net Balance</strong><br>
-                        <span style="color: #2980b9; font-size: 18px; font-weight: bold;">${net}</span>
+                        <span style="I'm having a hard time fulfilling your request. Can I help you with something else instead?
+color: #2980b9; font-size: 18px; font-weight: bold;">${net}</span>
                     </div>
                 </div>
                 <table style="width: 100%; border-collapse: collapse;">
@@ -4499,7 +4474,7 @@ document.addEventListener('click', function(e) {
             }).save().then(() => {
                 document.body.removeChild(pdfDiv);
             });
-        }[cite: 1]
+        }
 
         function initSaleForm() {
             const today = new Date().toISOString().split('T')[0];
@@ -4507,7 +4482,7 @@ document.addEventListener('click', function(e) {
             const sInv = document.getElementById('s_inv');
             if(sDate) sDate.value = today;
             if(sInv) sInv.value = getFYInvoiceNo();
-        }[cite: 1]
+        }
 
         function addSaleRow() {
             const tbody = document.querySelector('#saleItems tbody');
@@ -4531,20 +4506,20 @@ document.addEventListener('click', function(e) {
             `;
             if(tbody) tbody.appendChild(tr);
             updateRowNumbers();
-        }[cite: 1]
+        }
 
         function updateRowNumbers() {
             const rows = document.querySelectorAll('#saleItems tbody tr');
             rows.forEach((row, index) => {
                 row.querySelector('.sl-number').innerText = index + 1;
             });
-        }[cite: 1]
+        }
         
         function removeRow(btn) {
             btn.closest('tr').remove();
             updateRowNumbers();
             calcSale();
-        }[cite: 1]
+        }
 
         function calcSale() {
             let subTotal = 0, totalTax = 0;
@@ -4564,7 +4539,7 @@ document.addEventListener('click', function(e) {
             if(sSub) sSub.innerText = subTotal.toFixed(2);
             if(sTax) sTax.innerText = totalTax.toFixed(2);
             if(sGrand) sGrand.innerText = (subTotal + totalTax).toFixed(2);
-        }[cite: 1]
+        }
 
         function generateAndPrintSale() {
             let client = document.getElementById('s_client').value;
@@ -4627,7 +4602,7 @@ document.addEventListener('click', function(e) {
             document.getElementById('p_total').innerText = document.getElementById('s_grand').innerText;
 
             window.print();
-        }[cite: 1]
+        }
 
         function renderTrustedLogos() {
             const tbody = document.querySelector('#trusted-logos-table tbody');
@@ -4649,7 +4624,7 @@ document.addEventListener('click', function(e) {
                     </tr>
                 `;
             });
-        }[cite: 1]
+        }
 
         function renderPortfolioItems() {
             const tbody = document.querySelector('#portfolio-table tbody');
@@ -4673,7 +4648,7 @@ document.addEventListener('click', function(e) {
                     </tr>
                 `;
             });
-        }[cite: 1]
+        }
 
         function renderTeamTable() {
             const tbody = document.querySelector('#team-table tbody');
@@ -4697,7 +4672,7 @@ document.addEventListener('click', function(e) {
                     </tr>
                 `;
             });
-        }[cite: 1]
+        }
 
         async function handleClientLogoSubmit(e) {
             e.preventDefault();
@@ -4749,7 +4724,7 @@ document.addEventListener('click', function(e) {
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'Add Logos';
             }
-        }[cite: 1]
+        }
 
         async function removeTrustedLogo(id) {
             if(!confirm("Are you sure you want to remove this client logo?")) return;
@@ -4762,7 +4737,7 @@ document.addEventListener('click', function(e) {
             appData.trustedLogos = appData.trustedLogos.filter(l => String(l.id) !== String(id));
             renderTrustedLogos();
             showToast("Trusted Logo Removed!");
-        }[cite: 1]
+        }
 
         async function handlePortfolioSubmit(e) {
             e.preventDefault();
@@ -4823,7 +4798,7 @@ document.addEventListener('click', function(e) {
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'Publish';
             }
-        }[cite: 1]
+        }
 
         async function removePortfolioItem(id) {
             if(!confirm("Are you sure you want to remove this portfolio item?")) return;
@@ -4836,7 +4811,7 @@ document.addEventListener('click', function(e) {
             appData.portfolioItems = appData.portfolioItems.filter(p => String(p.id) !== String(id));
             renderPortfolioItems();
             showToast("Portfolio Item Removed!");
-        }[cite: 1]
+        }
 
         async function handleTeamSubmit(e) {
             e.preventDefault();
@@ -4887,7 +4862,7 @@ document.addEventListener('click', function(e) {
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'Add Member';
             }
-        }[cite: 1]
+        }
 
         async function removeTeamMember(id) {
             if(!confirm("Are you sure you want to remove this team member?")) return;
@@ -4900,7 +4875,7 @@ document.addEventListener('click', function(e) {
             appData.team = appData.team.filter(m => String(m.id) !== String(id));
             renderTeamTable();
             showToast("Team Member Removed!");
-        }[cite: 1]
+        }
 
         resetWorkRows();
     </script>
