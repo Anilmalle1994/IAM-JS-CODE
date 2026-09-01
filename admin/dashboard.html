@@ -1,5 +1,3 @@
-Red Box for Meeting number in big size, Yellow box remaining all the text content and it should be align to the left side text perfectly and uploaded photo should be the perfect size of black in the middle size. make correct this code.
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1888,8 +1886,8 @@ Red Box for Meeting number in big size, Yellow box remaining all the text conten
             const wealth = document.getElementById('poster-wealth').value.trim();
             const f2f = document.getElementById('poster-f2f').value.trim();
             const visitors = document.getElementById('poster-visitors').value.trim();
-            const previewContainer = document.getElementById('poster-preview-container');
 
+            const previewContainer = document.getElementById('poster-preview-container');
             previewContainer.innerHTML = '<span style="color:var(--primary);font-weight:bold;">Rendering Poster...</span>';
 
             const bgImg = new Image();
@@ -1898,157 +1896,213 @@ Red Box for Meeting number in big size, Yellow box remaining all the text conten
             bgImg.onload = function () {
                 const canvas = document.createElement('canvas');
                 const ctx = canvas.getContext('2d');
-                const W = bgImg.naturalWidth || bgImg.width;
-                const H = bgImg.naturalHeight || bgImg.height;
 
-                if (!W || !H) {
-                    alert("Invalid template image dimensions.");
-                    return;
-                }
+                canvas.width = bgImg.naturalWidth || bgImg.width;
+                canvas.height = bgImg.naturalHeight || bgImg.height;
 
-                canvas.width = W;
-                canvas.height = H;
+                const W = canvas.width;
+                const H = canvas.height;
+
+                // Always draw the original template first.
                 ctx.drawImage(bgImg, 0, 0, W, H);
 
-                function roundedRect(ctx, x, y, width, height, radius) {
-                    radius = Math.max(0, Math.min(radius, width / 2, height / 2));
+                // -------------------------------------------------
+                // TEMPLATE POSITIONS
+                // These are percentage based so the layout works
+                // with different resolutions of the same portrait
+                // template.
+                // -------------------------------------------------
+
+                // 1. MEETING NUMBER - RED BOX AT TOP
+                // Based on the red marked area in the supplied preview.
+                const meetingX = W * 0.195;
+                const meetingY = H * 0.018;
+                const meetingW = W * 0.225;
+                const meetingH = H * 0.105;
+
+                // 2. BLACK PHOTO AREA
+                // The black rectangle in the supplied template.
+                const photoAreaX = W * 0.050;
+                const photoAreaY = H * 0.245;
+                const photoAreaW = W * 0.900;
+                const photoAreaH = H * 0.450;
+                const photoRadius = Math.max(18, W * 0.055);
+
+                // 3. BOTTOM VALUE AREA
+                // The yellow-marked area to the right of the
+                // existing baked-in labels.
+                const valueX = W * 0.275;
+                const valueW = W * 0.285;
+                const valueTopY = H * 0.742;
+                const valueLineH = H * 0.038;
+                const valueGap = H * 0.010;
+
+                // -------------------------------------------------
+                // Helpers
+                // -------------------------------------------------
+
+                function roundedRectPath(x, y, width, height, radius) {
+                    radius = Math.min(radius, width / 2, height / 2);
                     ctx.beginPath();
+
                     if (typeof ctx.roundRect === 'function') {
                         ctx.roundRect(x, y, width, height, radius);
-                    } else {
-                        ctx.moveTo(x + radius, y);
-                        ctx.lineTo(x + width - radius, y);
-                        ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
-                        ctx.lineTo(x + width, y + height - radius);
-                        ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
-                        ctx.lineTo(x + radius, y + height);
-                        ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
-                        ctx.lineTo(x, y + radius);
-                        ctx.quadraticCurveTo(x, y, x + radius, y);
-                        ctx.closePath();
+                        return;
                     }
+
+                    ctx.moveTo(x + radius, y);
+                    ctx.lineTo(x + width - radius, y);
+                    ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+                    ctx.lineTo(x + width, y + height - radius);
+                    ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+                    ctx.lineTo(x + radius, y + height);
+                    ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+                    ctx.lineTo(x, y + radius);
+                    ctx.quadraticCurveTo(x, y, x + radius, y);
+                    ctx.closePath();
                 }
 
-                function drawTextBox(text, x, y, width, height, bgColor, textColor, fontSize, align = 'left') {
-                    if (!text) return;
+                function fitFont(text, maxWidth, startSize, minSize = 18, weight = 700) {
+                    let size = startSize;
+                    while (size > minSize) {
+                        ctx.font = `${weight} ${size}px Arial, sans-serif`;
+                        if (ctx.measureText(text).width <= maxWidth) break;
+                        size -= 1;
+                    }
+                    return size;
+                }
 
+                // -------------------------------------------------
+                // 1. MEETING NUMBER
+                // -------------------------------------------------
+                if (meetingNo) {
                     ctx.save();
-                    ctx.fillStyle = bgColor;
-                    roundedRect(ctx, x, y, width, height, Math.max(8, W * 0.008));
+
+                    ctx.fillStyle = '#ff0000';
+                    roundedRectPath(
+                        meetingX,
+                        meetingY,
+                        meetingW,
+                        meetingH,
+                        Math.max(10, W * 0.018)
+                    );
                     ctx.fill();
 
-                    ctx.fillStyle = textColor;
-                    ctx.font = `700 ${fontSize}px Arial, sans-serif`;
-                    ctx.textBaseline = 'middle';
-                    ctx.textAlign = align;
-
-                    const textX = align === 'center'
-                        ? x + width / 2
-                        : x + Math.max(12, width * 0.035);
-
-                    ctx.fillText(text, textX, y + height / 2);
-                    ctx.restore();
-                }
-
-                function drawPosterText() {
-                    /* =====================================================
-                       RED MEETING NUMBER BOX
-                       Large and centered inside its box.
-                       ===================================================== */
-                    const meetingBoxX = W * 0.055;
-                    const meetingBoxY = H * 0.145;
-                    const meetingBoxW = W * 0.23;
-                    const meetingBoxH = H * 0.105;
-
-                    drawTextBox(
+                    const meetingFont = fitFont(
                         meetingNo,
-                        meetingBoxX,
-                        meetingBoxY,
-                        meetingBoxW,
-                        meetingBoxH,
-                        '#ff0000',
-                        '#ffffff',
-                        Math.max(42, W * 0.045),
-                        'center'
+                        meetingW * 0.82,
+                        Math.max(34, W * 0.070),
+                        22,
+                        800
                     );
 
-                    /* =====================================================
-                       YELLOW INFORMATION BOXES
-                       Same X coordinate = perfect left alignment.
-                       ===================================================== */
-                    const yellowX = W * 0.055;
-                    const yellowW = W * 0.38;
-                    const yellowH = H * 0.052;
-                    const yellowGap = H * 0.015;
-                    const yellowStartY = H * 0.61;
-                    const yellowFont = Math.max(20, W * 0.025);
+                    ctx.font = `800 ${meetingFont}px Arial, sans-serif`;
+                    ctx.fillStyle = '#ffffff';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(
+                        meetingNo,
+                        meetingX + meetingW / 2,
+                        meetingY + meetingH / 2
+                    );
 
-                    drawTextBox(leads, yellowX, yellowStartY, yellowW, yellowH, '#ffff00', '#000000', yellowFont);
-                    drawTextBox(wealth, yellowX, yellowStartY + (yellowH + yellowGap), yellowW, yellowH, '#ffff00', '#000000', yellowFont);
-                    drawTextBox(f2f, yellowX, yellowStartY + (yellowH + yellowGap) * 2, yellowW, yellowH, '#ffff00', '#000000', yellowFont);
-                    drawTextBox(visitors, yellowX, yellowStartY + (yellowH + yellowGap) * 3, yellowW, yellowH, '#ffff00', '#000000', yellowFont);
+                    ctx.restore();
                 }
 
-                function drawUploadedPhoto(userImg) {
-                    /* =====================================================
-                       BLACK PHOTO AREA
-                       Centered horizontally in the template.
-                       ===================================================== */
-                    const boxW = W * 0.48;
-                    const boxH = H * 0.30;
-                    const boxX = (W - boxW) / 2;
-                    const boxY = H * 0.255;
-                    const radius = Math.max(12, W * 0.018);
-
-                    /* Black base */
-                    ctx.save();
-                    ctx.fillStyle = '#000000';
-                    roundedRect(ctx, boxX, boxY, boxW, boxH, radius);
-                    ctx.fill();
-                    ctx.restore();
-
-                    /* Clip photo to black area */
-                    ctx.save();
-                    roundedRect(ctx, boxX, boxY, boxW, boxH, radius);
-                    ctx.clip();
-
+                // -------------------------------------------------
+                // 2. PHOTO - CENTERED INSIDE BLACK AREA
+                // -------------------------------------------------
+                function drawPhoto(userImg) {
                     const imgW = userImg.naturalWidth || userImg.width;
                     const imgH = userImg.naturalHeight || userImg.height;
 
-                    if (imgW > 0 && imgH > 0) {
-                        const imageRatio = imgW / imgH;
-                        const boxRatio = boxW / boxH;
-                        let drawW, drawH, drawX, drawY;
+                    if (!imgW || !imgH) return;
 
-                        /* object-fit: cover */
-                        if (imageRatio > boxRatio) {
-                            drawH = boxH;
-                            drawW = drawH * imageRatio;
-                            drawX = boxX - (drawW - boxW) / 2;
-                            drawY = boxY;
-                        } else {
-                            drawW = boxW;
-                            drawH = drawW / imageRatio;
-                            drawX = boxX;
-                            drawY = boxY - (drawH - boxH) / 2;
-                        }
-
-                        ctx.drawImage(userImg, drawX, drawY, drawW, drawH);
-                    }
-
-                    ctx.restore();
-
-                    /* Black border around photo area */
                     ctx.save();
-                    ctx.strokeStyle = '#000000';
-                    ctx.lineWidth = Math.max(3, W * 0.003);
-                    roundedRect(ctx, boxX, boxY, boxW, boxH, radius);
-                    ctx.stroke();
+
+                    // Clip to the black rounded rectangle.
+                    roundedRectPath(
+                        photoAreaX,
+                        photoAreaY,
+                        photoAreaW,
+                        photoAreaH,
+                        photoRadius
+                    );
+                    ctx.clip();
+
+                    // Keep the black background intact.
+                    ctx.fillStyle = '#000000';
+                    ctx.fillRect(
+                        photoAreaX,
+                        photoAreaY,
+                        photoAreaW,
+                        photoAreaH
+                    );
+
+                    // object-fit: contain inside the black area.
+                    // This centers the complete uploaded photo and
+                    // never stretches or crops the user's image.
+                    const scale = Math.min(
+                        photoAreaW / imgW,
+                        photoAreaH / imgH
+                    );
+
+                    const drawW = imgW * scale;
+                    const drawH = imgH * scale;
+                    const drawX = photoAreaX + (photoAreaW - drawW) / 2;
+                    const drawY = photoAreaY + (photoAreaH - drawH) / 2;
+
+                    ctx.imageSmoothingEnabled = true;
+                    ctx.imageSmoothingQuality = 'high';
+                    ctx.drawImage(userImg, drawX, drawY, drawW, drawH);
+
                     ctx.restore();
                 }
 
+                // -------------------------------------------------
+                // 3. BOTTOM VALUES
+                // -------------------------------------------------
+                // IMPORTANT:
+                // The labels "Leads:", "Wealth note:",
+                // "Face 2 Face:", and "Visitors no:" already exist
+                // in the template image. We ONLY draw the values.
+                // This prevents duplicate labels and keeps all values
+                // inside the yellow-marked area.
+                function drawValue(value, index) {
+                    if (!value) return;
+
+                    const y = valueTopY + index * (valueLineH + valueGap);
+                    const maxWidth = valueW * 0.96;
+
+                    const fontSize = fitFont(
+                        value,
+                        maxWidth,
+                        Math.max(24, W * 0.043),
+                        15,
+                        700
+                    );
+
+                    ctx.save();
+                    ctx.font = `700 ${fontSize}px Arial, sans-serif`;
+                    ctx.fillStyle = '#111111';
+                    ctx.textAlign = 'left';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(value, valueX, y + valueLineH / 2);
+                    ctx.restore();
+                }
+
+                function drawBottomValues() {
+                    drawValue(leads, 0);
+                    drawValue(wealth, 1);
+                    drawValue(f2f, 2);
+                    drawValue(visitors, 3);
+                }
+
+                // -------------------------------------------------
+                // Final preview + download
+                // -------------------------------------------------
                 function finalizePoster() {
-                    drawPosterText();
+                    drawBottomValues();
 
                     canvas.style.width = '100%';
                     canvas.style.height = 'auto';
@@ -2056,7 +2110,7 @@ Red Box for Meeting number in big size, Yellow box remaining all the text conten
                     canvas.style.maxHeight = '700px';
                     canvas.style.objectFit = 'contain';
                     canvas.style.display = 'block';
-                    canvas.style.boxShadow = '0 10px 30px rgba(0,0,0,0.12)';
+                    canvas.style.boxShadow = '0 10px 30px rgba(0,0,0,0.10)';
 
                     previewContainer.innerHTML = '';
                     previewContainer.appendChild(canvas);
@@ -2065,19 +2119,23 @@ Red Box for Meeting number in big size, Yellow box remaining all the text conten
                     downloadBtn.className = 'btn-primary';
                     downloadBtn.style.marginTop = '20px';
                     downloadBtn.innerHTML = '📥 Download Poster';
+
                     downloadBtn.onclick = function () {
                         try {
                             const link = document.createElement('a');
                             link.download = `Meeting_Poster_${meetingNo || 'Generated'}.png`;
-                            link.href = canvas.toDataURL('image/png');
+                            link.href = canvas.toDataURL('image/png', 1.0);
                             link.click();
                         } catch (error) {
                             alert('Unable to download poster: ' + error.message);
                         }
                     };
+
                     previewContainer.appendChild(downloadBtn);
                 }
 
+                // Draw uploaded photo first, then the values so the
+                // values can never accidentally appear inside the black area.
                 if (photoInput.files && photoInput.files[0]) {
                     const reader = new FileReader();
 
@@ -2085,8 +2143,7 @@ Red Box for Meeting number in big size, Yellow box remaining all the text conten
                         const userImg = new Image();
 
                         userImg.onload = function () {
-                            /* Photo first, text afterwards so text remains visible. */
-                            drawUploadedPhoto(userImg);
+                            drawPhoto(userImg);
                             finalizePoster();
                         };
 
@@ -2099,12 +2156,14 @@ Red Box for Meeting number in big size, Yellow box remaining all the text conten
                     };
 
                     reader.onerror = function () {
-                        alert('Unable to read the uploaded photo.');
+                        alert('Unable to read uploaded photo.');
                         finalizePoster();
                     };
 
                     reader.readAsDataURL(photoInput.files[0]);
                 } else {
+                    // No uploaded photo: leave the black area from the
+                    // original template untouched and only add values.
                     finalizePoster();
                 }
             };
