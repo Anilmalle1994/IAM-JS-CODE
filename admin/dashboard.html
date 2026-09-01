@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Admin Dashboard & GST Billing - iam des!gns</title>
     
     <link rel="icon" href="../LOGO.jpg" type="image/jpeg">
@@ -15,46 +15,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
     <style>
-        /* Profile Dropdown Styling */
-        .profile-dropdown { 
-            position: absolute; 
-            top: 55px; 
-            right: 0; 
-            background: var(--white); 
-            border-radius: var(--radius-md); 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1); 
-            width: 150px; 
-            display: none; 
-            flex-direction: column; 
-            z-index: 2000; 
-            border: 1px solid #f0f0f0; 
-            padding: 8px;
-        }
-        .profile-dropdown.open { 
-            display: flex; 
-            animation: slideDown 0.2s ease; 
-        }
-        @keyframes slideDown { 
-            from { opacity: 0; transform: translateY(-10px); } 
-            to { opacity: 1; transform: translateY(0); } 
-        }
-        .profile-dropdown button { 
-            background: none; 
-            border: none; 
-            padding: 10px; 
-            width: 100%; 
-            text-align: left; 
-            cursor: pointer; 
-            font-size: 13px; 
-            font-weight: 500; 
-            color: #ef4444; 
-            border-radius: 6px; 
-            transition: 0.2s; 
-        }
-        .profile-dropdown button:hover { 
-            background: #f4f5f7; 
-        }
-
         /* Variables & Base Setup */
         :root { 
             --primary: #f26522; 
@@ -106,7 +66,12 @@
         .submenu li a { display: block; padding: 10px 14px; color: var(--gray); text-decoration: none; font-size: 13px; font-weight: 500; border-radius: 8px; transition: 0.2s;}
         .submenu li a:hover { background: #f4f5f7; color: var(--dark); }
 
-        .logout-wrapper { margin-top: auto; padding-top: 15px; }
+        /* Profile Dropdown Styling */
+        .profile-dropdown { position: absolute; top: 55px; right: 0; background: var(--white); border-radius: var(--radius-md); box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 150px; display: none; flex-direction: column; z-index: 2000; border: 1px solid #f0f0f0; padding: 8px; }
+        .profile-dropdown.open { display: flex; animation: slideDown 0.2s ease; }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        .profile-dropdown button { background: none; border: none; padding: 10px; width: 100%; text-align: left; cursor: pointer; font-size: 13px; font-weight: 500; color: #ef4444; border-radius: 6px; transition: 0.2s; }
+        .profile-dropdown button:hover { background: #f4f5f7; }
 
         /* Main Content Area */
         .main-content { margin-left: calc(var(--icon-sidebar-width) + 30px); flex: 1; display: flex; flex-direction: column; height: 100vh; overflow: hidden; width: calc(100% - var(--icon-sidebar-width) - 30px); transition: margin 0.3s ease;}
@@ -169,7 +134,7 @@
         .table-responsive-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; width: 100%; padding-bottom: 8px; border-radius: 8px;}
         .data-table { width: 100%; border-collapse: collapse; margin-top: 4px; font-size: 13px; min-width: 700px; }
         .data-table th, .data-table td { padding: 14px 12px; text-align: left; border-bottom: 1px solid #f1f2f4; }
-        .data-table th { color: var(--gray); font-weight: 500; cursor: pointer; user-select: none; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;}
+        .data-table th { color: var(--gray); font-weight: 500; cursor: pointer; user-select: none; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap;}
         .data-table td { font-weight: 500; color: #444;}
         .sort-icon { font-size: 10px; margin-left: 4px; opacity: 0.5; }
         .table-filter-row input, .table-filter-row select { width: 100%; padding: 6px 10px; font-size: 11px; border: 1px solid #e5e7eb; border-radius: 6px; font-family: inherit; background: #fcfcfd;}
@@ -194,7 +159,7 @@
         .close-modal { color: var(--gray); position: absolute; top: 14px; right: 18px; font-size: 26px; font-weight: bold; cursor: pointer; z-index: 10;}
         .qr-container { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 15px; background: var(--light-gray); border-radius: 14px; }
 
-        .status-badge { font-size: 11px; font-weight: 600; display: inline-flex; align-items: center; gap: 5px;}
+        .status-badge { font-size: 11px; font-weight: 600; display: inline-flex; align-items: center; gap: 5px; white-space: nowrap;}
         .status-badge::before { content: ''; display: block; width: 6px; height: 6px; border-radius: 50%; }
         
         .status-designing { color: #f59e0b; }
@@ -258,7 +223,6 @@
             .summary-cards { grid-template-columns: repeat(2, 1fr); gap: 16px; } 
             .form-group.span-2 { grid-column: span 1; } 
             .card-grid { grid-template-columns: repeat(3, 1fr); }
-            
             .table-responsive-wrapper { border: 1px solid #f1f2f4; margin-bottom: 15px; }
         }
         
@@ -267,8 +231,19 @@
             
             /* Sidebar & Top Navigation */
             .menu-toggle { display: flex; }
-            .icon-sidebar { transform: translateX(-120%); margin: 0; height: 100vh; border-radius: 0 20px 20px 0; top: 0; left: 0; z-index: 1000; padding-top: 15px; }
-            .icon-sidebar.open { transform: translateX(0); box-shadow: 10px 0 25px rgba(0,0,0,0.1); }
+            
+            /* Make sidebar a proper sliding drawer on mobile */
+            .icon-sidebar { 
+                transform: translateX(-100%); 
+                margin: 0; 
+                height: 100vh; 
+                width: 260px; /* Wider drawer on mobile */
+                border-radius: 0 20px 20px 0; 
+                top: 0; left: 0; 
+                z-index: 1050; 
+                padding-top: 15px; 
+            }
+            .icon-sidebar.open { transform: translateX(0); box-shadow: 10px 0 25px rgba(0,0,0,0.2); }
             
             .main-content { margin-left: 0 !important; width: 100% !important; height: auto; overflow: visible; display: block;}
             .topbar { padding: 12px 16px; flex-wrap: wrap; background: var(--white); position: sticky; top: 0; z-index: 90; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
@@ -277,50 +252,59 @@
             
             /* Pill Navigation Horizontal Scroll */
             .top-nav { display: flex; width: 100%; max-width: 100%; border-radius: 0; box-shadow: none; padding: 10px 16px; background: var(--white); border-top: 1px solid #f1f2f4; overflow-x: auto; margin: 0 !important;}
-            .top-nav a { padding: 8px 14px; font-size: 13px; }
+            .top-nav a { padding: 10px 18px; font-size: 14px; } /* Larger touch targets */
             
             /* Content Areas & Grids */
             .content-area { padding: 15px; overflow: visible; height: auto; }
-            .form-grid { grid-template-columns: 1fr; gap: 12px; }
+            .form-grid { grid-template-columns: 1fr; gap: 15px; }
             .card-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
             .summary-cards { grid-template-columns: 1fr; }
             .admin-card { padding: 16px; border-radius: 12px; }
             .dashboard-header h1 { font-size: 22px; }
             .profile-chip #user-email { display: none; }
             
-            /* Submenus - Center them for mobile ease of use */
-            .submenu { left: 50%; transform: translateX(-50%); top: auto; bottom: 80px; width: 220px; position: fixed; } 
-            .submenu.open { animation: slideUpMobile 0.2s ease; }
-            @keyframes slideUpMobile { from{ opacity:0; transform: translate(-50%, 10px); } to { opacity:1; transform: translate(-50%, 0); } }
+            /* Submenus - pop out properly from sidebar drawer */
+            .submenu { 
+                left: 70px; 
+                top: 0; 
+                width: 180px; 
+                position: absolute; 
+                bottom: auto; 
+                transform: none; 
+            } 
+            .submenu.open { animation: slideIn 0.2s ease; }
             
             /* Buttons & Actions (Full width on mobile) */
             .action-row { flex-direction: column; width: 100%; gap: 10px; align-items: stretch; }
-            .action-row button { width: 100%; justify-content: center; }
-            .btn-secondary, .btn-primary, .btn-whatsapp, .btn-excel { width: 100%; text-align: center; }
+            .action-row button { width: 100%; justify-content: center; padding: 14px 20px; font-size: 15px; }
             
             /* Bulk Payment Section */
             .bulk-payment-wrap { flex-direction: column; align-items: stretch !important; gap: 15px; }
-            .bulk-payment-wrap > div { width: 100%; }
+            .bulk-payment-wrap > div { width: 100%; text-align: center; }
             #bulk-custom-pay-amt { width: 100% !important; margin-bottom: 10px;}
             
             /* Modals (Prevent overflow) */
             .modal { padding: 10px; }
-            .modal-content { max-width: 100%; padding: 20px 15px; margin: auto; }
+            .modal-content { max-width: 100%; padding: 20px 15px; margin: auto; max-height: 85vh; overflow-y: auto;}
             
             /* Notepad App */
-            .notepad-fab { bottom: 20px; right: 20px; width: 45px; height: 45px; font-size: 20px; } 
+            .notepad-fab { bottom: 20px; right: 20px; width: 50px; height: 50px; font-size: 22px; } 
             .notepad-popup { right: 10px; left: 10px; width: auto; bottom: 80px; }
 
             /* Ensure Data Tables don't break the layout */
             .data-table { min-width: 650px; }
-            .filter-bar { flex-direction: column; align-items: stretch; }
+            .filter-bar { flex-direction: column; align-items: stretch; gap: 10px;}
             .filter-group { min-width: 100%; }
+
+            /* iOS Input Zoom Fix & Touch Target improvements */
+            input, select, textarea { font-size: 16px !important; padding: 14px 12px !important; }
+            .data-table th, .data-table td { white-space: nowrap; }
         }
 
         @media print {
             @page { margin: 0; }
             body { background-color: #fff; padding: 0; margin: 0; }
-            .icon-sidebar, .topbar, .no-print-app, .modal, .toast-notification, .notepad-fab, .notepad-popup, .top-nav, .content-area { display: none !important; }
+            .icon-sidebar, .topbar, .no-print-app, .modal, .toast-notification, .notepad-fab, .notepad-popup, .top-nav, .content-area, .admin-card { display: none !important; }
             .print-container { display: block !important; }
             .invoice-container { box-shadow: none; width: 100%; max-width: 800px; margin: 0 auto; }
         }
@@ -435,7 +419,6 @@
                 <div class="header-icon admin-nav-item" title="Search">🔍</div>
                 <div class="header-icon admin-nav-item" title="Notifications">🔔</div>
                 
-                <!-- Updated Profile Chip with Dropdown -->
                 <div class="profile-wrapper" id="profile-menu-toggle" style="position: relative; cursor: pointer;">
                     <div class="profile-chip">
                         <span class="avatar">A</span>
@@ -460,6 +443,7 @@
 
         <div class="content-area">
             
+            <!-- Dashboard View -->
             <div id="dashboard" class="view-section active admin-view">
                 <div class="dashboard-header" id="dashboard-welcome">
                     <h1 id="greeting-text">Good Morning, Admin</h1>
@@ -518,6 +502,7 @@
                 </div>
             </div>
 
+            <!-- Designing View -->
             <div id="designing" class="view-section admin-view">
                 <div class="admin-card">
                     <h3>Design Request Intake</h3>
@@ -547,6 +532,7 @@
                 </div>
             </div>
 
+            <!-- New Order View -->
             <div id="new-order" class="view-section admin-view">
                 <div class="admin-card">
                     <h3>Create New Printing Order</h3>
@@ -579,6 +565,7 @@
                 </div>
             </div>
 
+            <!-- Vendor Allotment View -->
             <div id="vendor-allotment" class="view-section admin-view">
                 <div class="admin-card">
                     <h3>Allocate Work to Vendor</h3>
@@ -597,6 +584,7 @@
                 </div>
             </div>
 
+            <!-- Staff Pickup View -->
             <div id="staff-pickup" class="view-section admin-view">
                 <div class="admin-card">
                     <h3>Staff Pickup Operations</h3>
@@ -629,6 +617,7 @@
                 </div>
             </div>
 
+            <!-- Payment View -->
             <div id="payment" class="view-section admin-view">
                 <div class="admin-card">
                     <h3>Process Payment</h3>
@@ -657,6 +646,7 @@
                 </div>
             </div>
 
+            <!-- Delivery View -->
             <div id="delivery" class="view-section admin-view">
                 <div class="admin-card">
                     <h3>Ready For Delivery</h3>
@@ -684,6 +674,7 @@
                 </div>
             </div>
 
+            <!-- WhatsApp View -->
             <div id="whatsapp-auto" class="view-section admin-view">
                 <div class="admin-card">
                     <h3>WhatsApp Web Automation</h3>
@@ -704,6 +695,7 @@
                 </div>
             </div>
 
+            <!-- All Works View -->
             <div id="all-orders" class="view-section admin-view">
                 <div class="admin-card">
                     <h3>All Works Dashboard</h3>
@@ -760,8 +752,8 @@
                 </div>
             </div>
 
+            <!-- Vendors Master View -->
             <div id="vendors-master" class="view-section admin-view">
-                
                 <div class="admin-card" style="border-left: 4px solid var(--primary);">
                     <h3>Add Old / Opening Balance for Vendor</h3>
                     <div class="form-grid">
@@ -799,6 +791,7 @@
                 </div>
             </div>
 
+            <!-- Staff Master View -->
             <div id="staff-master" class="view-section admin-view">
                 <div class="admin-card">
                     <h3>Add New Staff Member</h3>
@@ -815,6 +808,7 @@
                 </div>
             </div>
 
+            <!-- Team Master View -->
             <div id="team-master" class="view-section admin-view">
                 <div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start;">
                     <div style="flex: 1; min-width: 300px; display: flex; flex-direction: column; gap: 20px;">
@@ -863,10 +857,10 @@
                 </div>
             </div>
 
+            <!-- Web Content View -->
             <div id="web-content" class="view-section admin-view">
                 <div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start;">
                     <div style="flex: 1; min-width: 300px; display: flex; flex-direction: column; gap: 20px;">
-                        
                         <div class="admin-card" style="margin-bottom: 0;">
                             <h3>Add New Portfolio Items</h3>
                             <p style="font-size: 13px; color: var(--gray); margin-bottom: 16px;">Upload one or multiple images to appear in the "Our Portfolio" section.</p>
@@ -932,6 +926,7 @@
                 </div>
             </div>
 
+            <!-- Pending Reports View -->
             <div id="pending-reports" class="view-section admin-view">
                 <div class="admin-card">
                     <h3>Pending Client Dues</h3>
@@ -998,8 +993,8 @@
                 </div>
             </div>
 
+            <!-- Vendor Reports View -->
             <div id="vendor-reports" class="view-section admin-view">
-                
                 <div class="admin-card" style="border-top: 4px solid var(--primary);">
                     <h3>Customized Vendor Bulk Payment</h3>
                     <div class="form-grid">
@@ -1069,6 +1064,7 @@
                 </div>
             </div>
 
+            <!-- Clients Data View -->
             <div id="clients-data" class="view-section admin-view">
                 <div class="admin-card" style="margin-bottom: 24px;">
                     <h3>Edit Client / Order Details</h3>
@@ -1099,6 +1095,7 @@
                 </div>
             </div>
 
+            <!-- GST Dashboard View -->
             <div id="gst-dashboard" class="view-section admin-view">
                 <div class="admin-card">
                     <h3 style="font-size: 20px; margin-bottom: 20px;">Financial Ledger & GST Overview</h3>
@@ -1147,6 +1144,7 @@
                 </div>
             </div>
 
+            <!-- GST Sale View -->
             <div id="gst-sale" class="view-section admin-view">
                 <div class="admin-card">
                     <h3 style="font-size: 20px; margin-bottom: 20px;">Create New Sale Invoice</h3>
@@ -1212,6 +1210,7 @@
                 </div>
             </div>
 
+            <!-- GST Vendor View -->
             <div id="gst-vendor" class="view-section admin-view">
                 <div class="admin-card">
                     <h3 style="font-size: 20px; margin-bottom: 20px;">Input Vendor GST Bill</h3>
@@ -1266,81 +1265,81 @@
                 </div>
             </div>
 
-           <!-- ADMIN: Upload Styles Section -->
-<div id="admin-styles-manager" class="view-section admin-view">
-    <div class="admin-card">
-        <h3>Upload Template Styles (For Poster Generator)</h3>
-        <p style="font-size: 13px; color: var(--gray); margin-bottom: 16px;">Add styles here to populate the dropdown for kj.apple9@gmail.com.</p>
-        <div class="form-grid">
-            <div class="form-group">
-                <label>New Style Name</label>
-                <input type="text" id="new-style-name" placeholder="e.g. Style 001">
+            <!-- ADMIN: Upload Styles Section -->
+            <div id="admin-styles-manager" class="view-section admin-view">
+                <div class="admin-card">
+                    <h3>Upload Template Styles (For Poster Generator)</h3>
+                    <p style="font-size: 13px; color: var(--gray); margin-bottom: 16px;">Add styles here to populate the dropdown for kj.apple9@gmail.com.</p>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>New Style Name</label>
+                            <input type="text" id="new-style-name" placeholder="e.g. Style 001">
+                        </div>
+                        <div class="form-group">
+                            <label>Upload Style Background</label>
+                            <input type="file" id="new-style-image" accept="image/*" style="background: white; color: #111;">
+                        </div>
+                        <div class="form-group" style="justify-content: flex-end;">
+                            <button type="button" class="btn-primary" onclick="addNewTemplateStyle()">Add Style</button>
+                        </div>
+                    </div>
+                    <ul id="admin-styles-list" style="margin-top: 15px; padding-left: 20px; font-size: 14px; list-style: none;"></ul>
+                </div>
             </div>
-            <!-- Image Upload Option -->
-            <div class="form-group">
-                <label>Upload Style Background</label>
-                <input type="file" id="new-style-image" accept="image/*" style="background: white; color: #111;">
-            </div>
-            <div class="form-group" style="justify-content: flex-end;">
-                <button type="button" class="btn-primary" onclick="addNewTemplateStyle()">Add Style</button>
-            </div>
-        </div>
-        <ul id="admin-styles-list" style="margin-top: 15px; padding-left: 20px; font-size: 14px; list-style: none;"></ul>
-    </div>
-</div>
 
             <!-- RESTRICTED USER: Poster Generator View -->
-<div id="poster-generator-view" class="view-section">
-    <div class="admin-card">
-        <h3>Create New Meeting Poster</h3>
-        <div class="form-grid">
-            <div class="form-group">
-                <label>Template Style</label>
-                <select id="user-template-style">
-                    <option value="">Loading styles...</option>
-                </select>
+            <div id="poster-generator-view" class="view-section">
+                <div class="admin-card">
+                    <h3>Create New Meeting Poster</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Template Style</label>
+                            <select id="user-template-style">
+                                <option value="">Loading styles...</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Upload Photo</label>
+                            <input type="file" id="user-poster-photo" accept="image/*" style="background: #fff;">
+                        </div>
+                        <div class="form-group">
+                            <label>Meeting Number</label>
+                            <input type="text" id="poster-meeting" placeholder="e.g. 39">
+                        </div>
+                        <div class="form-group">
+                            <label>Leads</label>
+                            <input type="text" id="poster-leads" placeholder="e.g. 40">
+                        </div>
+                        <div class="form-group">
+                            <label>Wealth Note (₹)</label>
+                            <input type="text" id="poster-wealth" placeholder="e.g. 1,09,62,500/-">
+                        </div>
+                        <div class="form-group">
+                            <label>Face 2 Face</label>
+                            <input type="text" id="poster-f2f" placeholder="e.g. 03">
+                        </div>
+                        <div class="form-group">
+                            <label>Visitors No.</label>
+                            <input type="text" id="poster-visitors" placeholder="e.g. 05">
+                        </div>
+                    </div>
+                    <div class="action-row">
+                        <button type="button" class="btn-primary" onclick="generatePoster()">Generate & Preview</button>
+                    </div>
+                </div>
+                
+                <div class="admin-card">
+                    <h3>Live Preview</h3>
+                    <div id="poster-preview-container" style="width: 100%; min-height: 300px; background: #f0f2f5; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 8px; overflow: hidden; padding: 15px;">
+                        <span style="color: #888;">Your poster will appear here.</span>
+                    </div>
+                </div>
             </div>
-            <div class="form-group">
-                <label>Upload Photo</label>
-                <input type="file" id="user-poster-photo" accept="image/*" style="background: #fff;">
-            </div>
-            <div class="form-group">
-                <label>Meeting Number</label>
-                <input type="text" id="poster-meeting" placeholder="e.g. 39">
-            </div>
-            <div class="form-group">
-                <label>Leads</label>
-                <input type="text" id="poster-leads" placeholder="e.g. 40">
-            </div>
-            <div class="form-group">
-                <label>Wealth Note (₹)</label>
-                <input type="text" id="poster-wealth" placeholder="e.g. 1,09,62,500/-">
-            </div>
-            <div class="form-group">
-                <label>Face 2 Face</label>
-                <input type="text" id="poster-f2f" placeholder="e.g. 03">
-            </div>
-            <div class="form-group">
-                <label>Visitors No.</label>
-                <input type="text" id="poster-visitors" placeholder="e.g. 05">
-            </div>
-        </div>
-        <div class="action-row">
-            <button type="button" class="btn-primary" onclick="generatePoster()">Generate & Preview</button>
-        </div>
-    </div>
-    
-    <div class="admin-card">
-        <h3>Live Preview</h3>
-        <div id="poster-preview-container" style="width: 100%; min-height: 300px; background: #f0f2f5; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 8px; overflow: hidden; padding: 15px;">
-            <span style="color: #888;">Your poster will appear here.</span>
-        </div>
-    </div>
-</div>
 
         </div>
     </main>
 
+    <!-- UI Overlays and Modals -->
     <div id="notepad-fab" class="notepad-fab" onclick="toggleNotepad()">📝</div>
     <div id="notepad-popup" class="notepad-popup">
         <div class="notepad-header">
@@ -1452,6 +1451,7 @@
 
     <div id="app-toast" class="toast-notification"><span>🔔</span> <span id="toast-message"></span></div>
 
+    <!-- Print View -->
     <div class="print-container">
         <div class="invoice-container" style="width: 800px; background: #ffffff; margin: 0 auto; color: #3a3a3a; font-family: 'Montserrat', sans-serif;">
             <div style="display: flex; justify-content: space-between; align-items: flex-start; padding-top: 40px; margin-bottom: 20px;">
@@ -1518,8 +1518,8 @@
         </div>
     </div>
 
+    <!-- Application Script -->
     <script>
-        
         // ==========================================
         // CONSTANTS & RBAC configuration
         // ==========================================
@@ -1600,14 +1600,11 @@
         
         async function logout() {
             try {
-                // 1. Tell Supabase to end the session
                 await supabaseClient.auth.signOut();
             } catch (error) {
                 console.warn("Supabase signout issue:", error.message);
             } finally {
-                // 2. Clear only session data so we DON'T delete your local vendors/styles
                 sessionStorage.clear();
-                // 3. Force redirect
                 window.location.replace('../index.html'); 
             }
         }
@@ -1685,7 +1682,6 @@
                     enforceAdminView();
                 }
 
-                // FIX: Load data ONLY after login is fully verified!
                 loadAppData(); 
             }
         }
@@ -1768,54 +1764,62 @@
         // ==========================================
         // POSTER GENERATOR & STYLES MANAGER LOGIC
         // ==========================================
-async function addNewTemplateStyle() {
-    const styleName = document.getElementById('new-style-name').value.trim();
-    const fileInput = document.getElementById('new-style-image');
-    const submitBtn = document.querySelector('#admin-styles-manager .btn-primary');
-    
-    if(!styleName) return alert("Enter a style name");
-    if(!fileInput || fileInput.files.length === 0) return alert("Please select a background image for this style.");
-    
-    submitBtn.disabled = true;
-    submitBtn.textContent = 'Uploading...';
+        async function addNewTemplateStyle() {
+            const styleName = document.getElementById('new-style-name').value.trim();
+            const fileInput = document.getElementById('new-style-image');
+            const submitBtn = document.querySelector('#admin-styles-manager .btn-primary');
+            
+            if(!styleName) return alert("Enter a style name");
+            if(!fileInput || fileInput.files.length === 0) return alert("Please select a background image for this style.");
+            
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Uploading...';
 
-    try {
-        const file = fileInput.files[0];
-        const fileExt = file.name.split('.').pop();
-        const uniqueFileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+            try {
+                const file = fileInput.files[0];
+                const fileExt = file.name.split('.').pop();
+                const uniqueFileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
 
-        // 1. Upload image to Supabase Storage
-        const { error: uploadError } = await supabaseClient.storage.from('poster_backgrounds').upload(uniqueFileName, file);
-        if (uploadError) throw uploadError;
+                const { error: uploadError } = await supabaseClient.storage.from('poster_backgrounds').upload(uniqueFileName, file);
+                if (uploadError) throw uploadError;
 
-        // 2. Get the public URL
-        const { data: publicUrlData } = supabaseClient.storage.from('poster_backgrounds').getPublicUrl(uniqueFileName);
-        const imageUrl = publicUrlData.publicUrl;
+                const { data: publicUrlData } = supabaseClient.storage.from('poster_backgrounds').getPublicUrl(uniqueFileName);
+                const imageUrl = publicUrlData.publicUrl;
 
-        // 3. Insert into database WITH manually generated UUID
-        const { error: dbError } = await supabaseClient.from('poster_styles').insert([{
-            id: crypto.randomUUID(), // Generates a valid UUID format for Supabase
-            style_name: styleName,
-            image_url: imageUrl
-        }]);
-        
-        if (dbError) throw dbError;
+                const { error: dbError } = await supabaseClient.from('poster_styles').insert([{
+                    id: crypto.randomUUID(), // Generates a valid UUID format for Supabase
+                    style_name: styleName,
+                    image_url: imageUrl
+                }]);
+                
+                if (dbError) throw dbError;
 
-        // 4. Reset UI
-        document.getElementById('new-style-name').value = '';
-        fileInput.value = '';
-        showToast("Template Style Added to Cloud!");
-        
-        loadPosterStyles();
+                document.getElementById('new-style-name').value = '';
+                fileInput.value = '';
+                showToast("Template Style Added to Cloud!");
+                
+                loadPosterStyles();
 
-    } catch (err) {
-        console.error("Upload error:", err.message);
-        alert("Error: " + err.message + "\n\nDid you create the 'poster_styles' table and 'poster_backgrounds' bucket in Supabase?");
-    } finally {
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Add Style';
-    }
-}
+            } catch (err) {
+                console.error("Upload error:", err.message);
+                alert("Error: " + err.message + "\n\nDid you create the 'poster_styles' table and 'poster_backgrounds' bucket in Supabase?");
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Add Style';
+            }
+        }
+
+        async function loadPosterStyles() {
+            let finalStyles = [];
+            try {
+                const { data: styles, error } = await supabaseClient.from('poster_styles').select('*');
+                if (error) throw error;
+                finalStyles = styles || [];
+            } catch(err) {
+                console.warn("Cloud styles blocked or missing, falling back to local storage.", err.message);
+                let rawStyles = JSON.parse(localStorage.getItem('poster_template_styles') || '[]');
+                finalStyles = rawStyles.map((s, idx) => ({ id: 'local_' + idx, style_name: s.name || s, image_url: s.image || '' }));
+            }
 
             const userSelect = document.getElementById('user-template-style');
             if(userSelect) {
@@ -2413,19 +2417,16 @@ async function addNewTemplateStyle() {
         
         document.getElementById('mobile-menu-btn').addEventListener('click', () => { 
             sidebar.classList.toggle('open');
-            topNav.classList.toggle('open');
             overlay.classList.toggle('active'); 
         });
         
         document.getElementById('sidebar-close-btn').addEventListener('click', () => { 
             sidebar.classList.remove('open');
-            topNav.classList.remove('open');
             overlay.classList.remove('active'); 
         });
         
         overlay.addEventListener('click', () => { 
             sidebar.classList.remove('open');
-            topNav.classList.remove('open');
             overlay.classList.remove('active'); 
             closeAllSubmenus();
         });
@@ -4076,8 +4077,9 @@ async function addNewTemplateStyle() {
             XLSX.utils.book_append_sheet(wb, ws, "Client Dues");
             XLSX.writeFile(wb, `Client_Dues_${Date.now()}.xlsx`);
         }
+
         function downloadPRVendorPDF() { html2pdf().from(document.getElementById('pr-vendor-table')).save(); }
-function downloadPRVendorExcel() {
+        function downloadPRVendorExcel() {
             let data = (appData.vendorAllotmentsHistory || []).map(h => ({ "Date": h.date ? new Date(h.date).toLocaleDateString() : '', "Order": h.orderId, "Vendor": h.vendor, "Work": h.work, "Amount": h.amount }));
             let ws = XLSX.utils.json_to_sheet(data); let wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Vendor Allotments");
             XLSX.writeFile(wb, `Vendor_Allotments_${Date.now()}.xlsx`);
@@ -4111,766 +4113,6 @@ function downloadPRVendorExcel() {
             if(!dateStr) return '';
             const [y, m, d] = dateStr.split('-');
             return `${d}/${m}/${y}`;
-        }
-
-        // ==========================================
-        // VENDOR BILLS MULTI-ROW LOGIC
-        // ==========================================
-        function addVendorRow() {
-            const tbody = document.querySelector('#vendorItemsTable tbody');
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td>
-                    <select class="v_row_gst" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #e5e7eb;">
-                        <option value="0">0%</option>
-                        <option value="5">5%</option>
-                        <option value="12">12%</option>
-                        <option value="18" selected>18%</option>
-                        <option value="28">28%</option>
-                    </select>
-                </td>
-                <td><input type="number" class="v_row_tax" value="0" step="0.01" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #e5e7eb;" oninput="calcVendorTotal()"></td>
-                <td><input type="number" class="v_row_total" value="0" step="0.01" required style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #e5e7eb;" oninput="calcVendorTotal()"></td>
-                <td style="text-align: center;"><button type="button" class="remove-btn" onclick="removeVendorRow(this)">×</button></td>
-            `;
-            if(tbody) tbody.appendChild(tr);
-        }
-
-        function removeVendorRow(btn) {
-            btn.closest('tr').remove();
-            calcVendorTotal();
-        }
-
-        function calcVendorTotal() {
-            let grand = 0;
-            document.querySelectorAll('#vendorItemsTable tbody tr').forEach(row => {
-                let tot = parseFloat(row.querySelector('.v_row_total').value) || 0;
-                grand += tot;
-            });
-            const grandSpan = document.getElementById('v_grand_total');
-            if(grandSpan) grandSpan.innerText = grand.toFixed(2);
-        }
-
-        function saveVendorBill() {
-            let date = document.getElementById('v_date').value;
-            let inv = document.getElementById('v_inv').value;
-            let name = document.getElementById('v_name').value;
-            let gstin = document.getElementById('v_gstin').value;
-
-            if(!date || !inv || !name) return alert('Please fill required fields');
-
-            let grandTotal = 0;
-            let items = [];
-            let uniqueGsts = new Set();
-
-            document.querySelectorAll('#vendorItemsTable tbody tr').forEach(row => {
-                let gst = row.querySelector('.v_row_gst').value;
-                let tax = parseFloat(row.querySelector('.v_row_tax').value) || 0;
-                let total = parseFloat(row.querySelector('.v_row_total').value) || 0;
-
-                if(total > 0) {
-                    grandTotal += total;
-                    uniqueGsts.add(gst + '%');
-                    items.push({ gst, tax, total });
-                }
-            });
-
-            if(grandTotal <= 0) return alert('Total Bill Amount must be greater than zero.');
-
-            let gstString = Array.from(uniqueGsts).join(', ') || "0%";
-
-            let vendors = getData('surya_vendors');
-            let entryId = 'v_' + Date.now();
-            
-            vendors.push({ id: entryId, date: date, inv: inv, name: name, gstin: gstin, total: grandTotal.toFixed(2), gst: gstString, items: items });
-            saveData('surya_vendors', vendors);
-
-            document.getElementById('vendorForm').reset();
-            document.querySelector('#vendorItemsTable tbody').innerHTML = `
-                <tr>
-                    <td>
-                        <select class="v_row_gst" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #e5e7eb;">
-                            <option value="0">0%</option>
-                            <option value="5">5%</option>
-                            <option value="12">12%</option>
-                            <option value="18" selected>18%</option>
-                            <option value="28">28%</option>
-                        </select>
-                    </td>
-                    <td><input type="number" class="v_row_tax" value="0" step="0.01" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #e5e7eb;" oninput="calcVendorTotal()"></td>
-                    <td><input type="number" class="v_row_total" value="0" step="0.01" required style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #e5e7eb;" oninput="calcVendorTotal()"></td>
-                    <td style="text-align: center;"><button type="button" class="remove-btn" onclick="removeVendorRow(this)">×</button></td>
-                </tr>
-            `;
-            calcVendorTotal();
-            
-            showToast("Vendor Bill Saved to Ledger!");
-            loadLedger();
-        }
-
-        // ==========================================
-        // LEDGER RENDERING AND EDITING LOGIC
-        // ==========================================
-        let ledgerSort = { col: 'date', asc: false };
-
-        function sortLedger(col) {
-            if(ledgerSort.col === col) ledgerSort.asc = !ledgerSort.asc;
-            else { ledgerSort.col = col; ledgerSort.asc = true; }
-            loadLedger();
-        }
-
-        function loadLedger() {
-            const sales = getData('surya_sales');
-            const vendors = getData('surya_vendors');
-
-            let ledger = [];
-            
-            sales.forEach(s => {
-                if(!s.id) s.id = 's_' + Date.now() + Math.random();
-                ledger.push({ id: s.id, type: 'sale', date: s.date, gst: s.gst || '-', inv: s.inv, name: s.client, credit: parseFloat(s.total), debit: 0 })
-            });
-            saveData('surya_sales', sales);
-            
-            vendors.forEach(v => {
-                if(!v.id) v.id = 'v_' + Date.now() + Math.random();
-                ledger.push({ id: v.id, type: 'vendor', date: v.date, gst: v.gst || '-', inv: v.inv, name: v.name, credit: 0, debit: parseFloat(v.total) })
-            });
-            saveData('surya_vendors', vendors);
-
-            const monthFilterElem = document.getElementById('ledgerMonth');
-            const monthFilter = monthFilterElem ? monthFilterElem.value : '';
-            if (monthFilter) {
-                ledger = ledger.filter(entry => entry.date && entry.date.startsWith(monthFilter));
-            }
-
-            let totalSales = 0, totalExp = 0, runningBalance = 0;
-            
-            // First sort chronologically to calculate accurate running balance
-            ledger.sort((a, b) => new Date(a.date) - new Date(b.date));
-            
-            ledger.forEach(entry => {
-                totalSales += entry.credit;
-                totalExp += entry.debit;
-                runningBalance += (entry.credit - entry.debit);
-                entry.computedBalance = runningBalance;
-            });
-
-            const salesElem = document.getElementById('dash_sales');
-            const expElem = document.getElementById('dash_expenses');
-            const balElem = document.getElementById('dash_balance');
-            if(salesElem) salesElem.innerText = '₹' + totalSales.toFixed(2);
-            if(expElem) expElem.innerText = '₹' + totalExp.toFixed(2);
-            if(balElem) {
-                balElem.innerText = '₹' + runningBalance.toFixed(2);
-                balElem.className = 'amount ' + (runningBalance >= 0 ? 'text-green' : 'text-red');
-            }
-
-            const filterTypeElem = document.getElementById('filterType');
-            const filterType = filterTypeElem ? filterTypeElem.value : 'all';
-            if (filterType === 'sale') ledger = ledger.filter(entry => entry.credit > 0);
-            else if (filterType === 'vendor') ledger = ledger.filter(entry => entry.debit > 0);
-
-            // Apply interactive header sorting
-            ledger.sort((a, b) => {
-                let valA = a[ledgerSort.col] || ''; 
-                let valB = b[ledgerSort.col] || '';
-                if(ledgerSort.col === 'date') { 
-                    valA = new Date(a.date).getTime(); 
-                    valB = new Date(b.date).getTime(); 
-                }
-                if(ledgerSort.col === 'credit' || ledgerSort.col === 'debit') { 
-                    valA = parseFloat(valA)||0; 
-                    valB = parseFloat(valB)||0; 
-                }
-                if(valA < valB) return ledgerSort.asc ? -1 : 1;
-                if(valA > valB) return ledgerSort.asc ? 1 : -1;
-                return 0;
-            });
-
-            let tbody = '';
-            ledger.forEach(entry => {
-                let balanceColor = entry.computedBalance >= 0 ? 'text-green' : 'text-red';
-                
-                let actionBtn = entry.id ? `
-                    <div style="display:flex; gap:6px; justify-content:center;">
-                        <button class="btn-primary" style="padding:4px 10px; font-size:11px; background:#3b82f6;" onclick="openEditLedgerEntry('${entry.id}', '${entry.type}')">Edit</button>
-                        <button class="btn-primary" style="padding:4px 10px; font-size:11px; background:#ef4444;" onclick="deleteLedgerEntry('${entry.id}', '${entry.type}')">Delete</button>
-                    </div>` : '';
-
-                tbody += `<tr>
-                    <td>${formatDate(entry.date)}</td>
-                    <td style="text-align:center"><span style="background:#e0e0e0; padding:4px 8px; border-radius:4px; font-size:11px; font-weight:bold; color:#333;">${entry.gst}</span></td>
-                    <td>${entry.inv}</td>
-                    <td>${(entry.name || '').split('\n')[0]}</td>
-                    <td style="text-align:right">${entry.credit > 0 ? '₹'+entry.credit.toFixed(2) : '-'}</td>
-                    <td style="text-align:right">${entry.debit > 0 ? '₹'+entry.debit.toFixed(2) : '-'}</td>
-                    <td style="text-align:right; font-weight:700;" class="${balanceColor}">₹${entry.computedBalance.toFixed(2)}</td>
-                    <td style="text-align:center">${actionBtn}</td>
-                </tr>`;
-            });
-
-            if (ledger.length === 0) {
-                tbody = `<tr><td colspan="8" style="text-align:center; padding:20px;">No transactions found for this period.</td></tr>`;
-            }
-
-            const ledgerTbody = document.querySelector('#ledgerTable tbody');
-            if(ledgerTbody) ledgerTbody.innerHTML = tbody;
-        }
-
-        function openEditLedgerEntry(id, type) {
-            const listName = type === 'sale' ? 'surya_sales' : 'surya_vendors';
-            const list = getData(listName);
-            const item = list.find(x => x.id === id);
-            
-            if(!item) return alert('Record not found.');
-
-            document.getElementById('el_id').value = item.id;
-            document.getElementById('el_type').value = type;
-            document.getElementById('el_date').value = item.date || '';
-            document.getElementById('el_inv').value = item.inv || '';
-            document.getElementById('el_name').value = type === 'sale' ? (item.client || '') : (item.name || '');
-            document.getElementById('el_total').value = item.total || 0;
-            document.getElementById('el_gst').value = item.gst || '';
-
-            document.getElementById('editLedgerModal').style.display = 'flex';
-        }
-
-        function closeEditLedgerModal() {
-            document.getElementById('editLedgerModal').style.display = 'none';
-        }
-
-        function saveEditedLedgerEntry() {
-            const id = document.getElementById('el_id').value;
-            const type = document.getElementById('el_type').value;
-            const date = document.getElementById('el_date').value;
-            const inv = document.getElementById('el_inv').value.trim();
-            const name = document.getElementById('el_name').value.trim();
-            const total = parseFloat(document.getElementById('el_total').value) || 0;
-            const gst = document.getElementById('el_gst').value.trim();
-
-            if(!date || !inv || !name || total < 0) return alert('Please fill required fields properly.');
-
-            const listName = type === 'sale' ? 'surya_sales' : 'surya_vendors';
-            let list = getData(listName);
-            const idx = list.findIndex(x => x.id === id);
-            
-            if(idx !== -1) {
-                list[idx].date = date;
-                list[idx].inv = inv;
-                if(type === 'sale') list[idx].client = name;
-                else list[idx].name = name;
-                
-                list[idx].total = total.toFixed(2);
-                list[idx].gst = gst;
-                
-                saveData(listName, list);
-                showToast('Ledger entry updated successfully!');
-                closeEditLedgerModal();
-                loadLedger(); 
-            }
-        }
-
-        function deleteLedgerEntry(id, type) {
-            if(!confirm("Are you sure you want to permanently delete this entry? This will recalculate the ledger.")) return;
-            
-            const listName = type === 'sale' ? 'surya_sales' : 'surya_vendors';
-            let list = getData(listName);
-            list = list.filter(x => x.id !== id);
-            saveData(listName, list);
-            
-            showToast("Entry Deleted!");
-            loadLedger(); 
-        }
-
-        function downloadLedgerPDF() {
-            const monthVal = document.getElementById('ledgerMonth').value;
-            const monthText = monthVal ? new Date(monthVal + '-01').toLocaleString('default', { month: 'long', year: 'numeric' }) : 'All Time History';
-            
-            const pdfDiv = document.createElement('div');
-            pdfDiv.style.padding = '20px';
-            pdfDiv.style.fontFamily = "'Montserrat', sans-serif";
-            pdfDiv.style.color = '#111';
-            pdfDiv.style.background = '#fff';
-            pdfDiv.style.width = '800px';
-
-            const sales = document.getElementById('dash_sales').innerText;
-            const expenses = document.getElementById('dash_expenses').innerText;
-            const net = document.getElementById('dash_balance').innerText;
-
-            let rowsHtml = '';
-            document.querySelectorAll('#ledgerTable tbody tr').forEach(row => {
-                let cells = row.querySelectorAll('td');
-                if(cells.length === 1) { 
-                    rowsHtml += `<tr><td colspan="7" style="text-align:center; padding: 10px; border: 1px solid #eee;">${cells[0].innerText}</td></tr>`;
-                } else {
-                    rowsHtml += `<tr>
-                        <td style="padding: 8px; border: 1px solid #eee; font-size: 11px;">${cells[0].innerText}</td>
-                        <td style="padding: 8px; border: 1px solid #eee; font-size: 11px; text-align:center;">${cells[1].innerText}</td>
-                        <td style="padding: 8px; border: 1px solid #eee; font-size: 11px;">${cells[2].innerText}</td>
-                        <td style="padding: 8px; border: 1px solid #eee; font-size: 11px;">${cells[3].innerText}</td>
-                        <td style="padding: 8px; border: 1px solid #eee; font-size: 11px; text-align:right; color:#27ae60;">${cells[4].innerText}</td>
-                        <td style="padding: 8px; border: 1px solid #eee; font-size: 11px; text-align:right; color:#c0392b;">${cells[5].innerText}</td>
-                        <td style="padding: 8px; border: 1px solid #eee; font-size: 11px; text-align:right; font-weight:bold;">${cells[6].innerText}</td>
-                    </tr>`;
-                }
-            });
-
-            pdfDiv.innerHTML = `
-                <div style="text-align: center; margin-bottom: 20px;">
-                    <h2 style="color: #f26522; margin-bottom: 5px; font-size: 24px;">GST Financial Ledger</h2>
-                    <p style="color: #666; margin-top: 0; font-size: 14px;">Period: ${monthText}</p>
-                </div>
-                <div style="display: flex; justify-content: space-between; margin-bottom: 20px; background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #eee;">
-                    <div style="text-align: center; flex: 1;">
-                        <strong style="color: #666; font-size: 12px; text-transform: uppercase;">Total Income</strong><br>
-                        <span style="color: #27ae60; font-size: 18px; font-weight: bold;">${sales}</span>
-                    </div>
-                    <div style="text-align: center; flex: 1; border-left: 1px solid #ddd; border-right: 1px solid #ddd;">
-                        <strong style="color: #666; font-size: 12px; text-transform: uppercase;">Total Expenses</strong><br>
-                        <span style="color: #c0392b; font-size: 18px; font-weight: bold;">${expenses}</span>
-                    </div>
-                    <div style="text-align: center; flex: 1;">
-                        <strong style="color: #666; font-size: 12px; text-transform: uppercase;">Net Balance</strong><br>
-                        <span style="color: #2980b9; font-size: 18px; font-weight: bold;">${net}</span>
-                    </div>
-                </div>
-                <table style="width: 100%; border-collapse: collapse;">
-                    <thead>
-                        <tr style="background: #333; color: #fff;">
-                            <th style="padding: 10px; border: 1px solid #333; font-size: 12px; text-align:left;">Date</th>
-                            <th style="padding: 10px; border: 1px solid #333; font-size: 12px; text-align:center;">GST %</th>
-                            <th style="padding: 10px; border: 1px solid #333; font-size: 12px; text-align:left;">Inv No</th>
-                            <th style="padding: 10px; border: 1px solid #333; font-size: 12px; text-align:left;">Particulars</th>
-                            <th style="padding: 10px; border: 1px solid #333; font-size: 12px; text-align:right;">Credit (In)</th>
-                            <th style="padding: 10px; border: 1px solid #333; font-size: 12px; text-align:right;">Debit (Out)</th>
-                            <th style="padding: 10px; border: 1px solid #333; font-size: 12px; text-align:right;">Balance</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${rowsHtml}
-                    </tbody>
-                </table>
-                <div style="margin-top: 20px; font-size: 10px; color: #888; text-align: center;">
-                    Generated on ${new Date().toLocaleString()}
-                </div>
-            `;
-
-            pdfDiv.style.position = 'absolute';
-            pdfDiv.style.left = '-9999px';
-            document.body.appendChild(pdfDiv);
-
-            showToast("Generating PDF...");
-
-            html2pdf().from(pdfDiv).set({
-                margin: 0.5,
-                filename: `GST_Ledger_${monthVal || 'All_Time'}.pdf`,
-                image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2 },
-                jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
-            }).save().then(() => {
-                document.body.removeChild(pdfDiv);
-            });
-        }
-
-        function initSaleForm() {
-            const today = new Date().toISOString().split('T')[0];
-            const sDate = document.getElementById('s_date');
-            const sInv = document.getElementById('s_inv');
-            if(sDate) sDate.value = today;
-            if(sInv) sInv.value = getFYInvoiceNo();
-        }
-
-        function addSaleRow() {
-            const tbody = document.querySelector('#saleItems tbody');
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td class="sl-number" style="text-align:center; font-weight:bold;"></td>
-                <td><input type="text" class="i_desc" required></td>
-                <td><input type="number" class="i_qty" style="text-align:center;" value="1" min="1" oninput="calcSale()"></td>
-                <td><input type="number" class="i_price" style="text-align:right;" value="0" min="0" oninput="calcSale()"></td>
-                <td>
-                    <select class="i_gst" style="text-align:center;" onchange="calcSale()">
-                        <option value="0">0%</option>
-                        <option value="5">5%</option>
-                        <option value="12">12%</option>
-                        <option value="18" selected>18%</option>
-                        <option value="28">28%</option>
-                    </select>
-                </td>
-                <td class="i_total" style="text-align: right; font-weight:bold; vertical-align: middle;">0.00</td>
-                <td style="text-align:center; vertical-align: middle;"><button type="button" class="remove-btn" onclick="removeRow(this)">×</button></td>
-            `;
-            if(tbody) tbody.appendChild(tr);
-            updateRowNumbers();
-        }
-
-        function updateRowNumbers() {
-            const rows = document.querySelectorAll('#saleItems tbody tr');
-            rows.forEach((row, index) => {
-                row.querySelector('.sl-number').innerText = index + 1;
-            });
-        }
-        
-        function removeRow(btn) {
-            btn.closest('tr').remove();
-            updateRowNumbers();
-            calcSale();
-        }
-
-        function calcSale() {
-            let subTotal = 0, totalTax = 0;
-            document.querySelectorAll('#saleItems tbody tr').forEach(row => {
-                let qty = parseFloat(row.querySelector('.i_qty').value) || 0;
-                let price = parseFloat(row.querySelector('.i_price').value) || 0;
-                let gstRate = parseFloat(row.querySelector('.i_gst').value) || 0;
-                let itemSub = qty * price;
-                let itemTax = (itemSub * gstRate) / 100;
-                row.querySelector('.i_total').innerText = itemSub.toFixed(2);
-                subTotal += itemSub;
-                totalTax += itemTax;
-            });
-            const sSub = document.getElementById('s_sub');
-            const sTax = document.getElementById('s_tax');
-            const sGrand = document.getElementById('s_grand');
-            if(sSub) sSub.innerText = subTotal.toFixed(2);
-            if(sTax) sTax.innerText = totalTax.toFixed(2);
-            if(sGrand) sGrand.innerText = (subTotal + totalTax).toFixed(2);
-        }
-
-        function generateAndPrintSale() {
-            let client = document.getElementById('s_client').value;
-            let clientGst = document.getElementById('s_client_gst').value;
-            let date = document.getElementById('s_date').value;
-            let invNo = document.getElementById('s_inv').value;
-            
-            if(!client || !date) return alert('Enter Client Details and Date');
-
-            let items = [];
-            document.querySelectorAll('#saleItems tbody tr').forEach(row => {
-                let desc = row.querySelector('.i_desc').value;
-                if(desc) {
-                    items.push({
-                        desc: desc,
-                        qty: row.querySelector('.i_qty').value,
-                        price: row.querySelector('.i_price').value,
-                        gst: row.querySelector('.i_gst').value,
-                        total: row.querySelector('.i_total').innerText
-                    });
-                }
-            });
-
-            if(items.length === 0) return alert('Add at least one item description');
-
-            let uniqueGsts = [...new Set(items.map(item => item.gst))];
-            let gstString = uniqueGsts.map(g => g + '%').join(', ') || "0%";
-
-            let sales = getData('surya_sales');
-            let entryId = 's_' + Date.now();
-            sales.push({ id: entryId, inv: invNo, date: date, client: client, total: document.getElementById('s_grand').innerText, gst: gstString });
-            saveData('surya_sales', sales);
-            incrementFYCounter();
-
-            document.getElementById('p_inv_no').innerText = invNo;
-            document.getElementById('p_date').innerText = formatDate(date);
-            
-            let formattedClient = client.replace(/\n/g, '<br>');
-            if (clientGst.trim() !== "") {
-                formattedClient += `<br><span style="font-weight:800; color:#000;">GSTIN : ${clientGst}</span>`;
-            }
-            document.getElementById('p_client').innerHTML = formattedClient;
-
-            let pBody = '';
-            for(let i=0; i<6; i++) {
-                if(items[i]) {
-                    pBody += `<tr><td style="padding:10px; border:1px solid #7a7a7a; text-align:center;">${i+1}</td><td style="padding:10px; border:1px solid #7a7a7a;">${items[i].desc}</td><td style="padding:10px; border:1px solid #7a7a7a; text-align:center;">${items[i].qty}</td><td style="padding:10px; border:1px solid #7a7a7a; text-align:right;">${parseFloat(items[i].price).toFixed(2)}</td><td style="padding:10px; border:1px solid #7a7a7a; text-align:right;">${items[i].total}</td></tr>`;
-                } else {
-                    pBody += `<tr><td style="padding:10px; border:1px solid #7a7a7a;"></td><td style="padding:10px; border:1px solid #7a7a7a;"></td><td style="padding:10px; border:1px solid #7a7a7a;"></td><td style="padding:10px; border:1px solid #7a7a7a;"></td><td style="padding:10px; border:1px solid #7a7a7a;"></td></tr>`;
-                }
-            }
-            document.getElementById('p_table_body').innerHTML = pBody;
-
-            let totalTaxAggregated = parseFloat(document.getElementById('s_tax').innerText);
-            let splitTax = (totalTaxAggregated / 2).toFixed(2);
-            
-            document.getElementById('p_sub').innerText = document.getElementById('s_sub').innerText;
-            document.getElementById('p_cgst').innerText = splitTax;
-            document.getElementById('p_sgst').innerText = splitTax;
-            document.getElementById('p_total').innerText = document.getElementById('s_grand').innerText;
-
-            window.print();
-        }
-
-        function renderTrustedLogos() {
-            const tbody = document.querySelector('#trusted-logos-table tbody');
-            if(!tbody) return;
-            tbody.innerHTML = '';
-            
-            if(!appData.trustedLogos || appData.trustedLogos.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="2" style="text-align:center; padding:15px;">No trusted logos found.</td></tr>';
-                return;
-            }
-            
-            appData.trustedLogos.forEach(logo => {
-                tbody.innerHTML += `
-                    <tr>
-                        <td><strong>${logo.name || 'Untitled'}</strong></td>
-                        <td style="text-align: center;">
-                            <button onclick="removeTrustedLogo('${logo.id}')" class="btn-primary" style="background: #ef4444; padding: 6px 12px; font-size: 11px;">Remove</button>
-                        </td>
-                    </tr>
-                `;
-            });
-        }
-
-        function renderPortfolioItems() {
-            const tbody = document.querySelector('#portfolio-table tbody');
-            if(!tbody) return;
-            tbody.innerHTML = '';
-            
-            if(!appData.portfolioItems || appData.portfolioItems.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:15px;">No portfolio items found.</td></tr>';
-                return;
-            }
-            
-            appData.portfolioItems.forEach(item => {
-                tbody.innerHTML += `
-                    <tr>
-                        <td><strong>${item.title || 'Untitled'}</strong></td>
-                        <td>${item.description || '-'}</td>
-                        <td>${item.material || '-'}</td>
-                        <td style="text-align: center;">
-                            <button onclick="removePortfolioItem('${item.id}')" class="btn-primary" style="background: #ef4444; padding: 6px 12px; font-size: 11px;">Remove</button>
-                        </td>
-                    </tr>
-                `;
-            });
-        }
-
-        function renderTeamTable() {
-            const tbody = document.querySelector('#team-table tbody');
-            if(!tbody) return;
-            tbody.innerHTML = '';
-            
-            if(!appData.team || appData.team.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:15px;">No team members found.</td></tr>';
-                return;
-            }
-            
-            appData.team.forEach(member => {
-                tbody.innerHTML += `
-                    <tr>
-                        <td style="font-size: 20px;">${member.icon || '👤'}</td>
-                        <td><strong>${member.name || 'Untitled'}</strong></td>
-                        <td>${member.role || '-'}</td>
-                        <td style="text-align: center;">
-                            <button onclick="removeTeamMember('${member.id}')" class="btn-primary" style="background: #ef4444; padding: 6px 12px; font-size: 11px;">Remove</button>
-                        </td>
-                    </tr>
-                `;
-            });
-        }
-
-        async function handleClientLogoSubmit(e) {
-            e.preventDefault();
-            const submitBtn = document.getElementById('btn-client');
-            submitBtn.disabled = true;
-            submitBtn.textContent = 'Uploading...';
-
-            try {
-                let clientNameBase = document.getElementById('client-name').value.trim();
-                const fileInput = document.getElementById('client-img');
-                const files = fileInput.files;
-
-                if (files.length === 0) {
-                    alert("Please select at least one logo image.");
-                    return;
-                }
-
-                let uploadPromises = Array.from(files).map(async (file, index) => {
-                    let cName = clientNameBase 
-                        ? (files.length > 1 ? `${clientNameBase} ${index + 1}` : clientNameBase) 
-                        : file.name.split('.')[0];
-                    
-                    const fileExt = file.name.split('.').pop();
-                    const uniqueFileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
-
-                    const { error: uploadError } = await supabaseClient.storage.from('client_logos').upload(uniqueFileName, file);
-                    if (uploadError) throw uploadError;
-
-                    const { data: publicUrlData } = supabaseClient.storage.from('client_logos').getPublicUrl(uniqueFileName);
-                    const logoUrl = publicUrlData.publicUrl;
-
-                    const { data, error: dbError } = await supabaseClient.from('clients').insert([{ name: cName, logo_url: logoUrl }]).select();
-                    if (dbError) throw dbError;
-
-                    return data[0];
-                });
-
-                const results = await Promise.all(uploadPromises);
-                appData.trustedLogos.push(...results);
-
-                showToast(`${results.length} Logo(s) Uploaded!`);
-                document.getElementById('client-form').reset();
-                renderTrustedLogos();
-
-            } catch (err) {
-                console.error("Upload error:", err.message);
-                alert("Error: " + err.message);
-            } finally {
-                submitBtn.disabled = false;
-                submitBtn.textContent = 'Add Logos';
-            }
-        }
-
-        async function removeTrustedLogo(id) {
-            if(!confirm("Are you sure you want to remove this client logo?")) return;
-            
-            const { error } = await supabaseClient.from('clients').delete().eq('id', id);
-            if(error) {
-                console.warn("Could not delete from Supabase: " + error.message);
-            }
-
-            appData.trustedLogos = appData.trustedLogos.filter(l => String(l.id) !== String(id));
-            renderTrustedLogos();
-            showToast("Trusted Logo Removed!");
-        }
-
-        async function handlePortfolioSubmit(e) {
-            e.preventDefault();
-            const submitBtn = document.getElementById('btn-port');
-            submitBtn.disabled = true;
-            submitBtn.textContent = 'Uploading...';
-
-            try {
-                let titleBase = document.getElementById('port-title').value.trim();
-                let descBase = document.getElementById('port-desc').value.trim();
-                let matBase = document.getElementById('port-material').value.trim();
-                const fileInput = document.getElementById('port-img');
-                const files = fileInput.files;
-
-                if (files.length === 0) {
-                    alert("Please select at least one portfolio image.");
-                    return;
-                }
-
-                let uploadPromises = Array.from(files).map(async (file, index) => {
-                    let pTitle = titleBase 
-                        ? (files.length > 1 ? `${titleBase} ${index + 1}` : titleBase) 
-                        : file.name.split('.')[0];
-                    
-                    const fileExt = file.name.split('.').pop();
-                    const uniqueFileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
-
-                    const { error: uploadError } = await supabaseClient.storage.from('portfolio').upload(uniqueFileName, file);
-                    if (uploadError) throw uploadError;
-
-                    const { data: publicUrlData } = supabaseClient.storage.from('portfolio').getPublicUrl(uniqueFileName);
-                    const imageUrl = publicUrlData.publicUrl;
-
-                    const { data, error: dbError } = await supabaseClient.from('portfolio').insert([{
-                        title: pTitle,
-                        description: descBase,
-                        material: matBase,
-                        image_url: imageUrl
-                    }]).select();
-                    
-                    if (dbError) throw dbError;
-
-                    return data[0];
-                });
-
-                const results = await Promise.all(uploadPromises);
-                
-                appData.portfolioItems = [...results, ...appData.portfolioItems];
-
-                showToast(`${results.length} Portfolio Item(s) Uploaded!`);
-                document.getElementById('portfolio-form').reset();
-                renderPortfolioItems();
-
-            } catch (err) {
-                console.error("Upload error:", err.message);
-                alert("Error: " + err.message + "\n\nMake sure your 'portfolio' table has the 'description' and 'material' columns added!");
-            } finally {
-                submitBtn.disabled = false;
-                submitBtn.textContent = 'Publish';
-            }
-        }
-
-        async function removePortfolioItem(id) {
-            if(!confirm("Are you sure you want to remove this portfolio item?")) return;
-            
-            const { error } = await supabaseClient.from('portfolio').delete().eq('id', id);
-            if(error) {
-                console.warn("Could not delete from Supabase: " + error.message);
-            }
-
-            appData.portfolioItems = appData.portfolioItems.filter(p => String(p.id) !== String(id));
-            renderPortfolioItems();
-            showToast("Portfolio Item Removed!");
-        }
-
-        async function handleTeamSubmit(e) {
-            e.preventDefault();
-            const submitBtn = document.getElementById('btn-team');
-            submitBtn.disabled = true;
-            submitBtn.textContent = 'Uploading...';
-
-            try {
-                let name = document.getElementById('team-name').value.trim();
-                let role = document.getElementById('team-role').value.trim();
-                let icon = document.getElementById('team-icon').value.trim();
-                const fileInput = document.getElementById('team-img');
-                const file = fileInput.files[0];
-
-                if (!file) {
-                    alert("Please select a profile image.");
-                    return;
-                }
-
-                const fileExt = file.name.split('.').pop();
-                const uniqueFileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
-
-                const { error: uploadError } = await supabaseClient.storage.from('team_images').upload(uniqueFileName, file);
-                if (uploadError) throw uploadError;
-
-                const { data: publicUrlData } = supabaseClient.storage.from('team_images').getPublicUrl(uniqueFileName);
-                const imageUrl = publicUrlData.publicUrl;
-
-                const { data, error: dbError } = await supabaseClient.from('team_members').insert([{
-                    name: name,
-                    role: role,
-                    icon: icon,
-                    image_url: imageUrl
-                }]).select();
-                
-                if (dbError) throw dbError;
-
-                appData.team.push(data[0]);
-                showToast(`Team Member Added!`);
-                document.getElementById('team-form').reset();
-                document.getElementById('team-icon').value = '👤';
-                renderTeamTable();
-
-            } catch (err) {
-                console.error("Upload error:", err.message);
-                alert("Error: " + err.message + "\n\nMake sure your 'team_members' table and 'team_images' bucket exist in Supabase!");
-            } finally {
-                submitBtn.disabled = false;
-                submitBtn.textContent = 'Add Member';
-            }
-        }
-
-        async function removeTeamMember(id) {
-            if(!confirm("Are you sure you want to remove this team member?")) return;
-            
-            const { error } = await supabaseClient.from('team_members').delete().eq('id', id);
-            if(error) {
-                console.warn("Could not delete from Supabase: " + error.message);
-            }
-
-            appData.team = appData.team.filter(m => String(m.id) !== String(id));
-            renderTeamTable();
-            showToast("Team Member Removed!");
         }
 
         resetWorkRows();
