@@ -1903,43 +1903,36 @@
                 const W = canvas.width;
                 const H = canvas.height;
 
-                // Always draw the original template first.
+                // Draw the original template first.
                 ctx.drawImage(bgImg, 0, 0, W, H);
 
-                // -------------------------------------------------
-                // TEMPLATE POSITIONS
-                // These are percentage based so the layout works
-                // with different resolutions of the same portrait
-                // template.
-                // -------------------------------------------------
+                // =====================================================
+                // EXACT TEMPLATE AREAS
+                // =====================================================
 
-                // 1. MEETING NUMBER - RED BOX AT TOP
-                // Based on the red marked area in the supplied preview.
-                const meetingX = W * 0.195;
-                const meetingY = H * 0.018;
-                const meetingW = W * 0.225;
-                const meetingH = H * 0.105;
+                // Meeting number area at the top-left of the marked area.
+                // NO RED BOX IS DRAWN. ONLY THE NUMBER IS DRAWN IN RED.
+                const meetingX = W * 0.205;
+                const meetingY = H * 0.030;
+                const meetingW = W * 0.245;
+                const meetingH = H * 0.095;
 
-                // 2. BLACK PHOTO AREA
-                // The black rectangle in the supplied template.
+                // The black rounded photo area in the supplied template.
+                // The uploaded image completely fills this area.
                 const photoAreaX = W * 0.050;
-                const photoAreaY = H * 0.245;
+                const photoAreaY = H * 0.252;
                 const photoAreaW = W * 0.900;
                 const photoAreaH = H * 0.450;
-                const photoRadius = Math.max(18, W * 0.055);
+                const photoRadius = Math.max(20, W * 0.055);
 
-                // 3. BOTTOM VALUE AREA
-                // The yellow-marked area to the right of the
-                // existing baked-in labels.
-                const valueX = W * 0.275;
-                const valueW = W * 0.285;
+                // Bottom information rows. The labels are already part of
+                // the template, so values are placed immediately after the
+                // existing colon on every row. No yellow boxes are drawn.
+                const valueX = W * 0.285;
                 const valueTopY = H * 0.742;
                 const valueLineH = H * 0.038;
                 const valueGap = H * 0.010;
-
-                // -------------------------------------------------
-                // Helpers
-                // -------------------------------------------------
+                const valueMaxW = W * 0.625;
 
                 function roundedRectPath(x, y, width, height, radius) {
                     radius = Math.min(radius, width / 2, height / 2);
@@ -1962,7 +1955,7 @@
                     ctx.closePath();
                 }
 
-                function fitFont(text, maxWidth, startSize, minSize = 18, weight = 700) {
+                function fitFont(text, maxWidth, startSize, minSize = 12, weight = 700) {
                     let size = startSize;
                     while (size > minSize) {
                         ctx.font = `${weight} ${size}px Arial, sans-serif`;
@@ -1972,34 +1965,25 @@
                     return size;
                 }
 
-                // -------------------------------------------------
-                // 1. MEETING NUMBER
-                // -------------------------------------------------
+                // =====================================================
+                // 1. MEETING NUMBER - RED TEXT ONLY
+                // =====================================================
                 if (meetingNo) {
                     ctx.save();
 
-                    ctx.fillStyle = '#ff0000';
-                    roundedRectPath(
-                        meetingX,
-                        meetingY,
-                        meetingW,
-                        meetingH,
-                        Math.max(10, W * 0.018)
-                    );
-                    ctx.fill();
-
                     const meetingFont = fitFont(
                         meetingNo,
-                        meetingW * 0.82,
-                        Math.max(34, W * 0.070),
-                        22,
-                        800
+                        meetingW,
+                        Math.max(52, W * 0.075),
+                        24,
+                        900
                     );
 
-                    ctx.font = `800 ${meetingFont}px Arial, sans-serif`;
-                    ctx.fillStyle = '#ffffff';
+                    ctx.font = `900 ${meetingFont}px Arial, sans-serif`;
+                    ctx.fillStyle = '#ff0000';
                     ctx.textAlign = 'center';
                     ctx.textBaseline = 'middle';
+
                     ctx.fillText(
                         meetingNo,
                         meetingX + meetingW / 2,
@@ -2009,9 +1993,9 @@
                     ctx.restore();
                 }
 
-                // -------------------------------------------------
-                // 2. PHOTO - CENTERED INSIDE BLACK AREA
-                // -------------------------------------------------
+                // =====================================================
+                // 2. UPLOADED PHOTO - EXACTLY TO BLACK BOX
+                // =====================================================
                 function drawPhoto(userImg) {
                     const imgW = userImg.naturalWidth || userImg.width;
                     const imgH = userImg.naturalHeight || userImg.height;
@@ -2020,7 +2004,7 @@
 
                     ctx.save();
 
-                    // Clip to the black rounded rectangle.
+                    // Clip exactly to the rounded black photo box.
                     roundedRectPath(
                         photoAreaX,
                         photoAreaY,
@@ -2030,19 +2014,10 @@
                     );
                     ctx.clip();
 
-                    // Keep the black background intact.
-                    ctx.fillStyle = '#000000';
-                    ctx.fillRect(
-                        photoAreaX,
-                        photoAreaY,
-                        photoAreaW,
-                        photoAreaH
-                    );
-
-                    // object-fit: contain inside the black area.
-                    // This centers the complete uploaded photo and
-                    // never stretches or crops the user's image.
-                    const scale = Math.min(
+                    // Cover = fill the complete black area without distortion.
+                    // The image may be cropped only where necessary to preserve
+                    // the original aspect ratio. No empty black strips remain.
+                    const scale = Math.max(
                         photoAreaW / imgW,
                         photoAreaH / imgH
                     );
@@ -2059,26 +2034,20 @@
                     ctx.restore();
                 }
 
-                // -------------------------------------------------
-                // 3. BOTTOM VALUES
-                // -------------------------------------------------
-                // IMPORTANT:
-                // The labels "Leads:", "Wealth note:",
-                // "Face 2 Face:", and "Visitors no:" already exist
-                // in the template image. We ONLY draw the values.
-                // This prevents duplicate labels and keeps all values
-                // inside the yellow-marked area.
+                // =====================================================
+                // 3. EXACT DATA BESIDE THE EXISTING LABELS
+                // =====================================================
                 function drawValue(value, index) {
                     if (!value) return;
 
                     const y = valueTopY + index * (valueLineH + valueGap);
-                    const maxWidth = valueW * 0.96;
+                    const displayValue = index === 1 ? `₹${value.replace(/^₹\s*/, '')}` : value;
 
                     const fontSize = fitFont(
-                        value,
-                        maxWidth,
-                        Math.max(24, W * 0.043),
-                        15,
+                        displayValue,
+                        valueMaxW,
+                        Math.max(20, W * 0.036),
+                        13,
                         700
                     );
 
@@ -2087,7 +2056,13 @@
                     ctx.fillStyle = '#111111';
                     ctx.textAlign = 'left';
                     ctx.textBaseline = 'middle';
-                    ctx.fillText(value, valueX, y + valueLineH / 2);
+
+                    ctx.fillText(
+                        displayValue,
+                        valueX,
+                        y + valueLineH / 2
+                    );
+
                     ctx.restore();
                 }
 
@@ -2098,9 +2073,9 @@
                     drawValue(visitors, 3);
                 }
 
-                // -------------------------------------------------
-                // Final preview + download
-                // -------------------------------------------------
+                // =====================================================
+                // FINAL PREVIEW + DOWNLOAD
+                // =====================================================
                 function finalizePoster() {
                     drawBottomValues();
 
@@ -2134,8 +2109,6 @@
                     previewContainer.appendChild(downloadBtn);
                 }
 
-                // Draw uploaded photo first, then the values so the
-                // values can never accidentally appear inside the black area.
                 if (photoInput.files && photoInput.files[0]) {
                     const reader = new FileReader();
 
@@ -2162,8 +2135,6 @@
 
                     reader.readAsDataURL(photoInput.files[0]);
                 } else {
-                    // No uploaded photo: leave the black area from the
-                    // original template untouched and only add values.
                     finalizePoster();
                 }
             };
