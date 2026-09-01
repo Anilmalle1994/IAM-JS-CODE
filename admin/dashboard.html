@@ -2464,16 +2464,6 @@ async function logout() {
             });
         }
 
-        // Toggle profile dropdown
-const profileToggle = document.getElementById('profile-menu-toggle');
-if(profileToggle) {
-    profileToggle.addEventListener('click', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        document.getElementById('profile-dropdown').classList.toggle('open');
-        closeAllSubmenus(); // Ensure other menus close when this opens
-    });
-}
 // Toggle profile dropdown
 const profileToggle = document.getElementById('profile-menu-toggle');
 if(profileToggle) {
@@ -2484,6 +2474,27 @@ if(profileToggle) {
         closeAllSubmenus(); // Ensure other menus close when this opens
     });
 }
+
+// Close menus when clicking outside
+document.addEventListener('click', function(e) {
+    const sub1 = document.getElementById('settings-submenu');
+    const sub2 = document.getElementById('gst-submenu');
+    const profileDrop = document.getElementById('profile-dropdown');
+    
+    const tog1 = document.getElementById('settings-menu-toggle');
+    const tog2 = document.getElementById('gst-menu-toggle');
+    const togProfile = document.getElementById('profile-menu-toggle');
+    
+    if(sub1 && sub1.classList.contains('open') && !sub1.contains(e.target) && (!tog1 || !tog1.contains(e.target))) {
+        sub1.classList.remove('open');
+    }
+    if(sub2 && sub2.classList.contains('open') && !sub2.contains(e.target) && (!tog2 || !tog2.contains(e.target))) {
+        sub2.classList.remove('open');
+    }
+    if(profileDrop && profileDrop.classList.contains('open') && !profileDrop.contains(e.target) && (!togProfile || !togProfile.contains(e.target))) {
+        profileDrop.classList.remove('open');
+    }
+});
 
 // Close menus when clicking outside
 document.addEventListener('click', function(e) {
