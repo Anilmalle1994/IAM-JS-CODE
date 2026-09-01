@@ -1898,17 +1898,48 @@
                 ctx.drawImage(bgImg, 0, 0, canvas.width, canvas.height);
 
                 const finalizeAndDrawText = () => {
-                    ctx.fillStyle = "#ffffff"; 
-                    ctx.font = "bold 40px Arial"; 
-                    ctx.textAlign = "left"; 
+                    // Helper function to draw text with a colored background box
+                    function drawTextBox(text, x, y, bgCol, textCol, font, padding = 15) {
+                        if (!text) return;
+                        ctx.font = font;
+                        ctx.textBaseline = "top";
+                        ctx.textAlign = "left";
+                        
+                        const textWidth = ctx.measureText(text).width;
+                        const textHeight = parseInt(font, 10); // Extracts height from font string
 
-                    // UPDATE THESE COORDINATES based on your background image design
-                    ctx.fillText(meetingNo, 200, 300); 
-                    ctx.fillText(leads, 200, 400);     
-                    ctx.fillText(wealth, 200, 500);    
-                    ctx.fillText(f2f, 200, 600);       
-                    ctx.fillText(visitors, 200, 700);  
+                        // Draw background box
+                        ctx.fillStyle = bgCol;
+                        ctx.beginPath();
+                        // Fallback to standard rect if roundRect is not supported in older browsers
+                        if (ctx.roundRect) {
+                            ctx.roundRect(x - padding, y - padding, textWidth + (padding * 2), textHeight + (padding * 2), 10);
+                        } else {
+                            ctx.rect(x - padding, y - padding, textWidth + (padding * 2), textHeight + (padding * 2));
+                        }
+                        ctx.fill();
 
+                        // Draw text
+                        ctx.fillStyle = textCol;
+                        ctx.fillText(text, x, y);
+                    }
+
+                    // 1. Red Box for Meeting Number (Big Size)
+                    // UPDATE COORDINATES (X, Y) to position it on your specific template
+                    drawTextBox(meetingNo, 120, 180, "#ff0000", "#ffffff", "bold 70px Arial", 20);
+
+                    // 2. Yellow Boxes for Remaining Content (Aligned to left perfectly)
+                    // UPDATE yellowX to perfectly align with the text labels in your template
+                    const yellowX = 350; 
+                    const startY = 820;  // Y position of the first yellow box
+                    const lineGap = 80;  // Spacing between lines
+
+                    drawTextBox(leads, yellowX, startY, "#ffff00", "#000000", "bold 40px Arial");
+                    drawTextBox(wealth, yellowX, startY + lineGap, "#ffff00", "#000000", "bold 40px Arial");
+                    drawTextBox(f2f, yellowX, startY + lineGap * 2, "#ffff00", "#000000", "bold 40px Arial");
+                    drawTextBox(visitors, yellowX, startY + lineGap * 3, "#ffff00", "#000000", "bold 40px Arial");
+
+                    // Finalize Canvas preview styling
                     canvas.style.width = "100%";
                     canvas.style.height = "auto";
                     canvas.style.maxHeight = "700px";
@@ -1936,8 +1967,46 @@
                     userPhotoReader.onload = function(e) {
                         const userImg = new Image();
                         userImg.onload = function() {
-                            // UPDATE THESE COORDINATES for the User Photo
-                            ctx.drawImage(userImg, 600, 200, 350, 350); 
+                            
+                            // 3. Perfect size of black area (Adjust these variables exactly to your template's black box)
+                            const boxX = 80;       // Left position of black box
+                            const boxY = 260;      // Top position of black box
+                            const boxWidth = 920;  // Width of black box
+                            const boxHeight = 520; // Height of black box
+                            const boxRadius = 45;  // Border radius of black box
+
+                            // Save context state and create clipping path for rounded corners
+                            ctx.save();
+                            ctx.beginPath();
+                            if (ctx.roundRect) {
+                                ctx.roundRect(boxX, boxY, boxWidth, boxHeight, boxRadius);
+                            } else {
+                                ctx.rect(boxX, boxY, boxWidth, boxHeight);
+                            }
+                            ctx.clip(); 
+                            
+                            // Proportional scaling (simulating CSS object-fit: cover)
+                            const imgRatio = userImg.width / userImg.height;
+                            const boxRatio = boxWidth / boxHeight;
+                            let drawW = boxWidth;
+                            let drawH = boxHeight;
+                            let drawX = boxX;
+                            let drawY = boxY;
+
+                            if (imgRatio > boxRatio) {
+                                drawW = boxHeight * imgRatio;
+                                drawX = boxX - (drawW - boxWidth) / 2;
+                            } else {
+                                drawH = boxWidth / imgRatio;
+                                drawY = boxY - (drawH - boxHeight) / 2;
+                            }
+                            
+                            // Draw image inside the clipped area
+                            ctx.drawImage(userImg, drawX, drawY, drawW, drawH);
+                            
+                            // Restore context to draw text normally outside the clip area
+                            ctx.restore();
+
                             finalizeAndDrawText();
                         };
                         userImg.src = e.target.result;
