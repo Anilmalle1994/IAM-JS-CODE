@@ -1,3 +1,5 @@
+Red Box for Meeting number in big size, Yellow box remaining all the text content and it should be align to the left side text perfectly and uploaded photo should be the perfect size of black in the middle size. make correct this code.
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1870,157 +1872,248 @@
         function generatePoster() {
             const styleSelect = document.getElementById('user-template-style');
             const selectedOption = styleSelect.options[styleSelect.selectedIndex];
-            
-            if (!selectedOption || !selectedOption.value) return alert("Please select a Template Style first.");
-            
+
+            if (!selectedOption || !selectedOption.value) {
+                return alert("Please select a Template Style first.");
+            }
+
             const templateBgUrl = selectedOption.getAttribute('data-img');
-            if (!templateBgUrl || templateBgUrl === "undefined") return alert("The selected template does not have a background image.");
+            if (!templateBgUrl || templateBgUrl === "undefined") {
+                return alert("The selected template does not have a background image.");
+            }
 
             const photoInput = document.getElementById('user-poster-photo');
-            const meetingNo = document.getElementById('poster-meeting').value || '';
-            const leads = document.getElementById('poster-leads').value || '';
-            const wealth = document.getElementById('poster-wealth').value || '';
-            const f2f = document.getElementById('poster-f2f').value || '';
-            const visitors = document.getElementById('poster-visitors').value || '';
-
+            const meetingNo = document.getElementById('poster-meeting').value.trim();
+            const leads = document.getElementById('poster-leads').value.trim();
+            const wealth = document.getElementById('poster-wealth').value.trim();
+            const f2f = document.getElementById('poster-f2f').value.trim();
+            const visitors = document.getElementById('poster-visitors').value.trim();
             const previewContainer = document.getElementById('poster-preview-container');
+
             previewContainer.innerHTML = '<span style="color:var(--primary);font-weight:bold;">Rendering Poster...</span>';
 
             const bgImg = new Image();
-            bgImg.crossOrigin = "Anonymous"; 
-            
-            bgImg.onload = function() {
+            bgImg.crossOrigin = "Anonymous";
+
+            bgImg.onload = function () {
                 const canvas = document.createElement('canvas');
                 const ctx = canvas.getContext('2d');
-                canvas.width = bgImg.width;
-                canvas.height = bgImg.height;
+                const W = bgImg.naturalWidth || bgImg.width;
+                const H = bgImg.naturalHeight || bgImg.height;
 
-                ctx.drawImage(bgImg, 0, 0, canvas.width, canvas.height);
+                if (!W || !H) {
+                    alert("Invalid template image dimensions.");
+                    return;
+                }
 
-                const finalizeAndDrawText = () => {
-                    // Helper function to draw text with a colored background box
-                    function drawTextBox(text, x, y, bgCol, textCol, font, padding = 15) {
-                        if (!text) return;
-                        ctx.font = font;
-                        ctx.textBaseline = "top";
-                        ctx.textAlign = "left";
-                        
-                        const textWidth = ctx.measureText(text).width;
-                        const textHeight = parseInt(font, 10); // Extracts height from font string
+                canvas.width = W;
+                canvas.height = H;
+                ctx.drawImage(bgImg, 0, 0, W, H);
 
-                        // Draw background box
-                        ctx.fillStyle = bgCol;
-                        ctx.beginPath();
-                        // Fallback to standard rect if roundRect is not supported in older browsers
-                        if (ctx.roundRect) {
-                            ctx.roundRect(x - padding, y - padding, textWidth + (padding * 2), textHeight + (padding * 2), 10);
+                function roundedRect(ctx, x, y, width, height, radius) {
+                    radius = Math.max(0, Math.min(radius, width / 2, height / 2));
+                    ctx.beginPath();
+                    if (typeof ctx.roundRect === 'function') {
+                        ctx.roundRect(x, y, width, height, radius);
+                    } else {
+                        ctx.moveTo(x + radius, y);
+                        ctx.lineTo(x + width - radius, y);
+                        ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+                        ctx.lineTo(x + width, y + height - radius);
+                        ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+                        ctx.lineTo(x + radius, y + height);
+                        ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+                        ctx.lineTo(x, y + radius);
+                        ctx.quadraticCurveTo(x, y, x + radius, y);
+                        ctx.closePath();
+                    }
+                }
+
+                function drawTextBox(text, x, y, width, height, bgColor, textColor, fontSize, align = 'left') {
+                    if (!text) return;
+
+                    ctx.save();
+                    ctx.fillStyle = bgColor;
+                    roundedRect(ctx, x, y, width, height, Math.max(8, W * 0.008));
+                    ctx.fill();
+
+                    ctx.fillStyle = textColor;
+                    ctx.font = `700 ${fontSize}px Arial, sans-serif`;
+                    ctx.textBaseline = 'middle';
+                    ctx.textAlign = align;
+
+                    const textX = align === 'center'
+                        ? x + width / 2
+                        : x + Math.max(12, width * 0.035);
+
+                    ctx.fillText(text, textX, y + height / 2);
+                    ctx.restore();
+                }
+
+                function drawPosterText() {
+                    /* =====================================================
+                       RED MEETING NUMBER BOX
+                       Large and centered inside its box.
+                       ===================================================== */
+                    const meetingBoxX = W * 0.055;
+                    const meetingBoxY = H * 0.145;
+                    const meetingBoxW = W * 0.23;
+                    const meetingBoxH = H * 0.105;
+
+                    drawTextBox(
+                        meetingNo,
+                        meetingBoxX,
+                        meetingBoxY,
+                        meetingBoxW,
+                        meetingBoxH,
+                        '#ff0000',
+                        '#ffffff',
+                        Math.max(42, W * 0.045),
+                        'center'
+                    );
+
+                    /* =====================================================
+                       YELLOW INFORMATION BOXES
+                       Same X coordinate = perfect left alignment.
+                       ===================================================== */
+                    const yellowX = W * 0.055;
+                    const yellowW = W * 0.38;
+                    const yellowH = H * 0.052;
+                    const yellowGap = H * 0.015;
+                    const yellowStartY = H * 0.61;
+                    const yellowFont = Math.max(20, W * 0.025);
+
+                    drawTextBox(leads, yellowX, yellowStartY, yellowW, yellowH, '#ffff00', '#000000', yellowFont);
+                    drawTextBox(wealth, yellowX, yellowStartY + (yellowH + yellowGap), yellowW, yellowH, '#ffff00', '#000000', yellowFont);
+                    drawTextBox(f2f, yellowX, yellowStartY + (yellowH + yellowGap) * 2, yellowW, yellowH, '#ffff00', '#000000', yellowFont);
+                    drawTextBox(visitors, yellowX, yellowStartY + (yellowH + yellowGap) * 3, yellowW, yellowH, '#ffff00', '#000000', yellowFont);
+                }
+
+                function drawUploadedPhoto(userImg) {
+                    /* =====================================================
+                       BLACK PHOTO AREA
+                       Centered horizontally in the template.
+                       ===================================================== */
+                    const boxW = W * 0.48;
+                    const boxH = H * 0.30;
+                    const boxX = (W - boxW) / 2;
+                    const boxY = H * 0.255;
+                    const radius = Math.max(12, W * 0.018);
+
+                    /* Black base */
+                    ctx.save();
+                    ctx.fillStyle = '#000000';
+                    roundedRect(ctx, boxX, boxY, boxW, boxH, radius);
+                    ctx.fill();
+                    ctx.restore();
+
+                    /* Clip photo to black area */
+                    ctx.save();
+                    roundedRect(ctx, boxX, boxY, boxW, boxH, radius);
+                    ctx.clip();
+
+                    const imgW = userImg.naturalWidth || userImg.width;
+                    const imgH = userImg.naturalHeight || userImg.height;
+
+                    if (imgW > 0 && imgH > 0) {
+                        const imageRatio = imgW / imgH;
+                        const boxRatio = boxW / boxH;
+                        let drawW, drawH, drawX, drawY;
+
+                        /* object-fit: cover */
+                        if (imageRatio > boxRatio) {
+                            drawH = boxH;
+                            drawW = drawH * imageRatio;
+                            drawX = boxX - (drawW - boxW) / 2;
+                            drawY = boxY;
                         } else {
-                            ctx.rect(x - padding, y - padding, textWidth + (padding * 2), textHeight + (padding * 2));
+                            drawW = boxW;
+                            drawH = drawW / imageRatio;
+                            drawX = boxX;
+                            drawY = boxY - (drawH - boxH) / 2;
                         }
-                        ctx.fill();
 
-                        // Draw text
-                        ctx.fillStyle = textCol;
-                        ctx.fillText(text, x, y);
+                        ctx.drawImage(userImg, drawX, drawY, drawW, drawH);
                     }
 
-                    // 1. Red Box for Meeting Number (Big Size)
-                    // UPDATE COORDINATES (X, Y) to position it on your specific template
-                    drawTextBox(meetingNo, 120, 180, "#ff0000", "#ffffff", "bold 70px Arial", 20);
+                    ctx.restore();
 
-                    // 2. Yellow Boxes for Remaining Content (Aligned to left perfectly)
-                    // UPDATE yellowX to perfectly align with the text labels in your template
-                    const yellowX = 350; 
-                    const startY = 820;  // Y position of the first yellow box
-                    const lineGap = 80;  // Spacing between lines
+                    /* Black border around photo area */
+                    ctx.save();
+                    ctx.strokeStyle = '#000000';
+                    ctx.lineWidth = Math.max(3, W * 0.003);
+                    roundedRect(ctx, boxX, boxY, boxW, boxH, radius);
+                    ctx.stroke();
+                    ctx.restore();
+                }
 
-                    drawTextBox(leads, yellowX, startY, "#ffff00", "#000000", "bold 40px Arial");
-                    drawTextBox(wealth, yellowX, startY + lineGap, "#ffff00", "#000000", "bold 40px Arial");
-                    drawTextBox(f2f, yellowX, startY + lineGap * 2, "#ffff00", "#000000", "bold 40px Arial");
-                    drawTextBox(visitors, yellowX, startY + lineGap * 3, "#ffff00", "#000000", "bold 40px Arial");
+                function finalizePoster() {
+                    drawPosterText();
 
-                    // Finalize Canvas preview styling
-                    canvas.style.width = "100%";
-                    canvas.style.height = "auto";
-                    canvas.style.maxHeight = "700px";
-                    canvas.style.objectFit = "contain";
-                    canvas.style.boxShadow = "0 10px 30px rgba(0,0,0,0.1)";
-                    
+                    canvas.style.width = '100%';
+                    canvas.style.height = 'auto';
+                    canvas.style.maxWidth = '100%';
+                    canvas.style.maxHeight = '700px';
+                    canvas.style.objectFit = 'contain';
+                    canvas.style.display = 'block';
+                    canvas.style.boxShadow = '0 10px 30px rgba(0,0,0,0.12)';
+
                     previewContainer.innerHTML = '';
                     previewContainer.appendChild(canvas);
-                    
+
                     const downloadBtn = document.createElement('button');
-                    downloadBtn.className = "btn-primary";
-                    downloadBtn.style.marginTop = "20px";
-                    downloadBtn.innerHTML = "📥 Download Poster";
-                    downloadBtn.onclick = () => {
-                        const link = document.createElement('a');
-                        link.download = `Meeting_Poster_${meetingNo || 'Generated'}.png`;
-                        link.href = canvas.toDataURL("image/png");
-                        link.click();
+                    downloadBtn.className = 'btn-primary';
+                    downloadBtn.style.marginTop = '20px';
+                    downloadBtn.innerHTML = '📥 Download Poster';
+                    downloadBtn.onclick = function () {
+                        try {
+                            const link = document.createElement('a');
+                            link.download = `Meeting_Poster_${meetingNo || 'Generated'}.png`;
+                            link.href = canvas.toDataURL('image/png');
+                            link.click();
+                        } catch (error) {
+                            alert('Unable to download poster: ' + error.message);
+                        }
                     };
                     previewContainer.appendChild(downloadBtn);
-                };
+                }
 
                 if (photoInput.files && photoInput.files[0]) {
-                    const userPhotoReader = new FileReader();
-                    userPhotoReader.onload = function(e) {
+                    const reader = new FileReader();
+
+                    reader.onload = function (event) {
                         const userImg = new Image();
-                        userImg.onload = function() {
-                            
-                            // 3. Perfect size of black area (Adjust these variables exactly to your template's black box)
-                            const boxX = 80;       // Left position of black box
-                            const boxY = 260;      // Top position of black box
-                            const boxWidth = 920;  // Width of black box
-                            const boxHeight = 520; // Height of black box
-                            const boxRadius = 45;  // Border radius of black box
 
-                            // Save context state and create clipping path for rounded corners
-                            ctx.save();
-                            ctx.beginPath();
-                            if (ctx.roundRect) {
-                                ctx.roundRect(boxX, boxY, boxWidth, boxHeight, boxRadius);
-                            } else {
-                                ctx.rect(boxX, boxY, boxWidth, boxHeight);
-                            }
-                            ctx.clip(); 
-                            
-                            // Proportional scaling (simulating CSS object-fit: cover)
-                            const imgRatio = userImg.width / userImg.height;
-                            const boxRatio = boxWidth / boxHeight;
-                            let drawW = boxWidth;
-                            let drawH = boxHeight;
-                            let drawX = boxX;
-                            let drawY = boxY;
-
-                            if (imgRatio > boxRatio) {
-                                drawW = boxHeight * imgRatio;
-                                drawX = boxX - (drawW - boxWidth) / 2;
-                            } else {
-                                drawH = boxWidth / imgRatio;
-                                drawY = boxY - (drawH - boxHeight) / 2;
-                            }
-                            
-                            // Draw image inside the clipped area
-                            ctx.drawImage(userImg, drawX, drawY, drawW, drawH);
-                            
-                            // Restore context to draw text normally outside the clip area
-                            ctx.restore();
-
-                            finalizeAndDrawText();
+                        userImg.onload = function () {
+                            /* Photo first, text afterwards so text remains visible. */
+                            drawUploadedPhoto(userImg);
+                            finalizePoster();
                         };
-                        userImg.src = e.target.result;
+
+                        userImg.onerror = function () {
+                            alert('Unable to load uploaded photo.');
+                            finalizePoster();
+                        };
+
+                        userImg.src = event.target.result;
                     };
-                    userPhotoReader.readAsDataURL(photoInput.files[0]);
+
+                    reader.onerror = function () {
+                        alert('Unable to read the uploaded photo.');
+                        finalizePoster();
+                    };
+
+                    reader.readAsDataURL(photoInput.files[0]);
                 } else {
-                    finalizeAndDrawText(); 
+                    finalizePoster();
                 }
             };
-            
-            bgImg.onerror = function() {
-                previewContainer.innerHTML = '<span style="color:red;">Error loading template image. Check CORS/Supabase settings.</span>';
+
+            bgImg.onerror = function () {
+                previewContainer.innerHTML =
+                    '<span style="color:red;">Error loading template image. Check CORS/Supabase settings.</span>';
             };
-            
+
             bgImg.src = templateBgUrl;
         }
 
