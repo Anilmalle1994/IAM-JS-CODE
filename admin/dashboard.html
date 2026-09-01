@@ -422,10 +422,6 @@
                 </ul>
             </li>
         </ul>
-
-        <div class="logout-wrapper">
-            <button class="side-icon-btn" onclick="logout()" title="Logout" style="color: #ef4444;">🚪</button>
-        </div>
     </aside>
 
     <main class="main-content">
@@ -1689,6 +1685,9 @@
                     if(avatarDisplay) avatarDisplay.innerText = "A";
                     enforceAdminView();
                 }
+
+                // FIX: Load data ONLY after login is fully verified!
+                loadAppData(); 
             }
         }
 
@@ -2021,8 +2020,13 @@
 
         async function loadAppData() {
             try {
+                // Fetch orders first, with an alert if Supabase blocks it
                 const { data: orders, error: oError } = await supabaseClient.from('orders').select('*');
-                if (oError) console.error("Orders fetch error:", oError.message);
+                if (oError) {
+                    console.error("Orders fetch error:", oError.message);
+                    alert("Database Error: " + oError.message); // Explicit warning if data is blocked
+                }
+                
                 appData.orders = {};
                 if (orders) orders.forEach(o => appData.orders[o.orderId] = o);
 
@@ -2050,6 +2054,7 @@
                 if (tError) console.error("Team fetch error:", tError.message);
                 appData.team = teamData || [];
 
+                // Render everything now that data is successfully loaded
                 updateDashboardStats();
                 renderAllOrders();
                 renderPRClient();
@@ -2064,10 +2069,9 @@
                 
             } catch (err) {
                 console.error("Supabase Load Error:", err.message);
-                showToast("Error loading cloud data!");
+                alert("Error connecting to database. Please check your internet connection.");
             }
         }
-        loadAppData();
 
         // ==========================================
         // NEW: BULK WHATSAPP REMINDERS MODAL LOGIC
@@ -3006,7 +3010,7 @@
                     desc: it.desc || it.work || '',
                     size: it.size || '',
                     qty: (it.qty || it.qty === 0) ? it.qty : '',
-                    rate: (it.rate || it.rate === 0) ? parseFloat(it.rate) : '', 
+                    rate: (it.rate || it.rate === 0) ? parseFloat(it.rate) : '', // Now capturing individual price
                     amount: (it.amount || it.amount === 0) ? parseFloat(it.amount) : ''
                 }));
             }
@@ -3085,6 +3089,7 @@
                 </tr>`;
             });
             for (let i = items.length; i < 2; i++) {
+                // Generates blank spacing rows to keep formatting neat
                 rows += `<tr><td style="${cellL}">&nbsp;</td><td style="${cellC}">&nbsp;</td><td style="${cellC}">&nbsp;</td><td style="${cellR}">&nbsp;</td><td style="${cellR}">&nbsp;</td></tr>`;
             }
             rows += `<tr>
@@ -4416,468 +4421,479 @@
                         <td style="padding: 8px; border: 1px solid #eee; font-size: 11px; text-align:right; font-weight:bold;">${cells[6].innerText}</td>
                     </tr>`;
                 }
-            });
 
-            pdfDiv.innerHTML = `
-<div style="text-align: center; margin-bottom: 20px;">
-                    <h2 style="color: #f26522; margin-bottom: 5px; font-size: 24px;">GST Financial Ledger</h2>
-                    <p style="color: #666; margin-top: 0; font-size: 14px;">Period: ${monthText}</p>
-                </div>
-                <div style="display: flex; justify-content: space-between; margin-bottom: 20px; background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #eee;">
-                    <div style="text-align: center; flex: 1;">
-                        <strong style="color: #666; font-size: 12px; text-transform: uppercase;">Total Income</strong><br>
-                        <span style="color: #27ae60; font-size: 18px; font-weight: bold;">${sales}</span>
-                    </div>
-                    <div style="text-align: center; flex: 1; border-left: 1px solid #ddd; border-right: 1px solid #ddd;">
-                        <strong style="color: #666; font-size: 12px; text-transform: uppercase;">Total Expenses</strong><br>
-                        <span style="color: #c0392b; font-size: 18px; font-weight: bold;">${expenses}</span>
-                    </div>
-                    <div style="text-align: center; flex: 1;">
-                        <strong style="color: #666; font-size: 12px; text-transform: uppercase;">Net Balance</strong><br>
-                        <span style="I'm having a hard time fulfilling your request. Can I help you with something else instead?
-color: #2980b9; font-size: 18px; font-weight: bold;">${net}</span>
-                    </div>
-                </div>
-                <table style="width: 100%; border-collapse: collapse;">
-                    <thead>
-                        <tr style="background: #333; color: #fff;">
-                            <th style="padding: 10px; border: 1px solid #333; font-size: 12px; text-align:left;">Date</th>
-                            <th style="padding: 10px; border: 1px solid #333; font-size: 12px; text-align:center;">GST %</th>
-                            <th style="padding: 10px; border: 1px solid #333; font-size: 12px; text-align:left;">Inv No</th>
-                            <th style="padding: 10px; border: 1px solid #333; font-size: 12px; text-align:left;">Particulars</th>
-                            <th style="padding: 10px; border: 1px solid #333; font-size: 12px; text-align:right;">Credit (In)</th>
-                            <th style="padding: 10px; border: 1px solid #333; font-size: 12px; text-align:right;">Debit (Out)</th>
-                            <th style="padding: 10px; border: 1px solid #333; font-size: 12px; text-align:right;">Balance</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${rowsHtml}
-                    </tbody>
-                </table>
-                <div style="margin-top: 20px; font-size: 10px; color: #888; text-align: center;">
-                    Generated on ${new Date().toLocaleString()}
-                </div>
-            `;
-
-            pdfDiv.style.position = 'absolute';
-            pdfDiv.style.left = '-9999px';
-            document.body.appendChild(pdfDiv);
-
-            showToast("Generating PDF...");
-
-            html2pdf().from(pdfDiv).set({
-                margin: 0.5,
-                filename: `GST_Ledger_${monthVal || 'All_Time'}.pdf`,
-                image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2 },
-                jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
-            }).save().then(() => {
-                document.body.removeChild(pdfDiv);
-            });
-        }
-
-        function initSaleForm() {
-            const today = new Date().toISOString().split('T')[0];
-            const sDate = document.getElementById('s_date');
-            const sInv = document.getElementById('s_inv');
-            if(sDate) sDate.value = today;
-            if(sInv) sInv.value = getFYInvoiceNo();
-        }
-
-        function addSaleRow() {
-            const tbody = document.querySelector('#saleItems tbody');
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td class="sl-number" style="text-align:center; font-weight:bold;"></td>
-                <td><input type="text" class="i_desc" required></td>
-                <td><input type="number" class="i_qty" style="text-align:center;" value="1" min="1" oninput="calcSale()"></td>
-                <td><input type="number" class="i_price" style="text-align:right;" value="0" min="0" oninput="calcSale()"></td>
-                <td>
-                    <select class="i_gst" style="text-align:center;" onchange="calcSale()">
-                        <option value="0">0%</option>
-                        <option value="5">5%</option>
-                        <option value="12">12%</option>
-                        <option value="18" selected>18%</option>
-                        <option value="28">28%</option>
-                    </select>
-                </td>
-                <td class="i_total" style="text-align: right; font-weight:bold; vertical-align: middle;">0.00</td>
-                <td style="text-align:center; vertical-align: middle;"><button type="button" class="remove-btn" onclick="removeRow(this)">×</button></td>
-            `;
-            if(tbody) tbody.appendChild(tr);
-            updateRowNumbers();
-        }
-
-        function updateRowNumbers() {
-            const rows = document.querySelectorAll('#saleItems tbody tr');
-            rows.forEach((row, index) => {
-                row.querySelector('.sl-number').innerText = index + 1;
-            });
-        }
-        
-        function removeRow(btn) {
-            btn.closest('tr').remove();
-            updateRowNumbers();
-            calcSale();
-        }
-
-        function calcSale() {
-            let subTotal = 0, totalTax = 0;
-            document.querySelectorAll('#saleItems tbody tr').forEach(row => {
-                let qty = parseFloat(row.querySelector('.i_qty').value) || 0;
-                let price = parseFloat(row.querySelector('.i_price').value) || 0;
-                let gstRate = parseFloat(row.querySelector('.i_gst').value) || 0;
-                let itemSub = qty * price;
-                let itemTax = (itemSub * gstRate) / 100;
-                row.querySelector('.i_total').innerText = itemSub.toFixed(2);
-                subTotal += itemSub;
-                totalTax += itemTax;
-            });
-            const sSub = document.getElementById('s_sub');
-            const sTax = document.getElementById('s_tax');
-            const sGrand = document.getElementById('s_grand');
-            if(sSub) sSub.innerText = subTotal.toFixed(2);
-            if(sTax) sTax.innerText = totalTax.toFixed(2);
-            if(sGrand) sGrand.innerText = (subTotal + totalTax).toFixed(2);
-        }
-
-        function generateAndPrintSale() {
-            let client = document.getElementById('s_client').value;
-            let clientGst = document.getElementById('s_client_gst').value;
-            let date = document.getElementById('s_date').value;
-            let invNo = document.getElementById('s_inv').value;
-            
-            if(!client || !date) return alert('Enter Client Details and Date');
-
-            let items = [];
-            document.querySelectorAll('#saleItems tbody tr').forEach(row => {
-                let desc = row.querySelector('.i_desc').value;
-                if(desc) {
-                    items.push({
-                        desc: desc,
-                        qty: row.querySelector('.i_qty').value,
-                        price: row.querySelector('.i_price').value,
-                        gst: row.querySelector('.i_gst').value,
-                        total: row.querySelector('.i_total').innerText
-                    });
-                }
-            });
-
-            if(items.length === 0) return alert('Add at least one item description');
-
-            let uniqueGsts = [...new Set(items.map(item => item.gst))];
-            let gstString = uniqueGsts.map(g => g + '%').join(', ') || "0%";
-
-            let sales = getData('surya_sales');
-            let entryId = 's_' + Date.now();
-            sales.push({ id: entryId, inv: invNo, date: date, client: client, total: document.getElementById('s_grand').innerText, gst: gstString });
-            saveData('surya_sales', sales);
-            incrementFYCounter();
-
-            document.getElementById('p_inv_no').innerText = invNo;
-            document.getElementById('p_date').innerText = formatDate(date);
-            
-            let formattedClient = client.replace(/\n/g, '<br>');
-            if (clientGst.trim() !== "") {
-                formattedClient += `<br><span style="font-weight:800; color:#000;">GSTIN : ${clientGst}</span>`;
-            }
-            document.getElementById('p_client').innerHTML = formattedClient;
-
-            let pBody = '';
-            for(let i=0; i<6; i++) {
-                if(items[i]) {
-                    pBody += `<tr><td style="padding:10px; border:1px solid #7a7a7a; text-align:center;">${i+1}</td><td style="padding:10px; border:1px solid #7a7a7a;">${items[i].desc}</td><td style="padding:10px; border:1px solid #7a7a7a; text-align:center;">${items[i].qty}</td><td style="padding:10px; border:1px solid #7a7a7a; text-align:right;">${parseFloat(items[i].price).toFixed(2)}</td><td style="padding:10px; border:1px solid #7a7a7a; text-align:right;">${items[i].total}</td></tr>`;
-                } else {
-                    pBody += `<tr><td style="padding:10px; border:1px solid #7a7a7a;"></td><td style="padding:10px; border:1px solid #7a7a7a;"></td><td style="padding:10px; border:1px solid #7a7a7a;"></td><td style="padding:10px; border:1px solid #7a7a7a;"></td><td style="padding:10px; border:1px solid #7a7a7a;"></td></tr>`;
-                }
-            }
-            document.getElementById('p_table_body').innerHTML = pBody;
-
-            let totalTaxAggregated = parseFloat(document.getElementById('s_tax').innerText);
-            let splitTax = (totalTaxAggregated / 2).toFixed(2);
-            
-            document.getElementById('p_sub').innerText = document.getElementById('s_sub').innerText;
-            document.getElementById('p_cgst').innerText = splitTax;
-            document.getElementById('p_sgst').innerText = splitTax;
-            document.getElementById('p_total').innerText = document.getElementById('s_grand').innerText;
-
-            window.print();
-        }
-
-        function renderTrustedLogos() {
-            const tbody = document.querySelector('#trusted-logos-table tbody');
-            if(!tbody) return;
-            tbody.innerHTML = '';
-            
-            if(!appData.trustedLogos || appData.trustedLogos.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="2" style="text-align:center; padding:15px;">No trusted logos found.</td></tr>';
-                return;
-            }
-            
-            appData.trustedLogos.forEach(logo => {
-                tbody.innerHTML += `
-                    <tr>
-                        <td><strong>${logo.name || 'Untitled'}</strong></td>
-                        <td style="text-align: center;">
-                            <button onclick="removeTrustedLogo('${logo.id}')" class="btn-primary" style="background: #ef4444; padding: 6px 12px; font-size: 11px;">Remove</button>
-                        </td>
-                    </tr>
-                `;
-            });
-        }
-
-        function renderPortfolioItems() {
-            const tbody = document.querySelector('#portfolio-table tbody');
-            if(!tbody) return;
-            tbody.innerHTML = '';
-            
-            if(!appData.portfolioItems || appData.portfolioItems.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:15px;">No portfolio items found.</td></tr>';
-                return;
-            }
-            
-            appData.portfolioItems.forEach(item => {
-                tbody.innerHTML += `
-                    <tr>
-                        <td><strong>${item.title || 'Untitled'}</strong></td>
-                        <td>${item.description || '-'}</td>
-                        <td>${item.material || '-'}</td>
-                        <td style="text-align: center;">
-                            <button onclick="removePortfolioItem('${item.id}')" class="btn-primary" style="background: #ef4444; padding: 6px 12px; font-size: 11px;">Remove</button>
-                        </td>
-                    </tr>
-                `;
-            });
-        }
-
-        function renderTeamTable() {
-            const tbody = document.querySelector('#team-table tbody');
-            if(!tbody) return;
-            tbody.innerHTML = '';
-            
-            if(!appData.team || appData.team.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:15px;">No team members found.</td></tr>';
-                return;
-            }
-            
-            appData.team.forEach(member => {
-                tbody.innerHTML += `
-                    <tr>
-                        <td style="font-size: 20px;">${member.icon || '👤'}</td>
-                        <td><strong>${member.name || 'Untitled'}</strong></td>
-                        <td>${member.role || '-'}</td>
-                        <td style="text-align: center;">
-                            <button onclick="removeTeamMember('${member.id}')" class="btn-primary" style="background: #ef4444; padding: 6px 12px; font-size: 11px;">Remove</button>
-                        </td>
-                    </tr>
-                `;
-            });
-        }
-
-        async function handleClientLogoSubmit(e) {
-            e.preventDefault();
-            const submitBtn = document.getElementById('btn-client');
-            submitBtn.disabled = true;
-            submitBtn.textContent = 'Uploading...';
-
-            try {
-                let clientNameBase = document.getElementById('client-name').value.trim();
-                const fileInput = document.getElementById('client-img');
-                const files = fileInput.files;
-
-                if (files.length === 0) {
-                    alert("Please select at least one logo image.");
-                    return;
-                }
-
-                let uploadPromises = Array.from(files).map(async (file, index) => {
-                    let cName = clientNameBase 
-                        ? (files.length > 1 ? `${clientNameBase} ${index + 1}` : clientNameBase) 
-                        : file.name.split('.')[0];
-                    
-                    const fileExt = file.name.split('.').pop();
-                    const uniqueFileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
-
-                    const { error: uploadError } = await supabaseClient.storage.from('client_logos').upload(uniqueFileName, file);
-                    if (uploadError) throw uploadError;
-
-                    const { data: publicUrlData } = supabaseClient.storage.from('client_logos').getPublicUrl(uniqueFileName);
-                    const logoUrl = publicUrlData.publicUrl;
-
-                    const { data, error: dbError } = await supabaseClient.from('clients').insert([{ name: cName, logo_url: logoUrl }]).select();
-                    if (dbError) throw dbError;
-
-                    return data[0];
+} else {
+                        rowsHtml += `<tr>
+                            <td style="padding: 8px; border: 1px solid #eee; font-size: 11px;">${cells[0].innerText}</td>
+                            <td style="padding: 8px; border: 1px solid #eee; font-size: 11px; text-align:center;">${cells[1].innerText}</td>
+                            <td style="padding: 8px; border: 1px solid #eee; font-size: 11px;">${cells[2].innerText}</td>
+                            <td style="padding: 8px; border: 1px solid #eee; font-size: 11px;">${cells[3].innerText}</td>
+                            <td style="padding: 8px; border: 1px solid #eee; font-size: 11px; text-align:right; color:#27ae60;">${cells[4].innerText}</td>
+                            <td style="padding: 8px; border: 1px solid #eee; font-size: 11px; text-align:right; color:#c0392b;">${cells[5].innerText}</td>
+                            <td style="padding: 8px; border: 1px solid #eee; font-size: 11px; text-align:right; font-weight:bold;">${cells[6].innerText}</td>
+                        </tr>`;
+                    }
                 });
 
-                const results = await Promise.all(uploadPromises);
-                appData.trustedLogos.push(...results);
+                pdfDiv.innerHTML = `
+    <div style="text-align: center; margin-bottom: 20px;">
+                        <h2 style="color: #f26522; margin-bottom: 5px; font-size: 24px;">GST Financial Ledger</h2>
+                        <p style="color: #666; margin-top: 0; font-size: 14px;">Period: ${monthText}</p>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 20px; background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #eee;">
+                        <div style="text-align: center; flex: 1;">
+                            <strong style="color: #666; font-size: 12px; text-transform: uppercase;">Total Income</strong><br>
+                            <span style="color: #27ae60; font-size: 18px; font-weight: bold;">${sales}</span>
+                        </div>
+                        <div style="text-align: center; flex: 1; border-left: 1px solid #ddd; border-right: 1px solid #ddd;">
+                            <strong style="color: #666; font-size: 12px; text-transform: uppercase;">Total Expenses</strong><br>
+                            <span style="color: #c0392b; font-size: 18px; font-weight: bold;">${expenses}</span>
+                        </div>
+                        <div style="text-align: center; flex: 1;">
+                            <strong style="color: #666; font-size: 12px; text-transform: uppercase;">Net Balance</strong><br>
+                            <span style="color: #2980b9; font-size: 18px; font-weight: bold;">${net}</span>
+                        </div>
+                    </div>
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr style="background: #333; color: #fff;">
+                                <th style="padding: 10px; border: 1px solid #333; font-size: 12px; text-align:left;">Date</th>
+                                <th style="padding: 10px; border: 1px solid #333; font-size: 12px; text-align:center;">GST %</th>
+                                <th style="padding: 10px; border: 1px solid #333; font-size: 12px; text-align:left;">Inv No</th>
+                                <th style="padding: 10px; border: 1px solid #333; font-size: 12px; text-align:left;">Particulars</th>
+                                <th style="padding: 10px; border: 1px solid #333; font-size: 12px; text-align:right;">Credit (In)</th>
+                                <th style="padding: 10px; border: 1px solid #333; font-size: 12px; text-align:right;">Debit (Out)</th>
+                                <th style="padding: 10px; border: 1px solid #333; font-size: 12px; text-align:right;">Balance</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${rowsHtml}
+                        </tbody>
+                    </table>
+                    <div style="margin-top: 20px; font-size: 10px; color: #888; text-align: center;">
+                        Generated on ${new Date().toLocaleString()}
+                    </div>
+                `;
 
-                showToast(`${results.length} Logo(s) Uploaded!`);
-                document.getElementById('client-form').reset();
-                renderTrustedLogos();
+                pdfDiv.style.position = 'absolute';
+                pdfDiv.style.left = '-9999px';
+                document.body.appendChild(pdfDiv);
 
-            } catch (err) {
-                console.error("Upload error:", err.message);
-                alert("Error: " + err.message);
-            } finally {
-                submitBtn.disabled = false;
-                submitBtn.textContent = 'Add Logos';
+                showToast("Generating PDF...");
+
+                html2pdf().from(pdfDiv).set({
+                    margin: 0.5,
+                    filename: `GST_Ledger_${monthVal || 'All_Time'}.pdf`,
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: { scale: 2 },
+                    jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+                }).save().then(() => {
+                    document.body.removeChild(pdfDiv);
+                });
             }
-        }
 
-        async function removeTrustedLogo(id) {
-            if(!confirm("Are you sure you want to remove this client logo?")) return;
+            function initSaleForm() {
+                const today = new Date().toISOString().split('T')[0];
+                const sDate = document.getElementById('s_date');
+                const sInv = document.getElementById('s_inv');
+                if(sDate) sDate.value = today;
+                if(sInv) sInv.value = getFYInvoiceNo();
+            }
+
+            function addSaleRow() {
+                const tbody = document.querySelector('#saleItems tbody');
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="sl-number" style="text-align:center; font-weight:bold;"></td>
+                    <td><input type="text" class="i_desc" required></td>
+                    <td><input type="number" class="i_qty" style="text-align:center;" value="1" min="1" oninput="calcSale()"></td>
+                    <td><input type="number" class="i_price" style="text-align:right;" value="0" min="0" oninput="calcSale()"></td>
+                    <td>
+                        <select class="i_gst" style="text-align:center;" onchange="calcSale()">
+                            <option value="0">0%</option>
+                            <option value="5">5%</option>
+                            <option value="12">12%</option>
+                            <option value="18" selected>18%</option>
+                            <option value="28">28%</option>
+                        </select>
+                    </td>
+                    <td class="i_total" style="text-align: right; font-weight:bold; vertical-align: middle;">0.00</td>
+                    <td style="text-align:center; vertical-align: middle;"><button type="button" class="remove-btn" onclick="removeRow(this)">×</button></td>
+                `;
+                if(tbody) tbody.appendChild(tr);
+                updateRowNumbers();
+            }
+
+            function updateRowNumbers() {
+                const rows = document.querySelectorAll('#saleItems tbody tr');
+                rows.forEach((row, index) => {
+                    row.querySelector('.sl-number').innerText = index + 1;
+                });
+            }
             
-            const { error } = await supabaseClient.from('clients').delete().eq('id', id);
-            if(error) {
-                console.warn("Could not delete from Supabase: " + error.message);
+            function removeRow(btn) {
+                btn.closest('tr').remove();
+                updateRowNumbers();
+                calcSale();
             }
 
-            appData.trustedLogos = appData.trustedLogos.filter(l => String(l.id) !== String(id));
-            renderTrustedLogos();
-            showToast("Trusted Logo Removed!");
-        }
+            function calcSale() {
+                let subTotal = 0, totalTax = 0;
+                document.querySelectorAll('#saleItems tbody tr').forEach(row => {
+                    let qty = parseFloat(row.querySelector('.i_qty').value) || 0;
+                    let price = parseFloat(row.querySelector('.i_price').value) || 0;
+                    let gstRate = parseFloat(row.querySelector('.i_gst').value) || 0;
+                    let itemSub = qty * price;
+                    let itemTax = (itemSub * gstRate) / 100;
+                    row.querySelector('.i_total').innerText = itemSub.toFixed(2);
+                    subTotal += itemSub;
+                    totalTax += itemTax;
+                });
+                const sSub = document.getElementById('s_sub');
+                const sTax = document.getElementById('s_tax');
+                const sGrand = document.getElementById('s_grand');
+                if(sSub) sSub.innerText = subTotal.toFixed(2);
+                if(sTax) sTax.innerText = totalTax.toFixed(2);
+                if(sGrand) sGrand.innerText = (subTotal + totalTax).toFixed(2);
+            }
 
-        async function handlePortfolioSubmit(e) {
-            e.preventDefault();
-            const submitBtn = document.getElementById('btn-port');
-            submitBtn.disabled = true;
-            submitBtn.textContent = 'Uploading...';
+            function generateAndPrintSale() {
+                let client = document.getElementById('s_client').value;
+                let clientGst = document.getElementById('s_client_gst').value;
+                let date = document.getElementById('s_date').value;
+                let invNo = document.getElementById('s_inv').value;
+                
+                if(!client || !date) return alert('Enter Client Details and Date');
 
-            try {
-                let titleBase = document.getElementById('port-title').value.trim();
-                let descBase = document.getElementById('port-desc').value.trim();
-                let matBase = document.getElementById('port-material').value.trim();
-                const fileInput = document.getElementById('port-img');
-                const files = fileInput.files;
+                let items = [];
+                document.querySelectorAll('#saleItems tbody tr').forEach(row => {
+                    let desc = row.querySelector('.i_desc').value;
+                    if(desc) {
+                        items.push({
+                            desc: desc,
+                            qty: row.querySelector('.i_qty').value,
+                            price: row.querySelector('.i_price').value,
+                            gst: row.querySelector('.i_gst').value,
+                            total: row.querySelector('.i_total').innerText
+                        });
+                    }
+                });
 
-                if (files.length === 0) {
-                    alert("Please select at least one portfolio image.");
+                if(items.length === 0) return alert('Add at least one item description');
+
+                let uniqueGsts = [...new Set(items.map(item => item.gst))];
+                let gstString = uniqueGsts.map(g => g + '%').join(', ') || "0%";
+
+                let sales = getData('surya_sales');
+                let entryId = 's_' + Date.now();
+                sales.push({ id: entryId, inv: invNo, date: date, client: client, total: document.getElementById('s_grand').innerText, gst: gstString });
+                saveData('surya_sales', sales);
+                incrementFYCounter();
+
+                document.getElementById('p_inv_no').innerText = invNo;
+                document.getElementById('p_date').innerText = formatDate(date);
+                
+                let formattedClient = client.replace(/\n/g, '<br>');
+                if (clientGst.trim() !== "") {
+                    formattedClient += `<br><span style="font-weight:800; color:#000;">GSTIN : ${clientGst}</span>`;
+                }
+                document.getElementById('p_client').innerHTML = formattedClient;
+
+                let pBody = '';
+                for(let i=0; i<6; i++) {
+                    if(items[i]) {
+                        pBody += `<tr><td style="padding:10px; border:1px solid #7a7a7a; text-align:center;">${i+1}</td><td style="padding:10px; border:1px solid #7a7a7a;">${items[i].desc}</td><td style="padding:10px; border:1px solid #7a7a7a; text-align:center;">${items[i].qty}</td><td style="padding:10px; border:1px solid #7a7a7a; text-align:right;">${parseFloat(items[i].price).toFixed(2)}</td><td style="padding:10px; border:1px solid #7a7a7a; text-align:right;">${items[i].total}</td></tr>`;
+                    } else {
+                        pBody += `<tr><td style="padding:10px; border:1px solid #7a7a7a;"></td><td style="padding:10px; border:1px solid #7a7a7a;"></td><td style="padding:10px; border:1px solid #7a7a7a;"></td><td style="padding:10px; border:1px solid #7a7a7a;"></td><td style="padding:10px; border:1px solid #7a7a7a;"></td></tr>`;
+                    }
+                }
+                document.getElementById('p_table_body').innerHTML = pBody;
+
+                let totalTaxAggregated = parseFloat(document.getElementById('s_tax').innerText);
+                let splitTax = (totalTaxAggregated / 2).toFixed(2);
+                
+                document.getElementById('p_sub').innerText = document.getElementById('s_sub').innerText;
+                document.getElementById('p_cgst').innerText = splitTax;
+                document.getElementById('p_sgst').innerText = splitTax;
+                document.getElementById('p_total').innerText = document.getElementById('s_grand').innerText;
+
+                window.print();
+            }
+
+            function renderTrustedLogos() {
+                const tbody = document.querySelector('#trusted-logos-table tbody');
+                if(!tbody) return;
+                tbody.innerHTML = '';
+                
+                if(!appData.trustedLogos || appData.trustedLogos.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="2" style="text-align:center; padding:15px;">No trusted logos found.</td></tr>';
                     return;
                 }
+                
+                appData.trustedLogos.forEach(logo => {
+                    tbody.innerHTML += `
+                        <tr>
+                            <td><strong>${logo.name || 'Untitled'}</strong></td>
+                            <td style="text-align: center;">
+                                <button onclick="removeTrustedLogo('${logo.id}')" class="btn-primary" style="background: #ef4444; padding: 6px 12px; font-size: 11px;">Remove</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            }
 
-                let uploadPromises = Array.from(files).map(async (file, index) => {
-                    let pTitle = titleBase 
-                        ? (files.length > 1 ? `${titleBase} ${index + 1}` : titleBase) 
-                        : file.name.split('.')[0];
+            function renderPortfolioItems() {
+                const tbody = document.querySelector('#portfolio-table tbody');
+                if(!tbody) return;
+                tbody.innerHTML = '';
+                
+                if(!appData.portfolioItems || appData.portfolioItems.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:15px;">No portfolio items found.</td></tr>';
+                    return;
+                }
+                
+                appData.portfolioItems.forEach(item => {
+                    tbody.innerHTML += `
+                        <tr>
+                            <td><strong>${item.title || 'Untitled'}</strong></td>
+                            <td>${item.description || '-'}</td>
+                            <td>${item.material || '-'}</td>
+                            <td style="text-align: center;">
+                                <button onclick="removePortfolioItem('${item.id}')" class="btn-primary" style="background: #ef4444; padding: 6px 12px; font-size: 11px;">Remove</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            }
+
+            function renderTeamTable() {
+                const tbody = document.querySelector('#team-table tbody');
+                if(!tbody) return;
+                tbody.innerHTML = '';
+                
+                if(!appData.team || appData.team.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:15px;">No team members found.</td></tr>';
+                    return;
+                }
+                
+                appData.team.forEach(member => {
+                    tbody.innerHTML += `
+                        <tr>
+                            <td style="font-size: 20px;">${member.icon || '👤'}</td>
+                            <td><strong>${member.name || 'Untitled'}</strong></td>
+                            <td>${member.role || '-'}</td>
+                            <td style="text-align: center;">
+                                <button onclick="removeTeamMember('${member.id}')" class="btn-primary" style="background: #ef4444; padding: 6px 12px; font-size: 11px;">Remove</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            }
+
+            async function handleClientLogoSubmit(e) {
+                e.preventDefault();
+                const submitBtn = document.getElementById('btn-client');
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Uploading...';
+
+                try {
+                    let clientNameBase = document.getElementById('client-name').value.trim();
+                    const fileInput = document.getElementById('client-img');
+                    const files = fileInput.files;
+
+                    if (files.length === 0) {
+                        alert("Please select at least one logo image.");
+                        return;
+                    }
+
+                    let uploadPromises = Array.from(files).map(async (file, index) => {
+                        let cName = clientNameBase 
+                            ? (files.length > 1 ? `${clientNameBase} ${index + 1}` : clientNameBase) 
+                            : file.name.split('.')[0];
+                        
+                        const fileExt = file.name.split('.').pop();
+                        const uniqueFileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+
+                        const { error: uploadError } = await supabaseClient.storage.from('client_logos').upload(uniqueFileName, file);
+                        if (uploadError) throw uploadError;
+
+                        const { data: publicUrlData } = supabaseClient.storage.from('client_logos').getPublicUrl(uniqueFileName);
+                        const logoUrl = publicUrlData.publicUrl;
+
+                        const { data, error: dbError } = await supabaseClient.from('clients').insert([{ name: cName, logo_url: logoUrl }]).select();
+                        if (dbError) throw dbError;
+
+                        return data[0];
+                    });
+
+                    const results = await Promise.all(uploadPromises);
+                    appData.trustedLogos.push(...results);
+
+                    showToast(`${results.length} Logo(s) Uploaded!`);
+                    document.getElementById('client-form').reset();
+                    renderTrustedLogos();
+
+                } catch (err) {
+                    console.error("Upload error:", err.message);
+                    alert("Error: " + err.message);
+                } finally {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Add Logos';
+                }
+            }
+
+            async function removeTrustedLogo(id) {
+                if(!confirm("Are you sure you want to remove this client logo?")) return;
+                
+                const { error } = await supabaseClient.from('clients').delete().eq('id', id);
+                if(error) {
+                    console.warn("Could not delete from Supabase: " + error.message);
+                }
+
+                appData.trustedLogos = appData.trustedLogos.filter(l => String(l.id) !== String(id));
+                renderTrustedLogos();
+                showToast("Trusted Logo Removed!");
+            }
+
+            async function handlePortfolioSubmit(e) {
+                e.preventDefault();
+                const submitBtn = document.getElementById('btn-port');
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Uploading...';
+
+                try {
+                    let titleBase = document.getElementById('port-title').value.trim();
+                    let descBase = document.getElementById('port-desc').value.trim();
+                    let matBase = document.getElementById('port-material').value.trim();
+                    const fileInput = document.getElementById('port-img');
+                    const files = fileInput.files;
+
+                    if (files.length === 0) {
+                        alert("Please select at least one portfolio image.");
+                        return;
+                    }
+
+                    let uploadPromises = Array.from(files).map(async (file, index) => {
+                        let pTitle = titleBase 
+                            ? (files.length > 1 ? `${titleBase} ${index + 1}` : titleBase) 
+                            : file.name.split('.')[0];
+                        
+                        const fileExt = file.name.split('.').pop();
+                        const uniqueFileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+
+                        const { error: uploadError } = await supabaseClient.storage.from('portfolio').upload(uniqueFileName, file);
+                        if (uploadError) throw uploadError;
+
+                        const { data: publicUrlData } = supabaseClient.storage.from('portfolio').getPublicUrl(uniqueFileName);
+                        const imageUrl = publicUrlData.publicUrl;
+
+                        const { data, error: dbError } = await supabaseClient.from('portfolio').insert([{
+                            title: pTitle,
+                            description: descBase,
+                            material: matBase,
+                            image_url: imageUrl
+                        }]).select();
+                        
+                        if (dbError) throw dbError;
+
+                        return data[0];
+                    });
+
+                    const results = await Promise.all(uploadPromises);
                     
+                    appData.portfolioItems = [...results, ...appData.portfolioItems];
+
+                    showToast(`${results.length} Portfolio Item(s) Uploaded!`);
+                    document.getElementById('portfolio-form').reset();
+                    renderPortfolioItems();
+
+                } catch (err) {
+                    console.error("Upload error:", err.message);
+                    alert("Error: " + err.message + "\n\nMake sure your 'portfolio' table has the 'description' and 'material' columns added!");
+                } finally {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Publish';
+                }
+            }
+
+            async function removePortfolioItem(id) {
+                if(!confirm("Are you sure you want to remove this portfolio item?")) return;
+                
+                const { error } = await supabaseClient.from('portfolio').delete().eq('id', id);
+                if(error) {
+                    console.warn("Could not delete from Supabase: " + error.message);
+                }
+
+                appData.portfolioItems = appData.portfolioItems.filter(p => String(p.id) !== String(id));
+                renderPortfolioItems();
+                showToast("Portfolio Item Removed!");
+            }
+
+            async function handleTeamSubmit(e) {
+                e.preventDefault();
+                const submitBtn = document.getElementById('btn-team');
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Uploading...';
+
+                try {
+                    let name = document.getElementById('team-name').value.trim();
+                    let role = document.getElementById('team-role').value.trim();
+                    let icon = document.getElementById('team-icon').value.trim();
+                    const fileInput = document.getElementById('team-img');
+                    const file = fileInput.files[0];
+
+                    if (!file) {
+                        alert("Please select a profile image.");
+                        return;
+                    }
+
                     const fileExt = file.name.split('.').pop();
                     const uniqueFileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
 
-                    const { error: uploadError } = await supabaseClient.storage.from('portfolio').upload(uniqueFileName, file);
+                    const { error: uploadError } = await supabaseClient.storage.from('team_images').upload(uniqueFileName, file);
                     if (uploadError) throw uploadError;
 
-                    const { data: publicUrlData } = supabaseClient.storage.from('portfolio').getPublicUrl(uniqueFileName);
+                    const { data: publicUrlData } = supabaseClient.storage.from('team_images').getPublicUrl(uniqueFileName);
                     const imageUrl = publicUrlData.publicUrl;
 
-                    const { data, error: dbError } = await supabaseClient.from('portfolio').insert([{
-                        title: pTitle,
-                        description: descBase,
-                        material: matBase,
+                    const { data, error: dbError } = await supabaseClient.from('team_members').insert([{
+                        name: name,
+                        role: role,
+                        icon: icon,
                         image_url: imageUrl
                     }]).select();
                     
                     if (dbError) throw dbError;
 
-                    return data[0];
-                });
+                    appData.team.push(data[0]);
+                    showToast(`Team Member Added!`);
+                    document.getElementById('team-form').reset();
+                    document.getElementById('team-icon').value = '👤';
+                    renderTeamTable();
 
-                const results = await Promise.all(uploadPromises);
+                } catch (err) {
+                    console.error("Upload error:", err.message);
+                    alert("Error: " + err.message + "\n\nMake sure your 'team_members' table and 'team_images' bucket exist in Supabase!");
+                } finally {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Add Member';
+                }
+            }
+
+            async function removeTeamMember(id) {
+                if(!confirm("Are you sure you want to remove this team member?")) return;
                 
-                appData.portfolioItems = [...results, ...appData.portfolioItems];
-
-                showToast(`${results.length} Portfolio Item(s) Uploaded!`);
-                document.getElementById('portfolio-form').reset();
-                renderPortfolioItems();
-
-            } catch (err) {
-                console.error("Upload error:", err.message);
-                alert("Error: " + err.message + "\n\nMake sure your 'portfolio' table has the 'description' and 'material' columns added!");
-            } finally {
-                submitBtn.disabled = false;
-                submitBtn.textContent = 'Publish';
-            }
-        }
-
-        async function removePortfolioItem(id) {
-            if(!confirm("Are you sure you want to remove this portfolio item?")) return;
-            
-            const { error } = await supabaseClient.from('portfolio').delete().eq('id', id);
-            if(error) {
-                console.warn("Could not delete from Supabase: " + error.message);
-            }
-
-            appData.portfolioItems = appData.portfolioItems.filter(p => String(p.id) !== String(id));
-            renderPortfolioItems();
-            showToast("Portfolio Item Removed!");
-        }
-
-        async function handleTeamSubmit(e) {
-            e.preventDefault();
-            const submitBtn = document.getElementById('btn-team');
-            submitBtn.disabled = true;
-            submitBtn.textContent = 'Uploading...';
-
-            try {
-                let name = document.getElementById('team-name').value.trim();
-                let role = document.getElementById('team-role').value.trim();
-                let icon = document.getElementById('team-icon').value.trim();
-                const fileInput = document.getElementById('team-img');
-                const file = fileInput.files[0];
-
-                if (!file) {
-                    alert("Please select a profile image.");
-                    return;
+                const { error } = await supabaseClient.from('team_members').delete().eq('id', id);
+                if(error) {
+                    console.warn("Could not delete from Supabase: " + error.message);
                 }
 
-                const fileExt = file.name.split('.').pop();
-                const uniqueFileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
-
-                const { error: uploadError } = await supabaseClient.storage.from('team_images').upload(uniqueFileName, file);
-                if (uploadError) throw uploadError;
-
-                const { data: publicUrlData } = supabaseClient.storage.from('team_images').getPublicUrl(uniqueFileName);
-                const imageUrl = publicUrlData.publicUrl;
-
-                const { data, error: dbError } = await supabaseClient.from('team_members').insert([{
-                    name: name,
-                    role: role,
-                    icon: icon,
-                    image_url: imageUrl
-                }]).select();
-                
-                if (dbError) throw dbError;
-
-                appData.team.push(data[0]);
-                showToast(`Team Member Added!`);
-                document.getElementById('team-form').reset();
-                document.getElementById('team-icon').value = '👤';
+                appData.team = appData.team.filter(m => String(m.id) !== String(id));
                 renderTeamTable();
-
-            } catch (err) {
-                console.error("Upload error:", err.message);
-                alert("Error: " + err.message + "\n\nMake sure your 'team_members' table and 'team_images' bucket exist in Supabase!");
-            } finally {
-                submitBtn.disabled = false;
-                submitBtn.textContent = 'Add Member';
-            }
-        }
-
-        async function removeTeamMember(id) {
-            if(!confirm("Are you sure you want to remove this team member?")) return;
-            
-            const { error } = await supabaseClient.from('team_members').delete().eq('id', id);
-            if(error) {
-                console.warn("Could not delete from Supabase: " + error.message);
+                showToast("Team Member Removed!");
             }
 
-            appData.team = appData.team.filter(m => String(m.id) !== String(id));
-            renderTeamTable();
-            showToast("Team Member Removed!");
-        }
-
-        resetWorkRows();
-    </script>
-</body>
+            resetWorkRows();
+        </script>
+    </body>
 </html>
