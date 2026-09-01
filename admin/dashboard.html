@@ -1672,11 +1672,11 @@ async function logout() {
     // ==========================================
     // RBAC / AUTH CHECK & DISPLAY NAMES
     // ==========================================
-    async function checkAuth() {
-        const { data: { session }, error } = await supabaseClient.auth.getSession();
-        if (!session || error) {
-            // window.location.replace('index.html'); // Uncomment in production
-        } else {
+async function checkAuth() {
+    const { data: { session }, error } = await supabaseClient.auth.getSession();
+    if (!session || error) {
+        window.location.replace('../index.html'); 
+    } else {
             const email = session.user.email;
             const nameDisplay = document.getElementById('user-email');
             const avatarDisplay = document.querySelector('.profile-chip .avatar');
@@ -2480,7 +2480,7 @@ document.addEventListener('click', function(e) {
     const sub1 = document.getElementById('settings-submenu');
     const sub2 = document.getElementById('gst-submenu');
     const profileDrop = document.getElementById('profile-dropdown');
-    
+    // ...
     const tog1 = document.getElementById('settings-menu-toggle');
     const tog2 = document.getElementById('gst-menu-toggle');
     const togProfile = document.getElementById('profile-menu-toggle');
