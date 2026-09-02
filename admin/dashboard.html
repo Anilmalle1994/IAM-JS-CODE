@@ -4374,34 +4374,36 @@ const photoAreaY = H * 0.252;
             document.getElementById('s_grand').innerText = grand.toFixed(2);
         }
 
-        function generateAndPrintSale() {
-            const date = document.getElementById('s_date').value;
-            const inv = document.getElementById('s_inv').value;
-            const client = document.getElementById('s_client').value.trim();
-            const grand = parseFloat(document.getElementById('s_grand').innerText) || 0;
+async function generateAndPrintSale() {
+    const date = document.getElementById('s_date').value;
+    const inv = document.getElementById('s_inv').value;
+    const client = document.getElementById('s_client').value.trim();
+    const gstin = document.getElementById('s_client_gst').value.trim();
+    const grand = parseFloat(document.getElementById('s_grand').innerText) || 0;
 
-            if(!date || !client || grand <= 0) return alert("Please complete the invoice details.");
+    if(!date || !client || grand <= 0) return alert("Please complete the invoice details.");
 
-            const entry = {
-                id: 'SALE_' + Date.now(),
-                type: 'sale',
-                date: date,
-                inv: inv,
-                name: client,
-                total: grand,
-                gst_details: document.getElementById('s_tax').innerText + ' Tax'
-            };
+    const entry = {
+        type: 'sale',
+        date: date,
+        inv: inv,
+        name: client,
+        gstin: gstin,
+        total: grand,
+        gst_details: document.getElementById('s_tax').innerText + ' Tax'
+    };
 
-            let ledger = getData(LEDGER_KEY);
-            ledger.push(entry);
-            saveData(LEDGER_KEY, ledger);
+    // Save to Supabase
+    const { error } = await supabaseClient.from('gst_ledger').insert([entry]);
+    
+    if (error) return alert("Failed to save to Cloud: " + error.message);
 
-            incrementFYCounter();
-            showToast("Sale Invoice Saved to Ledger!");
-            document.getElementById('saleForm').reset();
-            initSaleForm();
-            loadLedger();
-        }
+    incrementFYCounter();
+    showToast("Sale Invoice Saved to Cloud Ledger!");
+    document.getElementById('saleForm').reset();
+    initSaleForm();
+    loadLedger();
+}
 
         function addVendorRow() {
             const tbody = document.querySelector('#vendorItemsTable tbody');
@@ -4436,33 +4438,35 @@ const photoAreaY = H * 0.252;
             document.getElementById('v_grand_total').innerText = grand.toFixed(2);
         }
 
-        function saveVendorBill() {
-            const date = document.getElementById('v_date').value;
-            const inv = document.getElementById('v_inv').value.trim();
-            const name = document.getElementById('v_name').value.trim();
-            const grand = parseFloat(document.getElementById('v_grand_total').innerText) || 0;
+async function saveVendorBill() {
+    const date = document.getElementById('v_date').value;
+    const inv = document.getElementById('v_inv').value.trim();
+    const name = document.getElementById('v_name').value.trim();
+    const gstin = document.getElementById('v_gstin').value.trim();
+    const grand = parseFloat(document.getElementById('v_grand_total').innerText) || 0;
 
-            if(!date || !inv || !name || grand <= 0) return alert("Fill all valid vendor details.");
+    if(!date || !inv || !name || grand <= 0) return alert("Fill all valid vendor details.");
 
-            const entry = {
-                id: 'VEND_' + Date.now(),
-                type: 'vendor',
-                date: date,
-                inv: inv,
-                name: name,
-                total: grand,
-                gst_details: 'Input Tax'
-            };
+    const entry = {
+        type: 'vendor',
+        date: date,
+        inv: inv,
+        name: name,
+        gstin: gstin,
+        total: grand,
+        gst_details: 'Input Tax'
+    };
 
-            let ledger = getData(LEDGER_KEY);
-            ledger.push(entry);
-            saveData(LEDGER_KEY, ledger);
+    // Save to Supabase
+    const { error } = await supabaseClient.from('gst_ledger').insert([entry]);
+    
+    if (error) return alert("Failed to save to Cloud: " + error.message);
 
-            showToast("Vendor Bill Saved to Ledger!");
-            document.getElementById('vendorForm').reset();
-            document.getElementById('v_grand_total').innerText = "0.00";
-            loadLedger();
-        }
+    showToast("Vendor Bill Saved to Cloud Ledger!");
+    document.getElementById('vendorForm').reset();
+    document.getElementById('v_grand_total').innerText = "0.00";
+    loadLedger();
+}
 
         let ledgerSort = { col: 'date', asc: false };
         
@@ -4472,78 +4476,96 @@ const photoAreaY = H * 0.252;
             loadLedger();
         }
 
-        function loadLedger() {
-            const tbody = document.querySelector('#ledgerTable tbody');
-            if(!tbody) return;
-            tbody.innerHTML = '';
+        async function loadLedger() {
+    const tbody = document.querySelector('#ledgerTable tbody');
+    if(!tbody) return;
+    
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;">Loading cloud data...</td></tr>';
 
-            let ledger = getData(LEDGER_KEY);
-            const monthFilter = document.getElementById('ledgerMonth').value;
-            const typeFilter = document.getElementById('filterType').value;
+    // Fetch from Supabase
+    const { data: ledgerData, error } = await supabaseClient.from('gst_ledger').select('*');
+    
+    if (error) {
+        tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; color:red;">Failed to load data: ${error.message}</td></tr>`;
+        return;
+    }
 
-            let filtered = ledger.filter(item => {
-                if(monthFilter && item.date.substring(0, 7) !== monthFilter) return false;
-                if(typeFilter !== 'all' && item.type !== typeFilter) return false;
-                return true;
-            });
+    let ledger = ledgerData || [];
+    tbody.innerHTML = '';
 
-            filtered.sort((a, b) => {
-                let valA = a[ledgerSort.col]; let valB = b[ledgerSort.col];
-                if(ledgerSort.col === 'credit') { valA = a.type === 'sale' ? a.total : 0; valB = b.type === 'sale' ? b.total : 0; }
-                if(ledgerSort.col === 'debit') { valA = a.type === 'vendor' ? a.total : 0; valB = b.type === 'vendor' ? b.total : 0; }
-                if(valA < valB) return ledgerSort.asc ? -1 : 1;
-                if(valA > valB) return ledgerSort.asc ? 1 : -1;
-                return 0;
-            });
+    const monthFilter = document.getElementById('ledgerMonth').value;
+    const typeFilter = document.getElementById('filterType').value;
 
-            let totalSales = 0, totalExpenses = 0;
-            
-            // Reconstruct running balance chronologically
-            let chronLedger = [...filtered].sort((a,b) => new Date(a.date) - new Date(b.date));
+    let filtered = ledger.filter(item => {
+        if(monthFilter && item.date && item.date.substring(0, 7) !== monthFilter) return false;
+        if(typeFilter !== 'all' && item.type !== typeFilter) return false;
+        return true;
+    });
 
-            filtered.forEach(item => {
-                const isSale = item.type === 'sale';
-                const credit = isSale ? item.total : 0;
-                const debit = !isSale ? item.total : 0;
+    filtered.sort((a, b) => {
+        let valA = a[ledgerSort.col]; let valB = b[ledgerSort.col];
+        if(ledgerSort.col === 'credit') { valA = a.type === 'sale' ? a.total : 0; valB = b.type === 'sale' ? b.total : 0; }
+        if(ledgerSort.col === 'debit') { valA = a.type === 'vendor' ? a.total : 0; valB = b.type === 'vendor' ? b.total : 0; }
+        if(valA < valB) return ledgerSort.asc ? -1 : 1;
+        if(valA > valB) return ledgerSort.asc ? 1 : -1;
+        return 0;
+    });
 
-                totalSales += credit;
-                totalExpenses += debit;
+    let totalSales = 0, totalExpenses = 0;
+    
+    // Reconstruct running balance chronologically
+    let chronLedger = [...filtered].sort((a,b) => new Date(a.date) - new Date(b.date));
 
-                const cIndex = chronLedger.indexOf(item);
-                let itemRunningBal = 0;
-                for(let i=0; i<=cIndex; i++) {
-                    itemRunningBal += (chronLedger[i].type === 'sale' ? chronLedger[i].total : -chronLedger[i].total);
-                }
+    if(filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;">No records found.</td></tr>';
+    }
 
-                tbody.innerHTML += `
-                    <tr>
-                        <td>${formatDate(item.date)}</td>
-                        <td style="text-align:center">${item.gst_details || '-'}</td>
-                        <td>${item.inv}</td>
-                        <td>${item.name}</td>
-                        <td style="text-align:right; color:green;">${credit > 0 ? '₹' + credit.toFixed(2) : '-'}</td>
-                        <td style="text-align:right; color:red;">${debit > 0 ? '₹' + debit.toFixed(2) : '-'}</td>
-                        <td style="text-align:right; font-weight:bold;">₹${itemRunningBal.toFixed(2)}</td>
-                        <td style="text-align:center">
-                            <button class="remove-btn" onclick="deleteLedgerEntry('${item.id}')">🗑️</button>
-                        </td>
-                    </tr>
-                `;
-            });
+    filtered.forEach(item => {
+        const isSale = item.type === 'sale';
+        const credit = isSale ? item.total : 0;
+        const debit = !isSale ? item.total : 0;
 
-            document.getElementById('dash_sales').innerText = '₹' + totalSales.toFixed(2);
-            document.getElementById('dash_expenses').innerText = '₹' + totalExpenses.toFixed(2);
-            document.getElementById('dash_balance').innerText = '₹' + (totalSales - totalExpenses).toFixed(2);
+        totalSales += credit;
+        totalExpenses += debit;
+
+        const cIndex = chronLedger.indexOf(item);
+        let itemRunningBal = 0;
+        for(let i=0; i<=cIndex; i++) {
+            itemRunningBal += (chronLedger[i].type === 'sale' ? chronLedger[i].total : -chronLedger[i].total);
         }
 
-        function deleteLedgerEntry(id) {
-            if(!confirm("Delete this ledger entry?")) return;
-            let ledger = getData(LEDGER_KEY);
-            ledger = ledger.filter(entry => entry.id !== id);
-            saveData(LEDGER_KEY, ledger);
-            loadLedger();
-            showToast("Entry Deleted!");
-        }
+        tbody.innerHTML += `
+            <tr>
+                <td>${formatDate(item.date)}</td>
+                <td style="text-align:center">${item.gst_details || '-'}</td>
+                <td>${item.inv}</td>
+                <td>${item.name}</td>
+                <td style="text-align:right; color:green;">${credit > 0 ? '₹' + credit.toFixed(2) : '-'}</td>
+                <td style="text-align:right; color:red;">${debit > 0 ? '₹' + debit.toFixed(2) : '-'}</td>
+                <td style="text-align:right; font-weight:bold;">₹${itemRunningBal.toFixed(2)}</td>
+                <td style="text-align:center">
+                    <button class="remove-btn" onclick="deleteLedgerEntry('${item.id}')">🗑️</button>
+                </td>
+            </tr>
+        `;
+    });
+
+    document.getElementById('dash_sales').innerText = '₹' + totalSales.toFixed(2);
+    document.getElementById('dash_expenses').innerText = '₹' + totalExpenses.toFixed(2);
+    document.getElementById('dash_balance').innerText = '₹' + (totalSales - totalExpenses).toFixed(2);
+}
+
+async function deleteLedgerEntry(id) {
+    if(!confirm("Delete this ledger entry permanently?")) return;
+    
+    // Delete from Supabase
+    const { error } = await supabaseClient.from('gst_ledger').delete().eq('id', id);
+    
+    if (error) return alert("Delete Error: " + error.message);
+    
+    loadLedger();
+    showToast("Entry Deleted from Cloud!");
+}
 
         function downloadLedgerPDF() {
             html2pdf().from(document.getElementById('ledgerTable')).set({
