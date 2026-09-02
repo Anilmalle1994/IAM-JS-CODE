@@ -1919,8 +1919,7 @@
 
                 // The black rounded photo area in the supplied template.
                 // The uploaded image completely fills this area.
-                const photoAreaX = W * 0.050;
-                const photoAreaY = H * 0.252;
+const photoAreaY = H * 0.252;
                 const photoAreaW = W * 0.900;
                 const photoAreaH = H * 0.450;
                 const photoRadius = Math.max(20, W * 0.055);
@@ -4293,6 +4292,7 @@
             let counter = parseInt(localStorage.getItem(`fy_counter_${prefix}`)) || 1;
             return `${prefix}${String(counter).padStart(3, '0')}`;
         }
+        
         function incrementFYCounter() {
             const today = new Date();
             let fyYear = today.getMonth() < 3 ? today.getFullYear() - 1 : today.getFullYear();
@@ -4305,6 +4305,253 @@
             if(!dateStr) return '';
             const [y, m, d] = dateStr.split('-');
             return `${d}/${m}/${y}`;
+        }
+
+        // ==========================================
+        // GST BILLING & LEDGER LOGIC (Added to fix vanishing bills)
+        // ==========================================
+        const LEDGER_KEY = 'iam_gst_ledger';
+
+        function initSaleForm() {
+            document.getElementById('s_date').value = new Date().toISOString().split('T')[0];
+            document.getElementById('s_inv').value = getFYInvoiceNo();
+            calcSale();
+        }
+
+        function addSaleRow() {
+            const tbody = document.querySelector('#saleItems tbody');
+            const sl = tbody.children.length + 1;
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td class="sl-number" style="text-align:center; font-weight:bold;">${sl}</td>
+                <td><input type="text" class="i_desc" required></td>
+                <td><input type="number" class="i_qty" style="text-align:center;" value="1" min="1" oninput="calcSale()"></td>
+                <td><input type="number" class="i_price" style="text-align:right;" value="0" min="0" oninput="calcSale()"></td>
+                <td>
+                    <select class="i_gst" style="text-align:center;" onchange="calcSale()">
+                        <option value="0">0%</option>
+                        <option value="5">5%</option>
+                        <option value="12">12%</option>
+                        <option value="18" selected>18%</option>
+                        <option value="28">28%</option>
+                    </select>
+                </td>
+                <td class="i_total" style="text-align: right; font-weight:bold; vertical-align: middle;">0.00</td>
+                <td style="text-align:center; vertical-align: middle;"><button type="button" class="remove-btn" onclick="removeRow(this)">×</button></td>
+            `;
+            tbody.appendChild(tr);
+            calcSale();
+        }
+
+        function removeRow(btn) {
+            btn.closest('tr').remove();
+            // Re-calculate Serial Numbers
+            document.querySelectorAll('#saleItems tbody tr').forEach((tr, idx) => {
+                tr.querySelector('.sl-number').innerText = idx + 1;
+            });
+            calcSale();
+        }
+
+        function calcSale() {
+            let sub = 0, tax = 0, grand = 0;
+            document.querySelectorAll('#saleItems tbody tr').forEach(tr => {
+                const qty = parseFloat(tr.querySelector('.i_qty').value) || 0;
+                const price = parseFloat(tr.querySelector('.i_price').value) || 0;
+                const gstPct = parseFloat(tr.querySelector('.i_gst').value) || 0;
+
+                const rowTotal = qty * price;
+                const rowTax = rowTotal * (gstPct / 100);
+
+                tr.querySelector('.i_total').innerText = rowTotal.toFixed(2);
+
+                sub += rowTotal;
+                tax += rowTax;
+            });
+
+            grand = sub + tax;
+            document.getElementById('s_sub').innerText = sub.toFixed(2);
+            document.getElementById('s_tax').innerText = tax.toFixed(2);
+            document.getElementById('s_grand').innerText = grand.toFixed(2);
+        }
+
+        function generateAndPrintSale() {
+            const date = document.getElementById('s_date').value;
+            const inv = document.getElementById('s_inv').value;
+            const client = document.getElementById('s_client').value.trim();
+            const grand = parseFloat(document.getElementById('s_grand').innerText) || 0;
+
+            if(!date || !client || grand <= 0) return alert("Please complete the invoice details.");
+
+            const entry = {
+                id: 'SALE_' + Date.now(),
+                type: 'sale',
+                date: date,
+                inv: inv,
+                name: client,
+                total: grand,
+                gst_details: document.getElementById('s_tax').innerText + ' Tax'
+            };
+
+            let ledger = getData(LEDGER_KEY);
+            ledger.push(entry);
+            saveData(LEDGER_KEY, ledger);
+
+            incrementFYCounter();
+            showToast("Sale Invoice Saved to Ledger!");
+            document.getElementById('saleForm').reset();
+            initSaleForm();
+            loadLedger();
+        }
+
+        function addVendorRow() {
+            const tbody = document.querySelector('#vendorItemsTable tbody');
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>
+                    <select class="v_row_gst" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #e5e7eb;">
+                        <option value="0">0%</option>
+                        <option value="5">5%</option>
+                        <option value="12">12%</option>
+                        <option value="18" selected>18%</option>
+                        <option value="28">28%</option>
+                    </select>
+                </td>
+                <td><input type="number" class="v_row_tax" value="0" step="0.01" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #e5e7eb;" oninput="calcVendorTotal()"></td>
+                <td><input type="number" class="v_row_total" value="0" step="0.01" required style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #e5e7eb;" oninput="calcVendorTotal()"></td>
+                <td style="text-align: center;"><button type="button" class="remove-btn" onclick="removeVendorRow(this)">×</button></td>
+            `;
+            tbody.appendChild(tr);
+        }
+
+        function removeVendorRow(btn) {
+            btn.closest('tr').remove();
+            calcVendorTotal();
+        }
+
+        function calcVendorTotal() {
+            let grand = 0;
+            document.querySelectorAll('#vendorItemsTable tbody tr').forEach(tr => {
+                grand += parseFloat(tr.querySelector('.v_row_total').value) || 0;
+            });
+            document.getElementById('v_grand_total').innerText = grand.toFixed(2);
+        }
+
+        function saveVendorBill() {
+            const date = document.getElementById('v_date').value;
+            const inv = document.getElementById('v_inv').value.trim();
+            const name = document.getElementById('v_name').value.trim();
+            const grand = parseFloat(document.getElementById('v_grand_total').innerText) || 0;
+
+            if(!date || !inv || !name || grand <= 0) return alert("Fill all valid vendor details.");
+
+            const entry = {
+                id: 'VEND_' + Date.now(),
+                type: 'vendor',
+                date: date,
+                inv: inv,
+                name: name,
+                total: grand,
+                gst_details: 'Input Tax'
+            };
+
+            let ledger = getData(LEDGER_KEY);
+            ledger.push(entry);
+            saveData(LEDGER_KEY, ledger);
+
+            showToast("Vendor Bill Saved to Ledger!");
+            document.getElementById('vendorForm').reset();
+            document.getElementById('v_grand_total').innerText = "0.00";
+            loadLedger();
+        }
+
+        let ledgerSort = { col: 'date', asc: false };
+        
+        function sortLedger(col) {
+            if(ledgerSort.col === col) ledgerSort.asc = !ledgerSort.asc;
+            else { ledgerSort.col = col; ledgerSort.asc = true; }
+            loadLedger();
+        }
+
+        function loadLedger() {
+            const tbody = document.querySelector('#ledgerTable tbody');
+            if(!tbody) return;
+            tbody.innerHTML = '';
+
+            let ledger = getData(LEDGER_KEY);
+            const monthFilter = document.getElementById('ledgerMonth').value;
+            const typeFilter = document.getElementById('filterType').value;
+
+            let filtered = ledger.filter(item => {
+                if(monthFilter && item.date.substring(0, 7) !== monthFilter) return false;
+                if(typeFilter !== 'all' && item.type !== typeFilter) return false;
+                return true;
+            });
+
+            filtered.sort((a, b) => {
+                let valA = a[ledgerSort.col]; let valB = b[ledgerSort.col];
+                if(ledgerSort.col === 'credit') { valA = a.type === 'sale' ? a.total : 0; valB = b.type === 'sale' ? b.total : 0; }
+                if(ledgerSort.col === 'debit') { valA = a.type === 'vendor' ? a.total : 0; valB = b.type === 'vendor' ? b.total : 0; }
+                if(valA < valB) return ledgerSort.asc ? -1 : 1;
+                if(valA > valB) return ledgerSort.asc ? 1 : -1;
+                return 0;
+            });
+
+            let totalSales = 0, totalExpenses = 0;
+            
+            // Reconstruct running balance chronologically
+            let chronLedger = [...filtered].sort((a,b) => new Date(a.date) - new Date(b.date));
+
+            filtered.forEach(item => {
+                const isSale = item.type === 'sale';
+                const credit = isSale ? item.total : 0;
+                const debit = !isSale ? item.total : 0;
+
+                totalSales += credit;
+                totalExpenses += debit;
+
+                const cIndex = chronLedger.indexOf(item);
+                let itemRunningBal = 0;
+                for(let i=0; i<=cIndex; i++) {
+                    itemRunningBal += (chronLedger[i].type === 'sale' ? chronLedger[i].total : -chronLedger[i].total);
+                }
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${formatDate(item.date)}</td>
+                        <td style="text-align:center">${item.gst_details || '-'}</td>
+                        <td>${item.inv}</td>
+                        <td>${item.name}</td>
+                        <td style="text-align:right; color:green;">${credit > 0 ? '₹' + credit.toFixed(2) : '-'}</td>
+                        <td style="text-align:right; color:red;">${debit > 0 ? '₹' + debit.toFixed(2) : '-'}</td>
+                        <td style="text-align:right; font-weight:bold;">₹${itemRunningBal.toFixed(2)}</td>
+                        <td style="text-align:center">
+                            <button class="remove-btn" onclick="deleteLedgerEntry('${item.id}')">🗑️</button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            document.getElementById('dash_sales').innerText = '₹' + totalSales.toFixed(2);
+            document.getElementById('dash_expenses').innerText = '₹' + totalExpenses.toFixed(2);
+            document.getElementById('dash_balance').innerText = '₹' + (totalSales - totalExpenses).toFixed(2);
+        }
+
+        function deleteLedgerEntry(id) {
+            if(!confirm("Delete this ledger entry?")) return;
+            let ledger = getData(LEDGER_KEY);
+            ledger = ledger.filter(entry => entry.id !== id);
+            saveData(LEDGER_KEY, ledger);
+            loadLedger();
+            showToast("Entry Deleted!");
+        }
+
+        function downloadLedgerPDF() {
+            html2pdf().from(document.getElementById('ledgerTable')).set({
+                margin: 0.5,
+                filename: `GST_Ledger_${Date.now()}.pdf`,
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'in', format: 'a4', orientation: 'landscape' }
+            }).save();
         }
 
         resetWorkRows();
