@@ -1533,38 +1533,55 @@
         const MERCHANT_UPI_NAME = "iam designs";
 
         // ==========================================
-        // WHATSAPP AUTOMATION
+        // WHATSAPP AUTOMATION (EVOLUTION API)
         // ==========================================
-        const WA_BACKEND_URL = "http://localhost:3000"; 
+        
+        // Configuration: Update these with your actual Evolution API details
+        const EVO_API_URL = "https://your-evolution-api-url.com"; // e.g., https://api.iamdesigns.com
+        const EVO_INSTANCE_NAME = "iam_designs"; // The name of your instance
+        const EVO_API_KEY = "YOUR_GLOBAL_API_KEY"; // Your Evolution API Key
 
         async function connectWhatsAppServer() {
             const qrContainer = document.getElementById('wa-qrcode-container');
             const statusBadge = document.getElementById('wa-status-badge');
             
-            statusBadge.innerHTML = "Status: Fetching QR...";
+            statusBadge.innerHTML = "Status: Fetching connection...";
             qrContainer.innerHTML = "Loading...";
 
             try {
-                const res = await fetch(`${WA_BACKEND_URL}/qr`);
-                const data = await res.json();
+                // 1. Check if already connected
+                let stateRes = await fetch(`${EVO_API_URL}/instance/connectionState/${EVO_INSTANCE_NAME}`, {
+                    headers: { 'apikey': EVO_API_KEY }
+                });
+                let stateData = await stateRes.json();
 
-                if (data.status === 'connected') {
+                if (stateData?.instance?.state === 'open') {
                     statusBadge.innerHTML = `<span style="color: #10b981; font-weight:bold;">Status: Connected & Ready</span>`;
                     qrContainer.innerHTML = "<div style='font-size:40px;'>✅</div><div>WhatsApp Linked</div>";
-                } else if (data.qr) {
+                    return;
+                } 
+                
+                // 2. If not connected, fetch the QR code
+                let connectRes = await fetch(`${EVO_API_URL}/instance/connect/${EVO_INSTANCE_NAME}`, {
+                    headers: { 'apikey': EVO_API_KEY }
+                });
+                let connectData = await connectRes.json();
+
+                if (connectData?.base64) {
                     statusBadge.innerHTML = `<span style="color: #f59e0b; font-weight:bold;">Status: Scan QR Code</span>`;
-                    qrContainer.innerHTML = "";
-                    new QRCode(qrContainer, {
-                        text: data.qr,
-                        width: 220,
-                        height: 220,
-                        colorDark : "#111111",
-                        colorLight : "#ffffff"
-                    });
+                    // Evolution returns a ready-to-use base64 image string
+                    qrContainer.innerHTML = `<img src="${connectData.base64}" style="width: 220px; height: 220px; border-radius: 8px;">`;
+                } else if (connectData?.instance?.state === 'open') {
+                    statusBadge.innerHTML = `<span style="color: #10b981; font-weight:bold;">Status: Connected & Ready</span>`;
+                    qrContainer.innerHTML = "<div style='font-size:40px;'>✅</div><div>WhatsApp Linked</div>";
+                } else {
+                    qrContainer.innerHTML = "Instance is preparing... Please click Refresh Status in a few seconds.";
                 }
+                
             } catch (error) {
-                statusBadge.innerHTML = `<span style="color: #ef4444; font-weight:bold;">Status: Server Offline</span>`;
-                qrContainer.innerHTML = "Could not connect to Node.js backend. Ensure it is running on port 3000.";
+                console.error("Evolution API Error:", error);
+                statusBadge.innerHTML = `<span style="color: #ef4444; font-weight:bold;">Status: API Offline / CORS Error</span>`;
+                qrContainer.innerHTML = "Could not connect to Evolution API. Ensure the URL and API Key are correct, and CORS is enabled.";
             }
         }
 
@@ -1577,22 +1594,30 @@
             if (cleanedPhone.length === 10) { cleanedPhone = '91' + cleanedPhone; }
 
             try {
-                const res = await fetch(`${WA_BACKEND_URL}/send`, {
+                const res = await fetch(`${EVO_API_URL}/message/sendText/${EVO_INSTANCE_NAME}`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ phone: cleanedPhone, message })
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'apikey': EVO_API_KEY
+                    },
+                    body: JSON.stringify({ 
+                        number: cleanedPhone, 
+                        text: message 
+                    })
                 });
                 
                 const data = await res.json();
                 
-                if (data.success) {
+                // Evolution API returns the message key if successful
+                if (res.ok && data?.key) {
                     showToast("✅ Automated WhatsApp Sent!");
                     return true;
                 } else {
-                    throw new Error("Backend failed to send");
+                    throw new Error(data?.message || "Evolution API failed to send");
                 }
             } catch (e) {
-                showToast("Server offline. Falling back to manual WA.");
+                console.error("Evolution Send Error:", e);
+                showToast("API offline or failed. Falling back to manual WA.");
                 window.open(getWhatsAppLink(phone, message), '_blank');
                 return false;
             }
