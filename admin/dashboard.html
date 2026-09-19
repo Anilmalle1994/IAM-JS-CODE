@@ -1161,6 +1161,28 @@
                                 <textarea id="s_client" rows="3" placeholder="Client Name&#10;Address&#10;Phone" required></textarea>
                             </div>
                         </div>
+                        <div class="form-grid">
+    <div class="form-group"><label>Date</label><input type="date" id="s_date" required></div>
+    <div class="form-group"><label>Invoice No</label><input type="text" id="s_inv" required></div>
+    
+    <!-- ADD THIS NEW CHECKBOX GROUP -->
+    <div class="form-group" style="justify-content: center;">
+        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px; font-weight: 600;">
+            <input type="checkbox" id="s_tax_type_igst" style="width: 16px; height: 16px; accent-color: var(--primary);">
+            Apply IGST (Inter-State)
+        </label>
+        <div style="font-size: 11px; color: var(--gray); margin-top: 4px;">Leave unchecked for CGST/SGST</div>
+    </div>
+    
+    <div class="form-group span-2">
+        <label>Client GSTIN (Optional)</label>
+        <input type="text" id="s_client_gst" placeholder="Enter Client GST Number (if any)">
+    </div>
+    <div class="form-group span-2">
+        <label>Billing To (Client Name, Address, Phone)</label>
+        <textarea id="s_client" rows="3" placeholder="Client Name&#10;Address&#10;Phone" required></textarea>
+    </div>
+</div>
 
                         <div class="table-responsive-wrapper">
                             <table class="data-table" id="saleItems">
@@ -4442,14 +4464,18 @@ const photoAreaY = H * 0.252;
             document.getElementById('s_grand').innerText = grand.toFixed(2);
         }
 
-async function generateAndPrintSale() {
+aasync function generateAndPrintSale() {
     const date = document.getElementById('s_date').value;
     const inv = document.getElementById('s_inv').value;
     const client = document.getElementById('s_client').value.trim();
     const gstin = document.getElementById('s_client_gst').value.trim();
     const grand = parseFloat(document.getElementById('s_grand').innerText) || 0;
+    
+    // NEW: Check if the IGST box is ticked
+    const isIgst = document.getElementById('s_tax_type_igst').checked;
+    const taxLabel = isIgst ? "IGST" : "CGST/SGST";
 
-    if(!date || !inv || !client || grand <= 0) return alert("Please complete all invoice details, including the Invoice No.");
+    if(!date || !inv || !client || grand <= 0) return alert("Please complete the invoice details.");
 
     const entry = {
         type: 'sale',
@@ -4458,9 +4484,21 @@ async function generateAndPrintSale() {
         name: client,
         gstin: gstin,
         total: grand,
-        gst_details: document.getElementById('s_tax').innerText + ' Tax'
+        // NEW: Append the tax type label so it appears on the Dashboard
+        gst_details: document.getElementById('s_tax').innerText + ' Tax (' + taxLabel + ')'
     };
 
+    // Save to Supabase
+    const { error } = await supabaseClient.from('gst_ledger').insert([entry]);
+    
+    if (error) return alert("Failed to save to Cloud: " + error.message);
+
+    incrementFYCounter(); // Remove this line if you fully removed the auto-generation logic earlier
+    showToast("Sale Invoice Saved to Cloud Ledger!");
+    document.getElementById('saleForm').reset();
+    initSaleForm();
+    loadLedger();
+}
     // Save to Supabase
     const { error } = await supabaseClient.from('gst_ledger').insert([entry]);
     
