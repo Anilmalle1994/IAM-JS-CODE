@@ -1151,7 +1151,7 @@
                     <form id="saleForm">
                         <div class="form-grid">
                             <div class="form-group"><label>Date</label><input type="date" id="s_date" required></div>
-                            <div class="form-group"><label>Invoice No (Auto FY)</label><input type="text" id="s_inv" readonly></div>
+                            <div class="form-group"><label>Invoice No (Custom)</label><input type="text" id="s_inv" placeholder="Enter Invoice No." required></div>
                             <div class="form-group span-2">
                                 <label>Client GSTIN (Optional)</label>
                                 <input type="text" id="s_client_gst" placeholder="Enter Client GST Number (if any)">
@@ -4381,10 +4381,10 @@ const photoAreaY = H * 0.252;
         const LEDGER_KEY = 'iam_gst_ledger';
 
         function initSaleForm() {
-            document.getElementById('s_date').value = new Date().toISOString().split('T')[0];
-            document.getElementById('s_inv').value = getFYInvoiceNo();
-            calcSale();
-        }
+    document.getElementById('s_date').value = new Date().toISOString().split('T')[0];
+    document.getElementById('s_inv').value = ''; // Cleared for custom input
+    calcSale();
+}
 
         function addSaleRow() {
             const tbody = document.querySelector('#saleItems tbody');
@@ -4449,7 +4449,7 @@ async function generateAndPrintSale() {
     const gstin = document.getElementById('s_client_gst').value.trim();
     const grand = parseFloat(document.getElementById('s_grand').innerText) || 0;
 
-    if(!date || !client || grand <= 0) return alert("Please complete the invoice details.");
+    if(!date || !inv || !client || grand <= 0) return alert("Please complete all invoice details, including the Invoice No.");
 
     const entry = {
         type: 'sale',
