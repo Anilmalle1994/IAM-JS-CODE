@@ -1900,113 +1900,41 @@ function enforceGstLedgerOnlyView() {
         }
 
         async function loadPosterStyles() {
-            const userSelect = document.getElementById('user-template-style');
-            const adminList = document.getElementById('admin-styles-list');
-            let finalStyles = [];
+            let finalStyles = [];
+            try {
+                const { data: styles, error } = await supabaseClient.from('poster_styles').select('*');
+                if (error) throw error;
+                finalStyles = styles || [];
+            } catch(err) {
+                console.warn("Cloud styles blocked or missing, falling back to local storage.", err.message);
+                let rawStyles = JSON.parse(localStorage.getItem('poster_template_styles') || '[]');
+                finalStyles = rawStyles.map((s, idx) => ({ id: 'local_' + idx, style_name: s.name || s, image_url: s.image || '' }));
+            }
 
-            if (userSelect) userSelect.innerHTML = '<option value="">Loading styles...</option>';
-            if (adminList) adminList.innerHTML = '<li style="padding:10px;color:#6b7280;">Loading template styles...</li>';
+            const userSelect = document.getElementById('user-template-style');
+            if(userSelect) {
+                userSelect.innerHTML = '<option value="">Select a Template Style...</option>';
+                finalStyles.forEach(s => {
+                    userSelect.innerHTML += `<option value="${s.id}" data-img="${s.image_url}">${s.style_name}</option>`;
+                });
+            }
 
-            // Load from Supabase.
-            try {
-                const { data: styles, error } = await supabaseClient
-                    .from('poster_styles')
-                    .select('id, style_name, image_url')
-                    .order('style_name', { ascending: true });
+            const adminList = document.getElementById('admin-styles-list');
+            if(adminList) {
+                adminList.innerHTML = '';
+                finalStyles.forEach(s => {
+                    let imgTag = s.image_url ? `<img src="${s.image_url}" style="width:35px; height:35px; object-fit:cover; border-radius:6px;">` : '📄';
+                    adminList.innerHTML += `
+                        <li style="margin-bottom: 10px; display: flex; align-items: center; gap: 12px; background: #f8f9fa; padding: 8px; border-radius: 8px; border: 1px solid #e5e7eb;">
+                            ${imgTag}
+                            <strong style="flex: 1;">${s.style_name}</strong>
+                            <button onclick="deleteTemplateStyle('${s.id}')" class="remove-btn" style="font-size: 12px;">✖ Remove</button>
+                        </li>`;
+                });
+            }
+        }
 
-                if (error) throw error;
-                if (Array.isArray(styles) && styles.length > 0) {
-                    finalStyles = styles.filter(s => s && s.style_name);
-                }
-            } catch (err) {
-                console.warn('Supabase poster styles unavailable:', err?.message || err);
-            }
-
-            // IMPORTANT: fallback even when Supabase succeeds but returns no rows.
-            if (finalStyles.length === 0) {
-                try {
-                    const rawStyles = JSON.parse(localStorage.getItem('poster_template_styles') || '[]');
-                    if (Array.isArray(rawStyles)) {
-                        finalStyles = rawStyles.map((s, idx) => {
-                            if (typeof s === 'string') {
-                                return { id: 'local_' + idx, style_name: s, image_url: '' };
-                            }
-                            return {
-                                id: s.id || ('local_' + idx),
-                                style_name: s.name || s.style_name || 'Unnamed Style',
-                                image_url: s.image || s.image_url || ''
-                            };
-                        }).filter(s => s.style_name);
-                    }
-                } catch (err) {
-                    console.warn('Local poster styles could not be read:', err);
-                }
-            }
-
-            // Populate user dropdown safely.
-            if (userSelect) {
-                userSelect.innerHTML = '';
-                const placeholder = document.createElement('option');
-                placeholder.value = '';
-                placeholder.textContent = finalStyles.length
-                    ? 'Select a Template Style...'
-                    : 'No Template Styles Available';
-                userSelect.appendChild(placeholder);
-
-                finalStyles.forEach(style => {
-                    const option = document.createElement('option');
-                    option.value = String(style.id ?? '');
-                    option.textContent = String(style.style_name ?? 'Unnamed Style');
-                    option.dataset.img = String(style.image_url ?? '');
-                    userSelect.appendChild(option);
-                });
-            }
-
-            // Populate admin list safely.
-            if (adminList) {
-                adminList.innerHTML = '';
-                if (finalStyles.length === 0) {
-                    adminList.innerHTML = '<li style="padding:10px;color:#6b7280;">No template styles found. Add one above.</li>';
-                } else {
-                    finalStyles.forEach(style => {
-                        const li = document.createElement('li');
-                        li.style.cssText = 'margin-bottom:10px;display:flex;align-items:center;gap:12px;background:#f8f9fa;padding:8px;border-radius:8px;border:1px solid #e5e7eb;';
-
-                        if (style.image_url) {
-                            const img = document.createElement('img');
-                            img.src = style.image_url;
-                            img.alt = style.style_name;
-                            img.style.cssText = 'width:35px;height:35px;object-fit:cover;border-radius:6px;';
-                            img.onerror = () => { img.style.display = 'none'; };
-                            li.appendChild(img);
-                        } else {
-                            const icon = document.createElement('span');
-                            icon.textContent = '📄';
-                            li.appendChild(icon);
-                        }
-
-                        const name = document.createElement('strong');
-                        name.style.flex = '1';
-                        name.textContent = style.style_name;
-                        li.appendChild(name);
-
-                        const btn = document.createElement('button');
-                        btn.className = 'remove-btn';
-                        btn.style.fontSize = '12px';
-                        btn.textContent = '✖ Remove';
-                        btn.type = 'button';
-                        btn.addEventListener('click', () => deleteTemplateStyle(style.id));
-                        li.appendChild(btn);
-                        adminList.appendChild(li);
-                    });
-                }
-            }
-
-            console.log('Poster styles loaded:', finalStyles.length, finalStyles);
-            return finalStyles;
-        }
-
-        async function deleteTemplateStyle(id) {
+        async function deleteTemplateStyle(id) {
             if(!confirm("Are you sure you want to delete this template style?")) return;
             
             if (String(id).startsWith('local_')) {
