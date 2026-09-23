@@ -2106,45 +2106,79 @@
 
     let appData = { vendors: [], orders: {}, vendorAllotmentsHistory: [], staff: [], trustedLogos: [], portfolioItems: [], team: [] };
 
-    async function loadAppData() {
-        try {
-            const { data: orders } = await supabaseClient.from('orders').select('*');
-            appData.orders = {};
-            if (orders) orders.forEach(o => appData.orders[o.orderId] = o);
+async function loadAppData() {
+            try {
+                // 1. RECOVER OLD LOCAL DATA FIRST (Before Cloud overrides it)
+                try {
+                    const localOrdersStr = localStorage.getItem('iam_orders') || localStorage.getItem('orders');
+                    if (localOrdersStr) {
+                        const parsedOrders = JSON.parse(localOrdersStr);
+                        // Handle both Array and Object storage formats
+                        if (Array.isArray(parsedOrders)) {
+                            parsedOrders.forEach(o => appData.orders[o.orderId || o.id] = o);
+                        } else {
+                            Object.assign(appData.orders, parsedOrders);
+                        }
+                    }
+                    
+                    appData.vendors = JSON.parse(localStorage.getItem('iam_vendors') || localStorage.getItem('vendors') || '[]');
+                    appData.staff = JSON.parse(localStorage.getItem('iam_staff') || localStorage.getItem('staff') || '[]');
+                    appData.vendorAllotmentsHistory = JSON.parse(localStorage.getItem('iam_vendor_history') || localStorage.getItem('vendor_allotments_history') || '[]');
+                } catch(e) { 
+                    console.warn("Local storage recovery skipped:", e); 
+                }
 
-            const { data: vendors } = await supabaseClient.from('vendors').select('*');
-            appData.vendors = vendors || [];
+                // 2. FETCH FROM SUPABASE (Safely merges cloud data)
+                const { data: orders, error: oError } = await supabaseClient.from('orders').select('*');
+                if (oError) {
+                    console.error("Supabase fetch error:", oError.message);
+                } else if (orders) {
+                    orders.forEach(o => {
+                        const keyId = o.orderId || o.orderid || o.id; // Fixes case-sensitivity column issues
+                        if (keyId) appData.orders[keyId] = o;
+                    });
+                }
 
-            const { data: staff } = await supabaseClient.from('staff').select('*');
-            appData.staff = staff || [];
+                const { data: vendors } = await supabaseClient.from('vendors').select('*');
+                if (vendors && vendors.length > 0) appData.vendors = vendors;
 
-            const { data: history } = await supabaseClient.from('vendor_allotments_history').select('*');
-            appData.vendorAllotmentsHistory = history || [];
+                const { data: staff } = await supabaseClient.from('staff').select('*');
+                if (staff && staff.length > 0) appData.staff = staff;
 
-            const { data: logos } = await supabaseClient.from('clients').select('*');
-            appData.trustedLogos = logos || [];
+                const { data: history } = await supabaseClient.from('vendor_allotments_history').select('*');
+                if (history && history.length > 0) appData.vendorAllotmentsHistory = history;
 
-            const { data: portfolio } = await supabaseClient.from('portfolio').select('*').order('id', { ascending: false });
-            appData.portfolioItems = portfolio || [];
+                const { data: logos } = await supabaseClient.from('clients').select('*');
+                if (logos && logos.length > 0) appData.trustedLogos = logos;
 
-            const { data: teamData } = await supabaseClient.from('team_members').select('*').order('id', { ascending: true });
-            appData.team = teamData || [];
+                const { data: portfolio } = await supabaseClient.from('portfolio').select('*').order('id', { ascending: false });
+                if (portfolio && portfolio.length > 0) appData.portfolioItems = portfolio;
 
-            updateDashboardStats();
-            renderAllOrders();
-            renderPRClient();
-            renderPRVendor();
-            renderVendorReport();
-            renderStaffTable();
-            updateAllVendorDropdowns();
-            populateClientDatalist();
-            renderTrustedLogos();
-            renderPortfolioItems();
-            renderTeamTable();
-        } catch (err) {
-            console.error("Supabase Load Error:", err.message);
+                const { data: teamData } = await supabaseClient.from('team_members').select('*').order('id', { ascending: true });
+                if (teamData && teamData.length > 0) appData.team = teamData;
+
+                // 3. RE-RENDER ALL UI PANELS
+                updateDashboardStats();
+                renderAllOrders();
+                renderPRClient();
+                renderPRVendor();
+                renderVendorReport();
+                renderStaffTable();
+                updateAllVendorDropdowns();
+                populateClientDatalist();
+                renderTrustedLogos();
+                renderPortfolioItems();
+                renderTeamTable();
+                
+            } catch (err) {
+                console.error("Data Load Error:", err.message);
+                
+                // Ensure UI still renders local data even if Cloud completely fails
+                updateDashboardStats();
+                renderAllOrders();
+                renderPRClient();
+            }
         }
-    }
 
     let clientGroupsForReminders = {};
 
