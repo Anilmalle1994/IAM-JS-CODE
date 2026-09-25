@@ -1403,47 +1403,61 @@
     const MERCHANT_UPI_ID = "9133058685@ybl"; 
     const MERCHANT_UPI_NAME = "iam designs";
 
-    const EVO_API_URL = "https://your-evolution-api-url.com"; 
-    const EVO_INSTANCE_NAME = "iam_designs"; 
-    const EVO_API_KEY = "YOUR_GLOBAL_API_KEY"; 
+    async function callWhatsApp(payload) {
+        const { data, error } = await supabaseClient.functions.invoke('whatsapp', { body: payload });
+        if (error) {
+            let msg = error.message;
+            try {
+                const body = await error.context?.json();
+                if (body?.error) msg = body.error;
+            } catch (_) { /* keep default message */ }
+            throw new Error(msg);
+        }
+        return data;
+    }
+
+    function setWaStatus(text, color) {
+        const badge = document.getElementById('wa-status-badge');
+        if (!badge) return;
+        badge.textContent = '';
+        const span = document.createElement('span');
+        span.style.color = color;
+        span.style.fontWeight = 'bold';
+        span.textContent = 'Status: ' + text;
+        badge.appendChild(span);
+    }
+
+    function showWaLinked(container) {
+        container.innerHTML = "<div style='font-size:40px;'>✅</div><div>WhatsApp Linked</div>";
+    }
 
     async function connectWhatsAppServer() {
         const qrContainer = document.getElementById('wa-qrcode-container');
-        const statusBadge = document.getElementById('wa-status-badge');
-        
-        statusBadge.innerHTML = "Status: Fetching connection...";
-        qrContainer.innerHTML = "Loading...";
+        setWaStatus('Fetching connection...', '#6b7280');
+        qrContainer.textContent = 'Loading...';
 
         try {
-            let stateRes = await fetch(`${EVO_API_URL}/instance/connectionState/${EVO_INSTANCE_NAME}`, {
-                headers: { 'apikey': EVO_API_KEY }
-            });
-            let stateData = await stateRes.json();
+            const res = await callWhatsApp({ action: 'connect' });
 
-            if (stateData?.instance?.state === 'open') {
-                statusBadge.innerHTML = `<span style="color: #10b981; font-weight:bold;">Status: Connected & Ready</span>`;
-                qrContainer.innerHTML = "<div style='font-size:40px;'>✅</div><div>WhatsApp Linked</div>";
-                return;
-            } 
-            
-            let connectRes = await fetch(`${EVO_API_URL}/instance/connect/${EVO_INSTANCE_NAME}`, {
-                headers: { 'apikey': EVO_API_KEY }
-            });
-            let connectData = await connectRes.json();
-
-            if (connectData?.base64) {
-                statusBadge.innerHTML = `<span style="color: #f59e0b; font-weight:bold;">Status: Scan QR Code</span>`;
-                qrContainer.innerHTML = `<img src="${connectData.base64}" style="width: 220px; height: 220px; border-radius: 8px;">`;
-            } else if (connectData?.instance?.state === 'open') {
-                statusBadge.innerHTML = `<span style="color: #10b981; font-weight:bold;">Status: Connected & Ready</span>`;
-                qrContainer.innerHTML = "<div style='font-size:40px;'>✅</div><div>WhatsApp Linked</div>";
+            if (res.state === 'open') {
+                setWaStatus('Connected & Ready', '#10b981');
+                showWaLinked(qrContainer);
+            } else if (res.qr && res.qr.startsWith('data:image/')) {
+                setWaStatus('Scan QR Code', '#f59e0b');
+                const img = document.createElement('img');
+                img.src = res.qr;
+                img.alt = 'WhatsApp QR code';
+                img.style.cssText = 'width:220px;height:220px;border-radius:8px;';
+                qrContainer.textContent = '';
+                qrContainer.appendChild(img);
             } else {
-                qrContainer.innerHTML = "Instance is preparing... Please click Refresh Status in a few seconds.";
+                setWaStatus('Preparing', '#f59e0b');
+                qrContainer.textContent = 'Instance is preparing... Please click Refresh Status in a few seconds.';
             }
         } catch (error) {
-            console.error("Evolution API Error:", error);
-            statusBadge.innerHTML = `<span style="color: #ef4444; font-weight:bold;">Status: API Offline / CORS Error</span>`;
-            qrContainer.innerHTML = "Could not connect to Evolution API. Ensure the URL and API Key are correct, and CORS is enabled.";
+            console.error('WhatsApp connect error:', error);
+            setWaStatus('Offline', '#ef4444');
+            qrContainer.textContent = error.message || 'Could not reach the WhatsApp server.';
         }
     }
 
@@ -1452,34 +1466,14 @@
     }
 
     async function sendAutomatedWhatsApp(phone, message) {
-        let cleanedPhone = (phone || '').replace(/[^0-9]/g, '');
-        if (cleanedPhone.length === 10) { cleanedPhone = '91' + cleanedPhone; }
-
         try {
-            const res = await fetch(`${EVO_API_URL}/message/sendText/${EVO_INSTANCE_NAME}`, {
-                method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    'apikey': EVO_API_KEY
-                },
-                body: JSON.stringify({ 
-                    number: cleanedPhone, 
-                    text: message 
-                })
-            });
-            
-            const data = await res.json();
-            
-            if (res.ok && data?.key) {
-                showToast("✅ Automated WhatsApp Sent!");
-                return true;
-            } else {
-                throw new Error(data?.message || "Evolution API failed to send");
-            }
+            await callWhatsApp({ action: 'send', phone: String(phone || ''), message: String(message || '') });
+            showToast('✅ Automated WhatsApp Sent!');
+            return true;
         } catch (e) {
-            console.error("Evolution Send Error:", e);
-            showToast("API offline or failed. Falling back to manual WA.");
-            window.open(getWhatsAppLink(phone, message), '_blank');
+            console.error('WhatsApp send error:', e);
+            showToast((e.message || 'WhatsApp failed') + ' — opening manual WhatsApp.');
+            window.open(getWhatsAppLink(phone, message), '_blank', 'noopener');
             return false;
         }
     }
