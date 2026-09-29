@@ -4403,12 +4403,17 @@ const today = new Date();
                     itemRunningBal += (chronLedger[i].type === 'sale' ? chronLedger[i].total : -chronLedger[i].total);
                 }
 
+                // Check if GSTIN exists and create a formatted string for it
+                const gstinDisplay = item.gstin && item.gstin.trim() !== '' 
+                    ? `<br><span style="font-size: 11px; color: #6b7280; font-weight: 600; letter-spacing: 0.5px;">GSTIN: ${item.gstin}</span>` 
+                    : '';
+
                 tbody.innerHTML += `
                     <tr>
                         <td>${formatDate(item.date)}</td>
                         <td style="text-align:center">${item.gst_details || '-'}</td>
                         <td>${item.inv}</td>
-                        <td>${item.name}</td>
+                        <td><div style="line-height: 1.4;">${item.name}${gstinDisplay}</div></td>
                         <td style="text-align:right; color:green;">${credit > 0 ? '₹' + credit.toFixed(2) : '-'}</td>
                         <td style="text-align:right; color:red;">${debit > 0 ? '₹' + debit.toFixed(2) : '-'}</td>
                         <td style="text-align:right; font-weight:bold;">₹${itemRunningBal.toFixed(2)}</td>
