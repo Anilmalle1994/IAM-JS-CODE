@@ -2749,7 +2749,7 @@
         return null;
     }
 
-    function fetchOrderForAllotment() {
+function fetchOrderForAllotment() {
         const query = document.getElementById('va-orderid').value.trim();
         const order = findOrder(query);
         if(!order) return alert("Order not found!");
@@ -2768,17 +2768,48 @@
             return alert("Please add vendors in 'Settings -> Vendors Master' first.");
         }
 
-        const workItems = order.work ? order.work.split(', ') : ["General Work"];
-        workItems.forEach((workItem) => {
+        // Add a detailed summary header for the order being allocated
+        const summaryHtml = `
+            <div style="background: #f8f9fa; padding: 16px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #e5e7eb;">
+                <h4 style="margin: 0 0 10px 0; color: var(--dark); font-size: 15px; display: flex; justify-content: space-between;">
+                    <span>Order Summary</span>
+                    <span style="color: var(--primary);">${order.orderId}</span>
+                </h4>
+                <p style="margin: 0 0 6px 0; font-size: 13px;"><strong>Client:</strong> ${order.client || 'N/A'}</p>
+                <p style="margin: 0 0 6px 0; font-size: 13px;"><strong>Contact:</strong> ${order.phone || 'N/A'}</p>
+                <p style="margin: 0; font-size: 13px; color: #10b981; font-weight: bold;">Client Order Value: ₹${parseFloat(order.amount || 0).toFixed(2)}</p>
+            </div>
+        `;
+        container.insertAdjacentHTML('beforeend', summaryHtml);
+
+        // Fetch detailed items including size and quantity using the helper function
+        let items = getIamBillItems(order);
+        if (!items || items.length === 0) {
+            items = [{ desc: order.work || "General Work", size: "", qty: 1 }];
+        }
+
+        // Create an allocation row for each specific item in the order
+        items.forEach((item) => {
+            let detailedWorkName = item.desc;
+            let displayDetails = [];
+            if (item.size) displayDetails.push(`Size: ${item.size}`);
+            if (item.qty) displayDetails.push(`Qty: ${item.qty}`);
+            
+            let extraDetailsStr = displayDetails.length > 0 ? ` <span style="color:#6b7280; font-size:12px; font-weight: normal; margin-left: 8px;">(${displayDetails.join(' | ')})</span>` : '';
+            let rawWorkValue = detailedWorkName + (item.size ? ` (${item.size})` : '');
+
             const row = document.createElement('div');
             row.className = 'form-grid va-row';
-            row.style.cssText = 'border-bottom: 1px dashed #e5e7eb; padding-bottom: 12px; margin-bottom: 12px;';
+            row.style.cssText = 'background: #fff; border: 1px solid #f1f2f4; border-left: 4px solid var(--primary); border-radius: 8px; padding: 16px; margin-bottom: 16px; box-shadow: 0 2px 10px rgba(0,0,0,0.02);';
             row.innerHTML = `
-                <div class="form-group" style="grid-column: 1 / -1;"><label style="color: var(--primary);">Work: ${workItem}</label><input type="hidden" class="va-work-item" value="${workItem}"></div>
+                <div class="form-group" style="grid-column: 1 / -1; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid #f1f2f4;">
+                    <label style="color: var(--dark); font-size: 14px; font-weight: 700;">${detailedWorkName}${extraDetailsStr}</label>
+                    <input type="hidden" class="va-work-item" value="${rawWorkValue}">
+                </div>
                 <div class="form-group"><label>Vendor Name</label><select class="va-vendor" onchange="populateMaterials(this)"><option value="">Select Vendor...</option></select></div>
-                <div class="form-group"><label>Material</label><select class="va-material" onchange="fetchRateAndCalculate(this)" disabled><option value="">Select Vendor First</option></select></div>
-                <div class="form-group"><label>Quantity</label><input type="number" class="va-qty" value="1" min="1" oninput="fetchRateAndCalculate(this)"></div>
-                <div class="form-group"><label>Amount (₹)</label><input type="number" class="va-amount" readonly></div>
+                <div class="form-group"><label>Material / Rate</label><select class="va-material" onchange="fetchRateAndCalculate(this)" disabled><option value="">Select Vendor First</option></select></div>
+                <div class="form-group"><label>Sq.Ft / Qty</label><input type="number" class="va-qty" value="${item.qty || 1}" min="0.1" step="0.1" oninput="fetchRateAndCalculate(this)"></div>
+                <div class="form-group"><label>Vendor Cost (₹)</label><input type="number" class="va-amount" readonly style="background: #fcfcfd; font-weight: bold; color: #111;"></div>
             `;
             container.appendChild(row);
         });
