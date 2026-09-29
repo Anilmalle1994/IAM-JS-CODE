@@ -3664,11 +3664,25 @@
         document.getElementById('ao-total-amount').innerText = totalAmount.toFixed(2);
     }
 
-    let prClientSort = { col: null, asc: true };
+let prClientSort = { col: null, asc: true };
+    let currentPRClientData = []; 
+
     function sortPRClient(col) {
         if(prClientSort.col === col) prClientSort.asc = !prClientSort.asc;
         else { prClientSort.col = col; prClientSort.asc = true; }
         renderPRClient();
+    }
+
+    // New Helper: Extracts detailed work info (Items, Sizes, Qty) for PDF & Excel
+    function getDetailedWorkString(order) {
+        const items = getIamBillItems(order);
+        if (!items || items.length === 0) return order.work || 'N/A';
+        return items.map(it => {
+            let detail = it.desc || 'Item';
+            if (it.size) detail += ` (Size: ${it.size})`;
+            if (it.qty) detail += ` [Qty: ${it.qty}]`;
+            return detail;
+        }).join(' | ');
     }
 
     function renderPRClient() {
@@ -3706,6 +3720,8 @@
                 return 0;
             });
         }
+        
+        currentPRClientData = filtered;
 
         if(filtered.length === 0) {
             tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding: 15px;">No pending client dues matching filter.</td></tr>`;
