@@ -329,7 +329,7 @@
                 <li><a href="#" class="nav-btn" data-target="staff-master">👥 Staff Master</a></li>
                 <li><a href="#" class="nav-btn" data-target="web-content">🌐 Web Content</a></li>
                 <li><a href="#" class="nav-btn" data-target="team-master">👥 Team Master</a></li>
-                <li><a href="#" class="nav-btn" data-target="pending-reports">📑 Pending Reports</a></li>
+                <li><a href="#" class="nav-btn" data-target="pending-reports">💰 Pending Client Dues</a></li>
                 <li><a href="#" class="nav-btn" data-target="vendor-reports">📈 Vendor Reports</a></li>
                 <li><a href="#" class="nav-btn" data-target="clients-data">📇 Clients Data</a></li>
                 <li><a href="#" class="nav-btn" data-target="whatsapp-auto">🤖 WhatsApp Auto</a></li>
@@ -870,6 +870,19 @@
         <div id="pending-reports" class="view-section admin-view">
             <div class="admin-card">
                 <h3>Pending Client Dues</h3>
+                <div class="filter-bar" style="background: #f9fbfd;">
+                    <div class="filter-group">
+                        <label for="prc-date-from">From Date</label>
+                        <input type="date" id="prc-date-from" onchange="renderPRClient()">
+                    </div>
+                    <div class="filter-group">
+                        <label for="prc-date-to">To Date</label>
+                        <input type="date" id="prc-date-to" onchange="renderPRClient()">
+                    </div>
+                    <div style="display:flex; align-items:flex-end;">
+                        <button type="button" class="btn-secondary" onclick="clearPRClientDateRange()">Clear Dates</button>
+                    </div>
+                </div>
                 <div class="action-row" style="margin-top: 0; padding-top: 0; border: none; justify-content: flex-start; margin-bottom: 10px;">
                     <button type="button" class="btn-whatsapp" onclick="openBulkReminderModal()">🤖 Bulk WhatsApp Reminders</button>
                     <button type="button" class="btn-secondary" onclick="downloadPRClientPDF()">📄 Download PDF</button>
@@ -3695,7 +3708,28 @@ function fetchOrderForAllotment() {
         document.getElementById('ao-total-amount').innerText = totalAmount.toFixed(2);
     }
 
-let prClientSort = { col: null, asc: true };
+// Convert an order date to YYYY-MM-DD for inclusive calendar-range filtering.
+    function getPRClientDateKey(value) {
+        if (!value) return '';
+        const raw = String(value).trim();
+        const isoMatch = raw.match(/^(\\d{4}-\\d{2}-\\d{2})/);
+        if (isoMatch) return isoMatch[1];
+
+        const parsed = new Date(value);
+        if (Number.isNaN(parsed.getTime())) return '';
+        const year = parsed.getFullYear();
+        const month = String(parsed.getMonth() + 1).padStart(2, '0');
+        const day = String(parsed.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+
+    function clearPRClientDateRange() {
+        document.getElementById('prc-date-from').value = '';
+        document.getElementById('prc-date-to').value = '';
+        renderPRClient();
+    }
+
+    let prClientSort = { col: null, asc: true };
     let currentPRClientData = []; 
 
     function sortPRClient(col) {
@@ -3724,14 +3758,25 @@ let prClientSort = { col: null, asc: true };
         let filtered = Object.values(appData.orders).filter(o => (parseFloat(o.balance) || 0) > 0);
         
         const fDate = (document.getElementById('prc-filt-date').value || '').toLowerCase();
+        const fromDate = document.getElementById('prc-date-from').value;
+        const toDate = document.getElementById('prc-date-to').value;
         const fId = (document.getElementById('prc-filt-id').value || '').toLowerCase();
+
+        if (fromDate && toDate && fromDate > toDate) {
+            alert('From Date cannot be later than To Date.');
+            document.getElementById('prc-date-to').value = '';
+            return renderPRClient();
+        }
         const fClient = (document.getElementById('prc-filt-client').value || '').toLowerCase();
         const fPhone = (document.getElementById('prc-filt-phone').value || '').toLowerCase();
         const fWork = (document.getElementById('prc-filt-work').value || '').toLowerCase();
         const fBal = parseFloat(document.getElementById('prc-filt-bal').value);
 
         filtered = filtered.filter(o => {
+            const dateKey = getPRClientDateKey(o.date);
             const dateStr = o.date ? new Date(o.date).toLocaleDateString().toLowerCase() : '';
+            if (fromDate && (!dateKey || dateKey < fromDate)) return false;
+            if (toDate && (!dateKey || dateKey > toDate)) return false;
             if(fDate && !dateStr.includes(fDate)) return false;
             if(fId && !(o.orderId || '').toLowerCase().includes(fId)) return false;
             if(fClient && !(o.client || '').toLowerCase().includes(fClient)) return false;
