@@ -2821,6 +2821,7 @@ function fetchOrderForAllotment() {
                 </div>
                 <div class="form-group"><label>Vendor Name</label><select class="va-vendor" onchange="populateMaterials(this)"><option value="">Select Vendor...</option></select></div>
                 <div class="form-group"><label>Material / Rate</label><select class="va-material" onchange="fetchRateAndCalculate(this)" disabled><option value="">Select Vendor First</option></select></div>
+                <div class="form-group va-custom-amount-group" style="display:none;"><label>Customized Amount (₹)</label><input type="number" class="va-custom-amount" min="0" step="0.01" placeholder="Enter custom amount" oninput="fetchRateAndCalculate(this)"></div>
                 <div class="form-group"><label>Sq.Ft / Qty</label><input type="number" class="va-qty" value="${item.qty || 1}" min="0.1" step="0.1" oninput="fetchRateAndCalculate(this)"></div>
                 <div class="form-group"><label>Vendor Cost (₹)</label><input type="number" class="va-amount" readonly style="background: #fcfcfd; font-weight: bold; color: #111;"></div>
             `;
@@ -2841,27 +2842,60 @@ function fetchOrderForAllotment() {
         const row = selectElement.closest('.va-row');
         const vName = selectElement.value;
         const mSelect = row.querySelector('.va-material');
-        if(vName === "") { mSelect.disabled = true; mSelect.innerHTML = '<option value="">Select Vendor First</option>'; return; }
+        const customGroup = row.querySelector('.va-custom-amount-group');
+        const customInput = row.querySelector('.va-custom-amount');
+        const amountInput = row.querySelector('.va-amount');
+
+        customGroup.style.display = 'none';
+        customInput.value = '';
+        amountInput.value = '';
+
+        if(vName === "") {
+            mSelect.disabled = true;
+            mSelect.innerHTML = '<option value="">Select Vendor First</option>';
+            return;
+        }
+
         mSelect.disabled = false;
         mSelect.innerHTML = '<option value="">Select Material...</option>';
-        
+
         const vendor = appData.vendors.find(v => v.name === vName);
         if(vendor && vendor.materials) {
-            vendor.materials.forEach((m) => { 
-                let opt = document.createElement('option'); 
-                opt.value = m.rate; 
+            vendor.materials.forEach((m) => {
+                let opt = document.createElement('option');
+                opt.value = m.rate;
                 opt.dataset.matName = m.name;
-                opt.innerText = `${m.name} (₹${m.rate})`; 
-                mSelect.appendChild(opt); 
+                opt.innerText = `${m.name} (₹${m.rate})`;
+                mSelect.appendChild(opt);
             });
         }
+
+        const otherOpt = document.createElement('option');
+        otherOpt.value = 'other';
+        otherOpt.dataset.matName = 'Other';
+        otherOpt.innerText = 'Other';
+        mSelect.appendChild(otherOpt);
     }
-    
+
     function fetchRateAndCalculate(element) {
         const row = element.closest('.va-row');
-        const rate = parseFloat(row.querySelector('.va-material').value) || 0;
+        const mSelect = row.querySelector('.va-material');
+        const selectedOpt = mSelect.options[mSelect.selectedIndex];
+        const isOther = !!selectedOpt && selectedOpt.value === 'other';
+        const customGroup = row.querySelector('.va-custom-amount-group');
+        const customInput = row.querySelector('.va-custom-amount');
         const qty = parseFloat(row.querySelector('.va-qty').value) || 0;
-        row.querySelector('.va-amount').value = rate * qty;
+        const amountInput = row.querySelector('.va-amount');
+
+        customGroup.style.display = isOther ? 'flex' : 'none';
+        if (isOther) {
+            const customAmount = parseFloat(customInput.value);
+            amountInput.value = Number.isFinite(customAmount) && customAmount > 0 ? customAmount.toFixed(2) : '';
+            return;
+        }
+
+        const rate = parseFloat(mSelect.value) || 0;
+        amountInput.value = rate > 0 && qty > 0 ? (rate * qty).toFixed(2) : '';
     }
 
     async function saveVendorAllotment() {
@@ -2879,8 +2913,10 @@ function fetchOrderForAllotment() {
             const selectedOpt = matSelect.options[matSelect.selectedIndex];
             const matName = selectedOpt ? (selectedOpt.dataset.matName || selectedOpt.text) : 'Material';
             
-            if(vendorName !== "") {
+            const isOther = !!selectedOpt && selectedOpt.value === 'other';
+            if(vendorName !== "" && matSelect.value !== "") {
                 const amt = parseFloat(row.querySelector('.va-amount').value) || 0;
+                if (amt <= 0) { allValid = false; return; }
                 const workItem = row.querySelector('.va-work-item').value + ' (' + matName + ')';
                 
                 allotments.push({ workItem, vendorName, amount: amt });
@@ -2888,7 +2924,7 @@ function fetchOrderForAllotment() {
             } else { allValid = false; }
         });
 
-        if(!allValid) return alert("Please select a vendor for all work items.");
+        if(!allValid) return alert("Please select a vendor and material for every work item, and enter a valid Customized Amount when Other is selected.");
         const vendorNamesCombined = [...new Set(allotments.map(a => a.vendorName))].join(", ");
 
         const { error: oErr } = await supabaseClient.from('orders').update({ status: 'vendor_allotted', vendorName: vendorNamesCombined }).eq('orderId', order.orderId);
