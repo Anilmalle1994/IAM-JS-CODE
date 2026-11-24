@@ -3034,9 +3034,9 @@ function fetchOrderForAllotment() {
         });
         for (const [vendorName, details] of byVendor.entries()) {
             const itemLines = details.items.map((a, index) =>
-                `${index + 1}. *Work:* ${a.workName || a.workItem}\n   *Size:* ${a.size || 'As discussed'}\n   *Material:* ${a.material}\n   *QTY:* ${a.qty}`
+                `${index + 1}. *Size:* ${a.size || 'As discussed'}\n   *Material:* ${a.material}\n   *QTY:* ${a.qty}`
             ).join('\n\n');
-            const vendorMessage = `Hello *${vendorName}*,\n\nNew printing work has been allotted to you by *IAM Designs*. Please confirm and start the work.\n\n*Order ID:* ${order.orderId}\n*Client:* ${order.client || 'N/A'}\n\n${itemLines}\n\nPlease maintain the specified size, material and quantity. Contact us if you need any clarification.\n\nThank you,\n*IAM Designs*`;
+            const vendorMessage = `Hello *${vendorName}*,\n\n*Please Print The Following:*\n\n${itemLines}\n\nPlease maintain the specified size, material and quantity. Contact us if you need any clarification.\n\nThank you,\n*IAM Designs*`;
             await sendAutomatedWhatsApp(details.phone, vendorMessage);
         }
 
