@@ -1549,6 +1549,9 @@
     
     applyTimeBasedThemeAndGreeting();
 
+    let currentUserRole = 'admin';
+    const ORDER_OPS_ALLOWED_VIEWS = new Set(['new-order', 'payment', 'delivery']);
+
     async function checkAuth() {
         const { data: { session }, error } = await supabaseClient.auth.getSession();
         if (!session || error) {
@@ -1558,7 +1561,13 @@
             const nameDisplay = document.getElementById('user-email');
             const avatarDisplay = document.querySelector('.profile-chip .avatar');
 
-            if (email === 'kj.apple9@gmail.com') {
+            if (email === 'saip9515@gmail.com') {
+                currentUserRole = 'order_ops';
+                if(nameDisplay) nameDisplay.innerText = "Order Operations";
+                if(avatarDisplay) avatarDisplay.innerText = "O";
+                enforceOrderOperationsView();
+            }
+            else if (email === 'kj.apple9@gmail.com') {
                 if(nameDisplay) nameDisplay.innerText = "AVEO";
                 if(avatarDisplay) avatarDisplay.innerText = "A";
                 enforceRestrictedUserView();
@@ -1576,6 +1585,44 @@
 
             loadAppData(); 
         }
+    }
+
+    function enforceOrderOperationsView() {
+        const sidebar = document.getElementById('sidebar');
+        if (sidebar) sidebar.style.display = 'none';
+        const topbarLeft = document.querySelector('.topbar-left');
+        if (topbarLeft) topbarLeft.style.display = 'none';
+        const mainContent = document.querySelector('.main-content');
+        if (mainContent) {
+            mainContent.style.marginLeft = '0';
+            mainContent.style.width = '100%';
+        }
+        const topbar = document.querySelector('.topbar');
+        if (topbar) topbar.justifyContent = 'space-between';
+
+        const nav = document.getElementById('main-top-nav');
+        if (nav) {
+            nav.style.display = 'flex';
+            nav.querySelectorAll('[data-target]').forEach(link => {
+                link.style.display = ORDER_OPS_ALLOWED_VIEWS.has(link.dataset.target) ? '' : 'none';
+                link.classList.remove('active');
+            });
+        }
+        document.querySelectorAll('.view-section').forEach(view => {
+            view.classList.remove('active');
+            view.style.display = 'none';
+        });
+        const firstView = document.getElementById('new-order');
+        if (firstView) {
+            firstView.classList.add('active');
+            firstView.style.display = 'block';
+        }
+        const firstLink = nav && nav.querySelector('[data-target="new-order"]');
+        if (firstLink) firstLink.classList.add('active');
+        document.body.classList.remove('night-theme');
+        const greetingEl = document.getElementById('greeting-text');
+        if (greetingEl) greetingEl.innerText = 'Order Operations';
+        initNewOrder();
     }
 
     function enforceGstLedgerOnlyView() {
@@ -1993,6 +2040,11 @@
     document.querySelectorAll('.nav-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             e.preventDefault();
+            const requestedTarget = btn.getAttribute('data-target');
+            if (currentUserRole === 'order_ops' && !ORDER_OPS_ALLOWED_VIEWS.has(requestedTarget)) {
+                alert('Access denied. This account can use only New Order, Payment and Delivery.');
+                return;
+            }
             
             document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
             
@@ -2066,6 +2118,12 @@
                     const keyId = o.orderId || o.orderid || o.id; 
                     if (keyId) appData.orders[keyId] = o;
                 });
+            }
+
+            if (currentUserRole === 'order_ops') {
+                // Do not fetch vendor, staff, reports, GST or website-management data.
+                populateClientDatalist();
+                return;
             }
 
             const { data: vendors, error: vError } = await supabaseClient.from('vendors').select('*');
