@@ -2821,11 +2821,25 @@
 
         let upiLink = `upi://pay?pa=${MERCHANT_UPI_ID}&pn=${encodeURIComponent(MERCHANT_UPI_NAME)}&am=${payload.balance}&cu=INR&tn=${orderId}`;
         let qrUrl = `https://quickchart.io/qr?text=${encodeURIComponent(upiLink)}&size=300`;
-        let msg = `Hello ${client},\nYour order *${orderId}* has been successfully placed with iam des!gns.\n\n*Order Details:*\n${workDetailsForWA}\n\nTotal Amount: ₹${payload.amount}\nPaid: ₹${payload.advance}\nBalance Due: ₹${payload.balance}\n\n`;
-        if(payload.balance > 0) {
-            msg += `💳 *Pay exact balance securely via PhonePe / UPI:* \n${upiLink}\n\n🖼️ *Scan QR to Pay:* \n${qrUrl}\n\n`;
+        let previewLines = [];
+        for (let idx = 0; idx < items.length; idx++) {
+            const item = items[idx];
+            if (item.imagePath) {
+                try {
+                    const { data: signedData, error: signedErr } = await supabaseClient.storage.from(IAM_WORK_IMAGE_BUCKET).createSignedUrl(item.imagePath, 7 * 24 * 60 * 60);
+                    if (!signedErr && signedData?.signedUrl) {
+                        previewLines.push(`*Design Preview${items.length > 1 ? ` - ${item.desc || `Work ${idx + 1}`}` : ''}:*\n${signedData.signedUrl}`);
+                    }
+                } catch (previewErr) { console.warn('Could not create client preview link', previewErr); }
+            }
         }
-        msg += `We will notify you when it is ready!`;
+        let msg = `Hello ${client},\nYour order (*${orderId}*) has been successfully placed with *IAM Designs*.\n\n*Order Details:*\n${workDetailsForWA}\n\n`;
+        if (previewLines.length) msg += `🖼️ *Design Preview:*\n${previewLines.join('\n\n')}\n\n`;
+        msg += `*Total Amount:* ₹${payload.amount}\n*Paid:* ₹${payload.advance}\n*Balance Due:* ₹${payload.balance}\n\n`;
+        if(payload.balance > 0) {
+            msg += `💳 *Pay exact balance securely via PhonePe / UPI:*\n${upiLink}\n\n📲 *Scan QR to Pay:*\n${qrUrl}\n\n`;
+        }
+        msg += `We will notify you when it is ready!\n\nThank you for choosing *IAM Designs* ❤️`;
         await sendAutomatedWhatsApp(phone, msg);
 
         document.getElementById('new-order-form').reset();
@@ -2898,6 +2912,8 @@ function fetchOrderForAllotment() {
                 <div class="form-group" style="grid-column: 1 / -1; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid #f1f2f4;">
                     <label style="color: var(--dark); font-size: 14px; font-weight: 700;">${detailedWorkName}${extraDetailsStr}</label>
                     <input type="hidden" class="va-work-item" value="${rawWorkValue}">
+                    <input type="hidden" class="va-image-path" value="${item.imagePath || ''}">
+                    <input type="hidden" class="va-image-name" value="${item.imageName || ''}">
                 </div>
                 <div class="form-group"><label>Vendor Name</label><select class="va-vendor" onchange="populateMaterials(this)"><option value="">Select Vendor...</option></select></div>
                 <div class="form-group"><label>Material / Rate</label><select class="va-material" onchange="fetchRateAndCalculate(this)" disabled><option value="">Select Vendor First</option></select></div>
@@ -3005,7 +3021,9 @@ function fetchOrderForAllotment() {
                 const workItem = workRaw + ' (' + matName + ')';
                 const vendorRecord = appData.vendors.find(v => v.name === vendorName);
                 const vendorPhone = vendorRecord ? String(vendorRecord.phone || '').trim() : '';
-                allotments.push({ workItem, workName, vendorName, vendorPhone, material: matName, size, qty, amount: amt });
+                const imagePath = row.querySelector('.va-image-path')?.value || '';
+                const imageName = row.querySelector('.va-image-name')?.value || '';
+                allotments.push({ workItem, workName, vendorName, vendorPhone, material: matName, size, qty, amount: amt, imagePath, imageName });
                 historyEntries.push({ date: new Date().toISOString(), orderId: order.orderId, vendor: vendorName, work: workItem, amount: amt, is_paid: false });
             } else { allValid = false; }
         });
@@ -3033,10 +3051,18 @@ function fetchOrderForAllotment() {
             byVendor.get(a.vendorName).items.push(a);
         });
         for (const [vendorName, details] of byVendor.entries()) {
-            const itemLines = details.items.map((a, index) =>
-                `${index + 1}. *Size:* ${a.size || 'As discussed'}\n   *Material:* ${a.material}\n   *QTY:* ${a.qty}`
-            ).join('\n\n');
-            const vendorMessage = `Hello *${vendorName}*,\n\n*Please Print The Following:*\n\n${itemLines}\n\nPlease maintain the specified size, material and quantity. Contact us if you need any clarification.\n\nThank you,\n*IAM Designs*`;
+            const itemLines = [];
+            for (const [index, a] of details.items.entries()) {
+                let previewLine = '';
+                if (a.imagePath) {
+                    try {
+                        const { data: signed, error: signedError } = await supabaseClient.storage.from(IAM_WORK_IMAGE_BUCKET).createSignedUrl(a.imagePath, 7 * 24 * 60 * 60);
+                        if (!signedError && signed?.signedUrl) previewLine = `\n   *Printing Preview:* ${signed.signedUrl}`;
+                    } catch (previewError) { console.warn('Could not create work image preview link', previewError); }
+                }
+                itemLines.push(`${index + 1}. *Size:* ${a.size || 'As discussed'}\n   *Material:* ${a.material}\n   *QTY:* ${a.qty}${previewLine}`);
+            }
+            const vendorMessage = `Hello *${vendorName}*,\n\n*Please Print The Following:*\n\n${itemLines.join('\n\n')}\n\nPlease maintain the specified size, material and quantity. Contact us if you need any clarification.\n\nThank you,\n*IAM Designs*`;
             await sendAutomatedWhatsApp(details.phone, vendorMessage);
         }
 
